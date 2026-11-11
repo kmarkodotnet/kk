@@ -697,3 +697,97 @@ kiválasztása (FR-14, FR-22, CR-07).
 | TR-02 teljes készlet | **RÉSZBEN** – a distraktorválasztás invariánsai lefedve (fenti 20 teszt); a seed-determinizmus a teljes terven (T-110) és a végponti TR-02 készlet (T-112) még hátravan. |
 | TR-03 teljes készlet | **RÉSZBEN** – a T-108 óta változatlan; a generált kérdéseken át vezetett ellenőrzés a T-112-ben. |
 | TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+---
+
+## 2026-11-11 – T-110: seedelt determinizmus (core/quiz)
+
+**Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper 8.13,
+`JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **196 teszt, 0 hiba** (core/model 35 + core/quiz 161) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 686 975 bájt) |
+
+A tesztszámok a `core/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`, `failures`
+és `errors` attribútumainak összegei, nem becslés; a `DefaultQuizGeneratorTest` önmagában
+**15 teszt, 0 hiba**.
+
+### Ami elkészült
+
+`SeededShuffle` és `DefaultQuizGenerator` (`core/quiz/.../generator/`): a `QuizGenerator`
+első és egyetlen implementációja (NFR-07, ADR-007, FR-14, FR-22).
+
+- **Egyetlen véletlenforrás.** A `generate()` egy darab `Random(request.seed)` példányt hoz
+  létre, és minden sorsolás abból megy: először a (típus, helyes válasz) jelöltek
+  **Fisher–Yates** keverése adja a kérdéssorrendet, majd kérdésenként a négy opció
+  keverése. A `SeededShuffle.shuffled(items, random)` az egyetlen keverő belépési pont, és
+  az RNG-t **paraméterként** kéri – seed nélküli keverés így fordítási hiba, nem
+  elfelejtett paraméter.
+- **A keverés csak permutál.** Az opciók halmazát a T-109 `selectOptionIds` adja; a keverés
+  nem ad hozzá, nem hagy el és nem duplikál opciót. Ezért a keverés nem tud kérdést
+  elrontani (FR-14).
+- **Rendezett bejárás.** A típusok a `QuestionType` deklarációs sorrendjében, a helyes
+  jelöltek a `DistractorSelector.buildableCorrectAnswers` azonosító szerint rendezett
+  listáiból. `Set`-iterációs sorrendre épülő döntés nincs; a hívó jelöltlistájának sorrendje
+  nem változtatja meg a tervet (külön teszt).
+- **Nincs ismétlés.** Ugyanaz a helyes technika egy terven belül legfeljebb egyszer
+  szerepel, akkor is, ha több kérdéstípusban is használható lenne. Ha a kért kérdésszám
+  több, mint ahány különböző helyes jelölt van, **kevesebb** kérdés lesz.
+- **Tényleges `Shortfall`.** A terv most állítja elő, prioritási sorrendben:
+  `ALL_TYPES_SKIPPED` (nulla kérdés) → `NOT_ENOUGH_IMAGES` (egy engedélyezett képes típus
+  egésze kiesett) → `NOT_ENOUGH_DISTRACTORS` (a kapun átjutott helyes jelölt mellé nem
+  állt össze három distraktor) → `NOT_ENOUGH_CANDIDATES`.
+- **Kérdésazonosító:** `q-01`, `q-02`, … a terven belüli pozícióból, `padStart`-tal, nem
+  `String.format`-tal – az utóbbi területi beállítástól függően más számjegyeket írhatna,
+  a mentett állapotnak viszont minden eszközön egyeznie kell (ADR-005, ADR-007).
+
+### A T-110 tesztjei (`DefaultQuizGeneratorTest`, 15 teszt)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `generate_sameRequestAndSeedTwice_producesIdenticalPlan_NFR07` | kétszer hívva bitre ugyanaz a terv, az opciósorrenddel és a helyes válasz indexeivel együtt |
+| `generate_equalRequestsBuiltSeparately_produceIdenticalPlan_NFR07` | a determinizmus a kérés **értékén** áll, nem objektumidentitáson |
+| `generate_candidateInputOrder_doesNotChangeThePlan_NFR07` | a hívó listájának sorrendje nem számít (rendezett bejárás) |
+| `generate_differentSeeds_produceDifferentQuestionOrder_NFR07` | a seed tényleg hat – a keverés nem no-op |
+| `quizModuleMainSources_containNoUnseededRandomOrClock_NFR07` | a `main` forráskészletben – megjegyzéseket leszámítva – nincs `Random.Default` / `currentTimeMillis` / `nanoTime` / `Instant.now` / `*.now()` és nincs paraméter nélküli `shuffled()` |
+| `generate_optionShuffle_onlyReordersTheSelectedOptions_FR14` | az opciók halmaza a T-109 kiválasztása, a keverés csak permutál |
+| `generate_correctAnswerPosition_isShuffledNotAlwaysFirst_TR02` | a helyes válasz nem mindig az első opció |
+| `generate_neverRepeatsTheSameCorrectTechnique_TR02` | 20 kérdés, 20 **különböző** helyes technika |
+| `generate_fewerCandidatesThanRequested_yieldsShortfallInsteadOfRepetition_FR22` | kevés jelölt → kevesebb kérdés + `Shortfall`, nem ismétlés |
+| `generate_exactlyEnoughCandidates_hasNoShortfall_FR13` | pontosan kijövő kérdésszámnál nincs `Shortfall` |
+| `generate_noUsableCandidate_returnsExplainedEmptyPlan_FR22` | üres, de megindokolt terv – nincs kivétel |
+| `generate_imageTypesWithoutIllustrations_reportSkipReasonAndShortfall_TR03` | kép nélkül a (C)/(D) kimarad `NOT_ENOUGH_IMAGES` okkal, a szöveges típusok futnak |
+| `generate_questionIds_areUniqueAndFollowPlayOrder_ADR005` | a kérdésazonosítók egyediek és a lejátszási sorrendet adják |
+| `generate_mixesEnabledQuestionTypesWithinOnePlan_FR12` | a terv nem típusonként tömbösített |
+| `dryRun_promisesExactlyWhatGenerateProduces_FR13` | `dryRun(r).expectedQuestionCount == generate(r).questionCount` négy különböző kérésre |
+
+### Rétegszabály és eltérés a tervtől
+
+- A `core/quiz` főkódja továbbra is csak a `core:model`-re, a `kotlinx-serialization-json`-ra
+  és a `kotlin.random`-ra függ; `android`/`androidx`/`room` import nincs (ADR-001 L1).
+- A `Random(seed)` **nem** tiltott RNG-hívás: a seed a `QuizRequest` része, a hívó
+  injektált RNG-ből sorsolja (ADR-007). A tiltás a seed nélküli véletlenre és a
+  rendszerórára vonatkozik – ezt a forrásszkennelő teszt kényszeríti ki.
+- **Eltérés:** a `dryRun()` ebben a körben a `generate()` tervéből származtat. Ez helyes
+  (definíció szerint nem tud eltérni), de nem optimális: a beállító képernyő élő
+  összegzéséhez kérdéseket épít. A kérdésépítés nélküli összegzés és az `availableByType`
+  pontos szemantikája a T-111 tárgya.
+- A `Shortfall` okainak prioritási sorrendje a motor **döntése**, a specifikáció csak az
+  enumot írja elő. A sorrend a KDoc-ban indokolt; ha a TR-02 készlet (T-112) más sorrendet
+  kíván, ott kell egyeztetni.
+- Felhasználói szöveg nem keletkezett: a motor szövegfüggetlen, a magyar üzenetek a UI
+  `strings.xml`-jében élnek (FR-22, T-404).
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-110 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-02 teljes készlet | **RÉSZBEN** – a seed-determinizmus a teljes terven és a nem ismétlés lefedve (fenti 15 teszt); a végponti TR-02 készlet a T-112. |
+| TR-03 teljes készlet | **RÉSZBEN** – a kategóriaszűrés és a (C)/(D) kihagyás a generált terven át is ellenőrizve; a teljes készlet a T-112. |
+| TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
