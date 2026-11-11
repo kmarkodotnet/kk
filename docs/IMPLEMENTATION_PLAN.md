@@ -74,7 +74,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
 | 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), a V010 a `core/data` importrétegé (T-115) |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ✅ **kész** – T-106: `KnowledgeValidationRuleTableTest` 31 nevesített, parametrizált eset a V001…V010 kódokra + `KnowledgeValidationRuleCoverageTest` (gépi lefedettségi őr), `KnowledgeValidatorGuaranteesTest` (nem dob kivételt / nem emel státuszt), `RealKnowledgeBaseValidationTest` (a valós 161 rekord, 0 BLOKKOLÓ hiba). **105 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0 |
-| 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07, NFR-07 | 🟡 **részben** – T-107 (szerződés), T-108 (jelöltszűrés), T-109 (distraktorválasztás) és T-110 (seedelt determinizmus) kész: a `QuizCandidateFilter`, a `DistractorSelector` és a `DefaultQuizGenerator` – Fisher–Yates keverés kizárólag a seedelt RNG-ből, kérdés- és opciósorrend a seedből, ismétlésmentes helyes válaszok, tényleges `Shortfall`. **196 zöld teszt.** Hátra: a `dryRun` önálló, kérdésépítés nélküli összegzése (T-111) és a teljes TR-02/TR-03 készlet (T-112) |
+| 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07, NFR-07 | 🟡 **részben** – T-107 (szerződés), T-108 (jelöltszűrés), T-109 (distraktorválasztás), T-110 (seedelt determinizmus) és T-111 (`dryRun` készenléti összegzés) kész: a `QuizCandidateFilter`, a `DistractorSelector` és a `DefaultQuizGenerator` – Fisher–Yates keverés kizárólag a seedelt RNG-ből, kérdés- és opciósorrend a seedből, ismétlésmentes helyes válaszok, tényleges `Shortfall`, és kérdésépítés nélküli `dryRun`, amely a `generate`-tel közös slotlistából számol. **202 zöld teszt.** Hátra: a teljes TR-02/TR-03 készlet (T-112) |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ⬜ |
 | 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ⬜ |
 | 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | ⬜ |
@@ -165,15 +165,14 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-111** – `dryRun` készenléti összegzés: a beállító képernyő élő összegzése a
-   kérdésépítés **nélkül**, `availableByType`-pal. (**A T-110 lezárva:** a
-   `DefaultQuizGenerator.generate` teljes értékű – seedelt Fisher–Yates kérdés- és
-   opciósorrend, ismétlésmentes helyes válaszok, tényleges `Shortfall`. A `dryRun`
-   egyelőre a `generate` tervéből származtat, ezért helyes, de nem optimális.)
-2. **T-112** – **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja, ahol eldől, hogy a
-   termék helyes-e.
-3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
+1. **T-112** – **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja, ahol eldől, hogy a
+   termék helyes-e. (**A T-111 lezárva:** a `dryRun` kérdésépítés nélkül összegez, a
+   `generate`-tel közös `questionSlots` listából; az `availableByType` típusonkénti
+   kapacitás, nem a terv felosztása.)
+2. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
    kvíz, dupla válasz (a T-103 `QuizAttempt`-jére épül).
+3. **T-115…T-117** – `core/data`: a kanonikus séma beolvasása, a Room séma és a
+   `ContentImporter` (a tartalomfrissítés előrehaladás-megőrzésével).
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
@@ -328,3 +327,19 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   core/quiz 161), `testDebugUnitTest` és `assembleDebug` exit 0. A `dryRun` egyelőre a
   `generate` tervéből származtat (helyes, de nem optimális) – a kérdésépítés nélküli
   összegzés a T-111, a teljes TR-02/TR-03 készlet a T-112 tárgya.
+- 2026-11-11 – **T-111 kész** (Fázis 2.4 ötödik darabja): a `DefaultQuizGenerator.dryRun()`
+  **kérdésépítés nélkül** összegez (FR-13, FR-22). A `generate()` és a `dryRun()` egyetlen
+  találkozási pontja a privát `questionSlots(request, skippedTypes)`: minden meg nem hagyott
+  típus minden olyan helyes jelöltje, amely mellé tényleg összeáll négy opció. A `dryRun`
+  innen már csak összegez – nincs `Random`, nincs keverés, nincs `QuizQuestion` –, és a
+  kérdésszám mégis bizonyíthatóan egyezik: a `generate` a helyes technika szerint
+  deduplikál, ezért minden különböző helyes technika pontosan egy kérdést ad, a keverés
+  sorrendjétől függetlenül, vagyis a kérdésszám `min(requestedCount, a slotok különböző
+  helyes technikáinak száma)`. Az `availableByType` szemantikája tisztázva: típusonkénti
+  **kapacitás**, nem a terv felosztása – csak nem kihagyott típus, minden érték ≥ 1, és az
+  értékek összege nagyobb lehet az `expectedQuestionCount`-nál, mert ugyanaz a technika több
+  típusban is lehet helyes válasz, de egy kvízen belül legfeljebb egyszer kerül elő. A
+  `QuizReadiness` ezt invariánsként is kikényszeríti (diszjunkt kulcsok a `skippedTypes`-szal,
+  nincs nulla kapacitású bejegyzés, `isEmpty() == (expectedQuestionCount == 0)`, az összeg
+  felső korlát). **202 zöld teszt** (core/model 35 + core/quiz 167), `testDebugUnitTest` és
+  `assembleDebug` exit 0. A teljes TR-02/TR-03 készlet továbbra is a T-112 tárgya.

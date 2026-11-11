@@ -22,3 +22,6 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-106](T-106-tr-01-validator-tesztek.md) | TR-01: validátor tesztek | E1 | `core/quiz` | 2026-11-11 |
 | [T-107](T-107-core-quiz-a-generator-szerzodese.md) | core/quiz: a generátor szerződése | E1 | `core/quiz` | 2026-11-11 |
 | [T-108](T-108-core-quiz-jeloltszures-es-jogosultsagi-kapuk.md) | core/quiz: jelöltszűrés és jogosultsági kapuk | E1 | `core/quiz` | 2026-11-11 |
+| [T-109](T-109-core-quiz-distraktorvalasztas.md) | core/quiz: distraktorválasztás | E1 | `core/quiz` | 2026-11-11 |
+| [T-110](T-110-core-quiz-seedelt-determinizmus.md) | core/quiz: seedelt determinizmus | E1 | `core/quiz` | 2026-11-11 |
+| [T-111](T-111-core-quiz-dryrun-keszenleti-osszegzes.md) | core/quiz: dryRun() készenléti összegzés | E1 | `core/quiz` | 2026-11-11 |

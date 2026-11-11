@@ -135,7 +135,48 @@ class QuizPlanContractTest {
         )
 
         assertThat(readiness.canStart).isTrue()
-        assertThat(readiness.availableByType.values.sum()).isEqualTo(readiness.expectedQuestionCount)
+        // Az availableByType típusonkénti **kapacitás**, nem a terv felosztása (T-111):
+        // csak nem kihagyott típus szerepel benne, mindegyik legalább 1 kérdéssel, és az
+        // összeg a várható kérdésszám felső korlátja – nem feltétlenül egyenlő vele.
+        assertThat(readiness.availableByType.keys).containsNoneIn(readiness.skippedTypes.keys)
+        assertThat(readiness.availableByType.values.min()).isAtLeast(1)
+        assertThat(readiness.availableByType.values.sum()).isAtLeast(readiness.expectedQuestionCount)
+    }
+
+    /**
+     * Az `availableByType` nem lehet ellentmondásban a `skippedTypes`-szal, és nulla
+     * kapacitású típust sem hordozhat (T-111, FR-22).
+     */
+    @Test
+    fun readiness_availableByTypeIsDisjointFromSkippedTypes_FR22() {
+        assertThrows(IllegalArgumentException::class.java) {
+            QuizReadiness(
+                requestedCount = 5,
+                expectedQuestionCount = 2,
+                availableByType = mapOf(QuestionType.JP_TO_HU to 2, QuestionType.HU_TO_JP to 0),
+                skippedTypes = mapOf(QuestionType.HU_TO_JP to SkipReason.NOT_ENOUGH_CANDIDATES),
+                expectedShortfall = Shortfall(5, 2, ShortfallReason.NOT_ENOUGH_CANDIDATES),
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            QuizReadiness(
+                requestedCount = 5,
+                expectedQuestionCount = 2,
+                availableByType = mapOf(QuestionType.JP_TO_HU to 2),
+                skippedTypes = mapOf(QuestionType.JP_TO_HU to SkipReason.TYPE_DISABLED),
+                expectedShortfall = Shortfall(5, 2, ShortfallReason.NOT_ENOUGH_CANDIDATES),
+            )
+        }
+        // Van kapacitás, mégsem áll össze kérdés – ez a beállító képernyőn „nem indítható"
+        // állapotot mutatna hiányzó indok nélkül.
+        assertThrows(IllegalArgumentException::class.java) {
+            QuizReadiness(
+                requestedCount = 5,
+                expectedQuestionCount = 0,
+                availableByType = mapOf(QuestionType.JP_TO_HU to 3),
+                expectedShortfall = Shortfall(5, 0, ShortfallReason.ALL_TYPES_SKIPPED),
+            )
+        }
     }
 
     @Test

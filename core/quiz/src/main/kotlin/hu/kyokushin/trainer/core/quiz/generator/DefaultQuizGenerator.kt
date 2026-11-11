@@ -55,15 +55,9 @@ object DefaultQuizGenerator : QuizGenerator {
         val skippedTypes = QuizCandidateFilter.skipReasons(request)
         val random = Random(request.seed)
 
-        // 1-3. lépés: rendezett jelöltbejárás. A típusok a deklarációs sorrendben, a helyes
-        // jelöltek azonosító szerint rendezve – a keverés előtti sorrend nem függ sem
-        // `Set`-iterációtól, sem a hívó listájának véletlen sorrendjétől.
-        val slots = QuestionType.entries
-            .filter { it !in skippedTypes }
-            .flatMap { type ->
-                DistractorSelector.buildableCorrectAnswers(request, type)
-                    .map { correct -> QuestionSlot(type, correct) }
-            }
+        // 1-3. lépés: rendezett jelöltbejárás – ugyanaz a függvény, amiből a `dryRun` is
+        // számol, hogy a két ág ne tudjon elválni (FR-22, T-111).
+        val slots = questionSlots(request, skippedTypes)
 
         // 4. lépés: seedelt Fisher–Yates keverés – ez adja a kérdéssorrendet.
         val shuffledSlots = SeededShuffle.shuffled(slots, random)
@@ -100,26 +94,68 @@ object DefaultQuizGenerator : QuizGenerator {
     }
 
     /**
-     * A készenléti összegzés a [generate] tervéből származtatva (FR-13, FR-22).
+     * A készenléti összegzés **kérdésépítés nélkül** (FR-13, FR-22, T-111).
      *
-     * Szándékosan a teljes tervet építi meg, és nem egy második, „gyorsabb" becslést: a
-     * szerződés azt követeli meg, hogy `dryRun(r).expectedQuestionCount` és
-     * `generate(r).questionCount` **soha** ne térjen el, és erre az a legbiztosabb
-     * garancia, ha egyetlen algoritmus van. A beállító képernyő élő összegzésének
-     * finomhangolása (a kérdésépítés elkerülése, külön tesztkészlettel) a T-111 tárgya;
-     * addig is helyes választ ad, nem közelítést.
+     * A beállító képernyő élő összegzése minden kapcsolóváltásnál újraszámol, ezért ez az
+     * ág nem épít kérdést: nincs `Random`, nincs keverés, nincs opcióválasztás kérdésenként,
+     * és nem jön létre [QuizQuestion]. Amit elvégez, az pontosan a [generate] 1-3. lépése
+     * ([questionSlots]) – ugyanaz a függvény, ugyanazzal a szűrővel és jogosultsági kapuval.
+     *
+     * **Miért egyezik mégis a kérdésszám?** A [generate] a keverés után a *helyes technika*
+     * szerint deduplikál (nincs ismétlés), és a kért kérdésszámnál megáll; a
+     * [DistractorSelector.buildableCorrectAnswers] garanciája szerint pedig minden slotból
+     * tényleg összeáll kérdés. Így minden különböző helyes technika pontosan egy kérdést ad,
+     * **függetlenül a keverés sorrendjétől** – vagyis a kérdésszám a kért szám és a slotok
+     * különböző helyes technikáinak száma közül a kisebb. Ezt számolja ki
+     * [expectedQuestionCount], és erre külön egyezési teszt van (FR-22, T-112).
+     *
+     * Az [QuizReadiness.availableByType] a slotokból áll össze, nem egy második számolásból:
+     * típusonkénti **kapacitás** (ennyi kérdés állítható össze abból a típusból), nem a terv
+     * felosztása. Ugyanaz a technika több típusban is lehet helyes válasz, ezért az értékek
+     * összege nagyobb lehet, mint az [QuizReadiness.expectedQuestionCount].
      */
     override fun dryRun(request: QuizRequest): QuizReadiness {
-        val plan = generate(request)
+        val skippedTypes = QuizCandidateFilter.skipReasons(request)
+        val slots = questionSlots(request, skippedTypes)
+        val expectedCount = expectedQuestionCount(request, slots)
         return QuizReadiness(
             requestedCount = request.requestedCount,
-            expectedQuestionCount = plan.questionCount,
-            availableByType = QuizCandidateFilter.buildableQuestionCounts(request)
-                .filterKeys { it !in plan.skippedTypes },
-            skippedTypes = plan.skippedTypes,
-            expectedShortfall = plan.shortfall,
+            expectedQuestionCount = expectedCount,
+            availableByType = slots.groupingBy { it.type }.eachCount(),
+            skippedTypes = skippedTypes,
+            expectedShortfall = shortfallOrNull(request, skippedTypes, expectedCount),
         )
     }
+
+    /**
+     * A terv lehetséges kérdései a keverés előtt: minden meg nem hagyott típus minden olyan
+     * helyes jelöltje, amely mellé tényleg összeáll négy opció.
+     *
+     * A [generate] és a [dryRun] **közös** bemenete – ez a két ág egyetlen találkozási
+     * pontja, és ezért nem tud elválni egymástól (FR-22). A bejárás rendezett: a típusok a
+     * [QuestionType] deklarációs sorrendjében, a helyes jelöltek azonosító szerint rendezve
+     * (a [QuizCandidateFilter] rendezett listái), `Set`-iterációs sorrendtől függetlenül
+     * (NFR-07). Kérdést nem épít, RNG-t nem használ.
+     */
+    private fun questionSlots(
+        request: QuizRequest,
+        skippedTypes: Map<QuestionType, SkipReason>,
+    ): List<QuestionSlot> = QuestionType.entries
+        .filter { it !in skippedTypes }
+        .flatMap { type ->
+            DistractorSelector.buildableCorrectAnswers(request, type)
+                .map { correct -> QuestionSlot(type, correct) }
+        }
+
+    /**
+     * Ennyi kérdés áll össze a slotokból: a kért kérdésszám, vagy ha kevesebb különböző
+     * helyes technika van, akkor annyi (nincs ismétlés – kvízmotor-invariáns 6.).
+     */
+    private fun expectedQuestionCount(request: QuizRequest, slots: List<QuestionSlot>): Int =
+        minOf(
+            request.requestedCount,
+            slots.mapTo(LinkedHashSet()) { it.correct.id }.size,
+        )
 
     /**
      * A kérdés azonosítója a terven belüli pozíciójából (ADR-005).

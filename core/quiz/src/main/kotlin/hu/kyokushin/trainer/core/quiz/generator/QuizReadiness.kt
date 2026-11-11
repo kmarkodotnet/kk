@@ -17,9 +17,14 @@ import hu.kyokushin.trainer.core.model.QuestionType
  * @property requestedCount a kért kérdésszám, ahogy a kérésben szerepelt.
  * @property expectedQuestionCount ennyi kérdés áll össze. A `generate()` ugyanerre a
  *   kérésre pontosan ennyi kérdést ad.
- * @property availableByType kérdéstípusonként hány kérdés **állítható össze** – nem a
- *   jelöltek száma, hanem a teljes értékű, négyopciós kérdések száma. Csak azok a típusok
- *   szerepelnek benne, amelyek nem maradtak ki.
+ * @property availableByType kérdéstípusonkénti **kapacitás**: hány teljes értékű,
+ *   négyopciós kérdés állítható össze abból a típusból – nem a jelöltek száma, és **nem** a
+ *   terv felosztása. Csak azok a típusok szerepelnek benne, amelyek nem maradtak ki, így
+ *   minden értéke legalább 1, és a [skippedTypes] kulcsaival nincs átfedése. Mivel ugyanaz
+ *   a technika több típusban is lehet helyes válasz, a motor viszont egy kvízen belül
+ *   legfeljebb egyszer használja, az értékek összege **nagyobb lehet**, mint az
+ *   [expectedQuestionCount] – a UI-nak tehát típusonkénti elérhetőséget mutat, nem
+ *   kérdéskiosztást.
  * @property skippedTypes melyik engedélyezett típus maradt ki és miért – a magyar üzenet
  *   és a javaslat bemenete (FR-22).
  * @property expectedShortfall `null`, ha a kért kérdésszám kijön; egyébként ugyanaz a
@@ -43,6 +48,20 @@ data class QuizReadiness(
         }
         require(expectedShortfall == null || expectedShortfall.actualCount == expectedQuestionCount) {
             "A shortfall tényleges kérdésszáma és a várható kérdésszám nem térhet el."
+        }
+        // Az `availableByType` szemantikája (T-111): a **nem kihagyott** típusok kapacitása.
+        require(availableByType.values.all { it > 0 }) {
+            "Az availableByType csak olyan típust tartalmaz, amelyből kérdés állítható össze; " +
+                "a nulla kapacitású típus a skippedTypes-ban van (FR-22)."
+        }
+        require(availableByType.keys.none { it in skippedTypes }) {
+            "Egy kérdéstípus vagy kihagyott, vagy van kapacitása – a kettő nem lehet egyszerre."
+        }
+        require(availableByType.isEmpty() == (expectedQuestionCount == 0)) {
+            "Ha van kapacitással bíró típus, legalább egy kérdés összeáll – és megfordítva."
+        }
+        require(expectedQuestionCount <= availableByType.values.sum()) {
+            "Több kérdés nem állhat össze, mint amennyit a típusok kapacitása megenged."
         }
     }
 

@@ -791,3 +791,90 @@ első és egyetlen implementációja (NFR-07, ADR-007, FR-14, FR-22).
 | TR-02 teljes készlet | **RÉSZBEN** – a seed-determinizmus a teljes terven és a nem ismétlés lefedve (fenti 15 teszt); a végponti TR-02 készlet a T-112. |
 | TR-03 teljes készlet | **RÉSZBEN** – a kategóriaszűrés és a (C)/(D) kihagyás a generált terven át is ellenőrizve; a teljes készlet a T-112. |
 | TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+---
+
+## 2026-11-11 – T-111: `dryRun()` készenléti összegzés (core/quiz)
+
+**Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper 8.13,
+`JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **202 teszt, 0 hiba** (core/model 35 + core/quiz 167) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 688 230 bájt) |
+
+A tesztszámok a `core/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`, `failures`
+és `errors` attribútumainak összegei, nem becslés; a `DefaultQuizGeneratorTest` önmagában
+**20 teszt, 0 hiba** (a T-110 15 tesztje + a T-111 öt új tesztje).
+
+### Ami elkészült
+
+A `DefaultQuizGenerator.dryRun()` mostantól **nem épít kérdést** (FR-13, FR-22, T-111).
+
+- **Közös kód, nem közös eredmény-utánszámolás.** A `generate()` és a `dryRun()` egyetlen
+  találkozási pontja a privát `questionSlots(request, skippedTypes)`: minden meg nem hagyott
+  típus minden olyan helyes jelöltje, amely mellé a `DistractorSelector` szerint tényleg
+  összeáll négy opció. Ez a lista a `generate()` keverés előtti bemenete **és** a `dryRun()`
+  teljes nyersanyaga – a kettő így nem tud elválni egymástól.
+- **Miért egyezik a kérdésszám?** A `generate()` a keverés után a *helyes technika* szerint
+  deduplikál, és a kért kérdésszámnál megáll; a `buildableCorrectAnswers` garanciája szerint
+  pedig minden slotból létrejön kérdés. Ezért minden különböző helyes technika pontosan egy
+  kérdést ad, **a keverés sorrendjétől függetlenül**: a kérdésszám
+  `min(requestedCount, a slotok különböző helyes technikáinak száma)`. Ezt számolja a
+  `dryRun`, kérdésépítés, keverés és RNG nélkül.
+- **`availableByType` szemantikája tisztázva.** Típusonkénti **kapacitás** (ennyi kérdés
+  állítható össze abból a típusból), nem a terv felosztása. Csak nem kihagyott típus
+  szerepel benne, így minden értéke ≥ 1, és a kulcsai nem fedik a `skippedTypes` kulcsait.
+  Mivel ugyanaz a technika több típusban is lehet helyes válasz, de egy kvízen belül
+  legfeljebb egyszer kerül elő, az **értékek összege nagyobb lehet** az
+  `expectedQuestionCount`-nál – a UI tehát típusonkénti elérhetőséget mutat, nem kiosztást.
+  A térkép a slotlistából (`groupingBy { it.type }.eachCount()`) áll össze, nem egy második
+  számolásból.
+- **Új invariánsok a `QuizReadiness`-ben:** nulla kapacitású típus nem szerepelhet az
+  `availableByType`-ban; az `availableByType` és a `skippedTypes` kulcsai diszjunktak;
+  `availableByType.isEmpty() == (expectedQuestionCount == 0)`; és
+  `expectedQuestionCount <= availableByType.values.sum()`.
+- **`Shortfall`:** ugyanaz a privát `shortfallOrNull(...)` állítja elő, mint a tervnél,
+  ugyanazzal az okprioritással – a beállító képernyő tehát ugyanazt az indoklást kapja,
+  amit a kvíz is adni fog.
+
+### A T-111 tesztjei
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `dryRun_matchesGenerateOnEveryBranch_FR13` | 11 különböző kérésre (bőséges/szűk/négy alatti készlet, letiltott típusok, üres `enabledTypes`, kategóriaszűrő, képes típusok, azonos képujjlenyomatok, szinonimacsoport, határeset) a `dryRun` kérdésszáma, `skippedTypes`-a, `shortfall`-ja és `canStart`-ja megegyezik a `generate` tervével |
+| `dryRun_isSeedIndependentWhileGenerateCountStays_FR13` | öt seedre (köztük negatív és `Long.MAX_VALUE`) ugyanaz a `QuizReadiness`, és a `generate` kérdésszáma mindegyiknél ugyanennyi |
+| `dryRun_availableByTypeIsPerTypeCapacity_FR13` | 6 technika + két szöveges típus → `availableByType = {JP_TO_HU: 6, HU_TO_JP: 6}`, `expectedQuestionCount = 6`: az összeg **nagyobb** a kérdésszámnál, a kulcsok diszjunktak a kihagyott típusokkal |
+| `dryRun_availableByTypeAgreesWithCandidateFilter_FR22` | típusonként a kapacitás a `QuizCandidateFilter.buildableQuestionCount` pontos számával egyezik, a kihagyott típusok kapacitása 0 és kimaradnak a térképből |
+| `dryRun_bodyBuildsNoQuestionAndDrawsNoRandom_FR13` | forrásellenőrzés: a `dryRun` törzsében nincs `generate(` hívás, nincs `QuizQuestion`, nincs `Random`, nincs `SeededShuffle` |
+| `readiness_availableByTypeIsDisjointFromSkippedTypes_FR22` (`QuizPlanContractTest`) | a `QuizReadiness` elutasítja a nulla kapacitású típust, az egyszerre kihagyott és kapacitásos típust, valamint a „van kapacitás, mégsincs kérdés" állapotot |
+
+### Rétegszabály és eltérés a tervtől
+
+- A `core/quiz` főkódja változatlanul csak a `core:model`-re, a `kotlinx-serialization-json`-ra
+  és a `kotlin.random`-ra függ; `android`/`androidx`/`room` import nincs (ADR-001 L1).
+- A `dryRun` ágban nincs RNG és nincs rendszeróra-hívás (NFR-07) – a T-110 forrásszkennelő
+  tesztje továbbra is zöld.
+- **Helyreigazítás:** a `QuizPlanContractTest.readiness_shortfallAgreesWithExpectedCount_FR22`
+  korábban azt állította, hogy `availableByType.values.sum() == expectedQuestionCount`. Ez a
+  tisztázott szemantika szerint téves elvárás (a kapacitások összege felső korlát), ezért az
+  az egy `assert` sor a kapacitás-szemantikát ellenőrzi: diszjunkt kulcsok, minden érték ≥ 1,
+  és az összeg ≥ a várható kérdésszám. Maga a kézzel épített fixture nem változott.
+- A `QuizCandidateFilter.buildableQuestionCounts(request)` (minden típus, a letiltottakkal
+  és nullákkal együtt) a `dryRun`-nak már nem bemenete; diagnosztikai/tartalomellenőrzési
+  célra megmarad, a KDoc-ja ezt mondja ki. Jelenleg csak teszt hívja.
+- Felhasználói szöveg nem keletkezett: a motor szövegfüggetlen, a magyar üzenetek a UI
+  `strings.xml`-jében élnek (FR-22, T-404).
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-111 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-03 teljes készlet | **RÉSZBEN** – a `dryRun`/`generate` egyezés és a kihagyási okok lefedve; a teljes TR-02/TR-03 készlet a T-112 tárgya. |
+| TR-02 teljes készlet | **RÉSZBEN** – változatlanul a T-110 lefedettsége; a végponti készlet a T-112. |
+| TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |

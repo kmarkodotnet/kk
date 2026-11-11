@@ -312,4 +312,183 @@ class DefaultQuizGeneratorTest {
             assertThat(readiness.canStart).isEqualTo(plan.canStart)
         }
     }
+
+    // ----------------------------------------------------------------------------
+    // dryRun: kérdésépítés nélküli készenléti összegzés (T-111, FR-13, FR-22)
+    // ----------------------------------------------------------------------------
+
+    /** Képes típusokra is kvízképes készlet: minden technikának saját illusztrációja van. */
+    private fun imagePool(count: Int, categoryId: String = "uke"): List<Technique> =
+        (1..count).map { index ->
+            val id = "KY-" + (100 + index).toString()
+            technique(
+                id = id,
+                categoryId = categoryId,
+                romaji = "Image $index",
+                hungarian = "Kép $index",
+                illustration = asset(ref = id),
+            )
+        }
+
+    /**
+     * A készenléti összegzés és a terv **minden** jellemző kérésre egyezik (FR-13, FR-22).
+     *
+     * A mátrix szándékosan végigmegy azokon az ágakon, ahol a két számolás elválhatna:
+     * bőséges és szűk készlet, letiltott típusok, kategóriaszűrő, képes típusok,
+     * szinonimakizárás (CR-07), azonos képujjlenyomatok (D típus) és több seed.
+     */
+    @Test
+    fun dryRun_matchesGenerateOnEveryBranch_FR13() {
+        val requests = listOf(
+            // Bőséges szöveges készlet – a kért kérdésszám kijön.
+            request(techniques = pool(12), enabledTypes = textTypes, requestedCount = 10, seed = 1L),
+            // Szűk készlet – shortfall.
+            request(techniques = pool(6), enabledTypes = textTypes, requestedCount = 20, seed = 2L),
+            // Négy alatti készlet – egyetlen kérdés sem áll össze.
+            request(techniques = pool(3), enabledTypes = textTypes, requestedCount = 5, seed = 3L),
+            // Minden típus engedélyezve, de kép nélküli készlet.
+            request(techniques = pool(8), requestedCount = 10, seed = 4L),
+            // Egyetlen engedélyezett típus.
+            request(
+                techniques = pool(8),
+                enabledTypes = setOf(QuestionType.HU_TO_JP),
+                requestedCount = 10,
+                seed = 5L,
+            ),
+            // Egyetlen típus sincs engedélyezve – minden típus kihagyva.
+            request(techniques = pool(8), enabledTypes = emptySet(), requestedCount = 5, seed = 6L),
+            // Kategóriaszűrő: a kijelölt kategóriában kevesebb jelölt van.
+            request(
+                techniques = pool(5, categoryId = "geri") + imagePool(5, categoryId = "tsuki"),
+                enabledTypes = textTypes,
+                categoryFilter = setOf("tsuki"),
+                requestedCount = 10,
+                seed = 7L,
+            ),
+            // Képes típusok saját, különböző illusztrációkkal.
+            request(techniques = imagePool(6), requestedCount = 10, seed = 8L),
+            // Képes típusok, de minden kép vizuálisan azonos – a (D) típus kiesik.
+            request(
+                techniques = imagePool(6),
+                requestedCount = 10,
+                seed = 9L,
+                illustrationDigests = (1..6).associate { "KY-" + (100 + it) to "same-digest" },
+            ),
+            // Szinonimakizárás: a készlet fele egyetlen szinonimacsoport (CR-07).
+            request(
+                techniques = pool(8),
+                enabledTypes = textTypes,
+                requestedCount = 10,
+                seed = 10L,
+                synonymGroups = listOf(setOf("KY-0001", "KY-0002", "KY-0003", "KY-0004")),
+            ),
+            // Pontosan a kért kérdésszám határán.
+            request(techniques = pool(7), enabledTypes = textTypes, requestedCount = 7, seed = 11L),
+        )
+
+        requests.forEach { subject ->
+            val plan = DefaultQuizGenerator.generate(subject)
+            val readiness = DefaultQuizGenerator.dryRun(subject)
+
+            assertThat(readiness.expectedQuestionCount).isEqualTo(plan.questionCount)
+            assertThat(readiness.skippedTypes).isEqualTo(plan.skippedTypes)
+            assertThat(readiness.expectedShortfall).isEqualTo(plan.shortfall)
+            assertThat(readiness.canStart).isEqualTo(plan.canStart)
+            assertThat(readiness.requestedCount).isEqualTo(subject.requestedCount)
+        }
+    }
+
+    /**
+     * A készenléti összegzés nem a seedtől függ: a `dryRun` nem sorsol és nem kever, ezért
+     * bármely seeddel ugyanazt mondja – miközben a `generate` is ugyanannyi kérdést ad
+     * (NFR-07, FR-13).
+     */
+    @Test
+    fun dryRun_isSeedIndependentWhileGenerateCountStays_FR13() {
+        val seeds = listOf(1L, 2L, 77L, -5L, Long.MAX_VALUE)
+        val subjects = seeds.map { seed ->
+            request(techniques = pool(7), enabledTypes = textTypes, requestedCount = 10, seed = seed)
+        }
+
+        val readinesses = subjects.map(DefaultQuizGenerator::dryRun)
+
+        assertThat(readinesses.toSet()).hasSize(1)
+        subjects.forEach { subject ->
+            assertThat(DefaultQuizGenerator.generate(subject).questionCount)
+                .isEqualTo(readinesses.first().expectedQuestionCount)
+        }
+    }
+
+    /**
+     * Az `availableByType` típusonkénti **kapacitás**, nem a terv felosztása (T-111).
+     *
+     * Ugyanaz a technika két szöveges típusban is helyes válasz lehet, de a motor egy
+     * kvízen belül legfeljebb egyszer használja – ezért az értékek összege nagyobb, mint a
+     * várható kérdésszám, és a kulcsok nem fedik a kihagyott típusokat.
+     */
+    @Test
+    fun dryRun_availableByTypeIsPerTypeCapacity_FR13() {
+        val subject = request(
+            techniques = pool(6),
+            enabledTypes = textTypes,
+            requestedCount = 20,
+            seed = 12L,
+        )
+
+        val readiness = DefaultQuizGenerator.dryRun(subject)
+
+        assertThat(readiness.availableByType).isEqualTo(
+            mapOf(QuestionType.JP_TO_HU to 6, QuestionType.HU_TO_JP to 6),
+        )
+        assertThat(readiness.expectedQuestionCount).isEqualTo(6)
+        assertThat(readiness.availableByType.values.sum())
+            .isGreaterThan(readiness.expectedQuestionCount)
+        assertThat(readiness.skippedTypes.keys).containsNoneIn(readiness.availableByType.keys)
+    }
+
+    /**
+     * A kapacitás minden típusnál a jelöltszűrő pontos számával egyezik, a kihagyott
+     * típusok pedig kimaradnak belőle (FR-22).
+     */
+    @Test
+    fun dryRun_availableByTypeAgreesWithCandidateFilter_FR22() {
+        val subject = request(techniques = imagePool(6), requestedCount = 10, seed = 13L)
+
+        val readiness = DefaultQuizGenerator.dryRun(subject)
+
+        QuestionType.entries.forEach { type ->
+            val buildable = QuizCandidateFilter.buildableQuestionCount(subject, type)
+            if (type in readiness.skippedTypes) {
+                assertThat(buildable).isEqualTo(0)
+                assertThat(readiness.availableByType).doesNotContainKey(type)
+            } else {
+                assertThat(readiness.availableByType[type]).isEqualTo(buildable)
+            }
+        }
+    }
+
+    /**
+     * A `dryRun` ága **nem** épít kérdést és nem sorsol (T-111).
+     *
+     * Ugyanaz a forrásellenőrzéses minta, mint az NFR-07 `Random.Default`-tesztnél: a
+     * `dryRun` törzsében nincs `generate(` hívás, nincs `QuizQuestion`, nincs `Random` és
+     * nincs keverés – a beállító képernyő élő összegzése így minden kapcsolóváltásnál
+     * csak a szűrést és a jogosultsági kaput futtatja.
+     */
+    @Test
+    fun dryRun_bodyBuildsNoQuestionAndDrawsNoRandom_FR13() {
+        val source = File(
+            "src/main/kotlin/hu/kyokushin/trainer/core/quiz/generator/DefaultQuizGenerator.kt",
+        )
+        assertThat(source.exists()).isTrue()
+
+        val body = source.readText()
+            .substringAfter("override fun dryRun(request: QuizRequest): QuizReadiness {")
+            .substringBefore("private fun questionSlots(")
+
+        assertThat(body).contains("questionSlots(request, skippedTypes)")
+        listOf("generate(", "QuizQuestion", "Random", "SeededShuffle").forEach { forbidden ->
+            assertThat(body).doesNotContain(forbidden)
+        }
+    }
 }

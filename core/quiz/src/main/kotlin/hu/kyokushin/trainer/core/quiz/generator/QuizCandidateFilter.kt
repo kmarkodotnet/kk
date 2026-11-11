@@ -102,7 +102,14 @@ object QuizCandidateFilter {
         return DistractorSelector.buildableCorrectAnswers(request, questionType).size
     }
 
-    /** Típusonkénti jelöltszám minden kérdéstípusra – a [skipReasons] és a `dryRun` bemenete. */
+    /**
+     * Típusonkénti kérdésszám **minden** kérdéstípusra, a letiltottakkal együtt (ott 0).
+     *
+     * A teljes kép a diagnosztikához és a tartalomellenőrzéshez: a `dryRun` készenléti
+     * összegzése ennél szűkebb képet ad – csak a nem kihagyott típusokat –, és azt a
+     * [DefaultQuizGenerator] a `generate`-tel közös slotlistából számolja, hogy a két ág
+     * ne tudjon elválni (T-111).
+     */
     fun buildableQuestionCounts(request: QuizRequest): Map<QuestionType, Int> =
         QuestionType.entries.associateWith { buildableQuestionCount(request, it) }
 
