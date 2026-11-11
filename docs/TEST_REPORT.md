@@ -54,3 +54,61 @@ illetve a `/kyo-setup-env` parancs.
 ### Debug APK
 
 Nem készült el. Útvonala a build után: `app/build/outputs/apk/debug/app-debug.apk`.
+
+---
+
+## 2026-11-11 – Build környezet felállítva, első sikeres build
+
+### Telepítés (tényleges parancsok, mind exit 0)
+
+| Parancs | Eredmény |
+|---|---|
+| `winget install EclipseAdoptium.Temurin.17.JDK` | `Successfully installed` – Temurin 17.0.21+9 |
+| `winget install Google.AndroidStudio` | `Successfully installed` – 2026.2.2.8 |
+| cmdline-tools `commandlinetools-win-16111833_latest.zip` | kicsomagolva `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latest` alá |
+| `android sdk install platform-tools` | 37.0.1 |
+| `android sdk install platforms/android-36` | telepítve |
+| `android sdk install platforms/android-37.0` | telepítve |
+| `android sdk install build-tools/36.1.0` | telepítve |
+| `android sdk install build-tools/37.0.0` | telepítve |
+| Gradle 9.9.1 letöltés | SHA-256 **ellenőrizve**: `d8a18a7a…ba228` → `checksum OK` |
+| `gradle wrapper --gradle-version 9.9.1` | `BUILD SUCCESSFUL in 31s` |
+
+Megjegyzés: az `sdkmanager` a `platforms;android-36` pontosvesszős szintaxissal
+„Package not found" hibát adott (a wrapper .bat szétvágja a pontosvesszőt); a működő forma a
+új `android sdk install platforms/android-36` perjeles alak. Rögzítve `docs/ENVIRONMENT.md`-ben.
+
+### Build és teszt (tényleges futtatás)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew assembleDebug` | **0** | `BUILD SUCCESSFUL in 1m 11s`, 273 task (142 executed, 11 from cache, 120 up-to-date) |
+| `./gradlew testDebugUnitTest` | **0** | `BUILD SUCCESSFUL in 29s`, 177 task. **Minden `testDebugUnitTest` task `NO-SOURCE`: még egyetlen teszt sem létezik.** |
+
+**Debug APK:** `app/build/outputs/apk/debug/app-debug.apk` – **18,69 MB**, elkészült.
+
+Két hiba merült fel és lett javítva a sikeres build előtt (részletek: ADR-008):
+1. `org.jetbrains.kotlin.android` plugin – AGP 9.0-tól felesleges, hibát okoz; eltávolítva
+   az Android modulokból.
+2. `compileSdk = 36` – a stabil AndroidX kiadások API 37-et követelnek; 37-re emelve.
+3. `local.properties` escape-elt Windows útvonal – `SdkLocator` IOException; perjeles
+   útvonalra cserélve.
+
+### Manifest ellenőrzés (TR-08 előzetes, kézi)
+
+Az összevont manifest (`app/build/intermediates/merged_manifest/debug/.../AndroidManifest.xml`)
+**nem tartalmaz `android.permission.INTERNET`-et.** Egyetlen `uses-permission` szerepel benne:
+`hu.kyokushin.trainer.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` – ezt az AndroidX
+runtime adja hozzá automatikusan, saját aláírásszintű, alkalmazás-privát jogosultság.
+
+**Következmény a TR-08 tesztre:** az assertion ne „nulla permission" legyen, hanem
+„nincs `android.permission.INTERNET`" – különben az automatikusan hozzáadott receiver-
+jogosultság miatt hamisan bukna.
+
+### Tesztkövetelmény-lefedettség (változatlan)
+
+TR-01…TR-07: **nincs implementáció, nincs teszt.** TR-08: kézi ellenőrzéssel teljesül,
+automatizált teszt még nincs.
+
+**Összegzés: a build és a teszt infrastruktúra igazoltan működik, de automatizált teszt
+még nem létezik.** A Fázis 2 (validátor, kvízmotor, scoring + TR-01…TR-04) következik.

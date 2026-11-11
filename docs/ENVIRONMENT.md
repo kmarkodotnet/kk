@@ -9,9 +9,15 @@
 | JDK | ✅ **telepítve** | Temurin 17.0.21+9 – `C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot` |
 | `JAVA_HOME` | ✅ beállítva (gépszintű) | a telepítő állította be |
 | Android Studio | ✅ **telepítve** | `C:\Program Files\Android\Android Studio` (2026.2.2.8) |
-| Android SDK cmdline-tools | ⏳ folyamatban | `commandlinetools-win-16111833` kicsomagolása `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latest` alá |
-| SDK platform / build-tools | ⬜ még nincs | az `sdkmanager` telepíti, a tényleges `--list` kimenet alapján |
-| Emulátor (AVD) | ⬜ még nincs | a TR-06 UI tesztekhez kell |
+| Android SDK cmdline-tools | ✅ **telepítve** | 23.0.0 – `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latest` |
+| SDK platform | ✅ **telepítve** | `platforms/android-36` és `platforms/android-37.0` |
+| SDK build-tools | ✅ **telepítve** | 36.1.0 és 37.0.0 |
+| platform-tools | ✅ **telepítve** | 37.0.1 |
+| Gradle | ✅ **telepítve** | 9.9.1 – `C:\gradle\gradle-9.9.1`, SHA-256 ellenőrizve; a projekt a wrappert használja |
+| Emulátor (AVD) | ⬜ **még nincs** | a TR-06 UI tesztekhez kell (B-03) |
+
+**A build igazoltan működik:** `./gradlew assembleDebug` és `./gradlew testDebugUnitTest`
+egyaránt exit 0. Részletek és pontos kimenetek: `docs/TEST_REPORT.md`.
 
 Az alábbi 1–3. fejezet a **telepítés előtti** kiindulási felmérést őrzi meg, változatlanul.
 
@@ -35,6 +41,9 @@ Futtatott ellenőrzések és kimenetük:
 
 ## 2. Blokkolók
 
+> **A 2. fejezet blokkolói közül B-01, B-02 és B-04 feloldva (lásd 5. változásnapló).
+> Nyitott marad: B-03 (nincs emulátor).** Az alábbi táblázat a kiindulási állapotot őrzi.
+
 | # | Blokkoló | Mire van hatása | Megoldás |
 |---|---|---|---|
 | B-01 | **Nincs JDK** | Semmilyen Gradle művelet nem fut (a wrapper is JVM-et igényel): `assembleDebug`, `testDebugUnitTest`, `lint` | JDK 17 (Temurin) telepítése – `/kyo-setup-env` |
@@ -52,6 +61,15 @@ Futtatott ellenőrzések és kimenetük:
 
 **Amit NEM lehet:** semmilyen build, semmilyen tesztfuttatás, APK előállítás, lint.
 Ezért a `docs/TEST_REPORT.md` addig „NEM FUTOTT" bejegyzéseket tartalmaz.
+
+## 3.5 Windows-specifikus csapdák (tényleges tapasztalat)
+
+| Tünet | Ok | Megoldás |
+|---|---|---|
+| `Package platforms not found`, `Package android-36 not found` | az `sdkmanager.bat` szétvágja a `platforms;android-36` pontosvesszőjét | a új CLI perjeles alakja: `android sdk install platforms/android-36` |
+| `java.io.IOException: The filename, directory name, or volume label syntax is incorrect` a `SdkLocator`-ban | `local.properties` escape-elt Windows útvonallal (`C\:\Users\…`) | előre dőlő törtvonal: `sdk.dir=C:/Users/<user>/AppData/Local/Android/Sdk` |
+| `The 'org.jetbrains.kotlin.android' plugin is no longer required… since AGP 9.0` | AGP 9 beépített Kotlin-támogatás | a plugin eltávolítása az Android modulokból (ADR-008) |
+| `requires … compile against version 37 or later` | a stabil AndroidX kiadások API 37-et kérnek | `compileSdk = 37` + `platforms/android-37.0` telepítése |
 
 ## 4. Telepítési terv (jóváhagyásra)
 

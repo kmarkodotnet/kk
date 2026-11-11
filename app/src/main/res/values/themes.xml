@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      A tényleges színeket a Compose téma adja (core/ui + ui/theme/Theme.kt).
+      Ez az XML téma csak az Activity induló ablakára kell.
+    -->
+    <style name="Theme.KyokushinTrainer" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+</resources>

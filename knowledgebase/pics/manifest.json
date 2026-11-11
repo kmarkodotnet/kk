@@ -1,0 +1,76 @@
+{
+  "version": "0.1",
+  "images": [
+    {
+      "id": "KY-0044",
+      "filename": "KY-0044.jpg",
+      "japanese_romaji": "Fudō dachi",
+      "hungarian_name": "Természetes, stabil állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0045",
+      "filename": "KY-0045.jpg",
+      "japanese_romaji": "Heisoku dachi",
+      "hungarian_name": "Zárt lábú állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0046",
+      "filename": "KY-0046.jpg",
+      "japanese_romaji": "Musubi dachi",
+      "hungarian_name": "V alakú zárt állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0047",
+      "filename": "KY-0047.jpg",
+      "japanese_romaji": "Heikō dachi",
+      "hungarian_name": "Párhuzamos állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0048",
+      "filename": "KY-0048.jpg",
+      "japanese_romaji": "Hachiji dachi",
+      "hungarian_name": "Nyitott lábfejű természetes állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0049",
+      "filename": "KY-0049.jpg",
+      "japanese_romaji": "Uchi hachiji dachi",
+      "hungarian_name": "Befelé fordított lábfejű állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0050",
+      "filename": "KY-0050.jpg",
+      "japanese_romaji": "Zenkutsu dachi",
+      "hungarian_name": "Elülső súlypontú hosszú állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0051",
+      "filename": "KY-0051.jpg",
+      "japanese_romaji": "Kōkutsu dachi",
+      "hungarian_name": "Hátsó súlypontú állás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0052",
+      "filename": "KY-0052.jpg",
+      "japanese_romaji": "Kiba dachi",
+      "hungarian_name": "Lovaglóállás",
+      "review_status": "human_review_required"
+    },
+    {
+      "id": "KY-0053",
+      "filename": "KY-0053.jpg",
+      "japanese_romaji": "Shiko dachi",
+      "hungarian_name": "Szumóállás",
+      "review_status": "human_review_required"
+    }
+  ],
+  "warning": "AI-generated illustrations are not expert-validated. Review anatomy, movement and stance before educational deployment."
+}

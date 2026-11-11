@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minden felhasználói szöveg magyar és ebben a fájlban él (NFR-02, FUNCTIONAL_SPEC 8.). -->
+<resources>
+    <string name="app_name">Kyokushin Trainer</string>
+
+    <!-- Navigáció -->
+    <string name="nav_library">Tudástár</string>
+    <string name="nav_learn">Tanulás</string>
+    <string name="nav_quiz">Kvíz</string>
+    <string name="nav_progress">Haladás</string>
+</resources>
