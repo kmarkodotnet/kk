@@ -50,3 +50,34 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | (lásd a `docs/IMPLEMENTATION_PLAN.md` változásnaplóját) |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:quiz:test` | 0 | 126 teszt, 0 hiba |
+| `.\gradlew.bat testDebugUnitTest` | 0 | 161 teszt, 0 hiba (core/model 35 + core/quiz 126) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL |
+
+**Megjegyzés:** a `quizEligible` formula **nem** készült el újra: az a T-105-ben
+elkészült `QuizEligibility`-ben él, egyetlen helyen (ADR-010), és a `QuizCandidateFilter`
+ezt alkalmazza. A szűrő szétválasztja a kérdés- és az opcióoldalt
+(`optionRequirement`): a (C) `IMAGE_TO_JP` opciói romaji nevek, a (D) `JP_TO_IMAGE`
+opciói illusztrációk – a T-109 distraktorválasztásnak az `optionPool(request, type)`
+a bemenete, a `correctAnswerPool(request, type)` pedig a helyes válaszok készlete. A (D)
+típus opciószámát a **vizuálisan különböző** képek száma korlátozza; hiányzó ujjlenyomat
+nem bizonyít egyezést, ezért önálló opciónak számít. A valódi tudástár beolvasása a
+tesztekben a közös `RealKnowledgeBase` fixture-be került (a
+`RealKnowledgeBaseValidationTest`-ből kiemelve). Nyitott, nem javított apróság: a
+`core/quiz` `implementation` hatókörrel használja a `core:model`-t, bár a publikus API-ja
+(`QuizCandidateFilter`) `core:model` típusokat tesz közzé – `api` hatókör lenne a helyes,
+javasolt külön taskként.

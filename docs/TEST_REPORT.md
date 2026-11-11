@@ -515,3 +515,89 @@ garanciák azonban már tesztelt formában rögzítettek.
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
 | TR-02 teljes készlet | **NEM FUTOTT** – a generálási invariánsok (pontosan egy helyes, három különböző téves, nincs szinonima a tévesek között, seed-determinizmus, graceful fallback) tényleges algoritmust igényelnek: T-108…T-110, a tesztek T-112. |
 | TR-03…TR-08 | **NEM FUTOTT** – a jelöltszűréshez (TR-03), a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+---
+
+## 2026-11-11 – T-108: jelöltszűrés és jogosultsági kapuk (core/quiz)
+
+**Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper 8.13,
+`JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:quiz:test` | 0 | BUILD SUCCESSFUL – 126 teszt, 0 hiba |
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **161 teszt, 0 hiba** (core/model 35 + core/quiz 126) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL |
+
+A tesztszámok a `core/*/build/test-results/test/*.xml` JUnit XML-ek `tests` és `failures`
+attribútumainak összegei, nem becslés.
+
+### Ami elkészült
+
+`QuizCandidateFilter` (`core/quiz/.../generator/QuizCandidateFilter.kt`): a generálás első
+fele – kategóriaszűrő (FR-11), az ADR-010 jogosultsági kapu alkalmazása típusonként,
+típusonkénti jelöltszám és a kihagyott típusok `SkipReason`-ja (FR-13, FR-14, FR-22, CR-05).
+
+- **Egyetlen jogosultsági formula:** minden döntés a meglévő `QuizEligibility.isEligible`
+  kapun megy át – nincs második kvízképességi logika. Külön teszt állítja, hogy a
+  jelöltkészlet pontosan a formula kimenete (`correctAnswerPool_usesTheSingleEligibilityFormula_ADR010`).
+- **Kérdés- és opcióoldal szétválasztva:** a (C) `IMAGE_TO_JP` opciói romaji nevek (a kép a
+  kérdés oldalán van), a (D) `JP_TO_IMAGE` opciói illusztrációk. Ezt az
+  `optionRequirement(type)` mezőkövetelmény-leképezés hordozza, nem új szabály.
+- **Determinizmus:** minden visszaadott lista technikaazonosító szerint rendezett; a szűrés
+  nem sorsol, `Set`-iterációs sorrendre nem épül (NFR-07).
+
+### Új tesztek (TR-03)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `inCategoryScope_emptyFilter_meansEveryCategory_FR11` | üres kategóriaszűrő = minden kategória |
+| `inCategoryScope_filteredCategory_excludesEveryOtherTechnique_TR03` | a szűrt kategórián kívüli rekord egyetlen típus jelöltkészletében sem szerepel |
+| `inCategoryScope_isOrderedById_forDeterminism_NFR07` | a kimenet rendezett, bemeneti sorrendtől független |
+| `correctAnswerPool_usesTheSingleEligibilityFormula_ADR010` | nincs duplikált kvízképességi logika |
+| `correctAnswerPool_incompleteRecord_appearsInNoQuestionType_CR02` | `INCOMPLETE` rekord egyetlen típusban sem jelenik meg |
+| `correctAnswerPool_quizExcludedOrRetired_appearsInNoQuestionType_ADR010` | szerkesztői kizárás és visszavonás kiesik |
+| `optionPool_textTypes_needRomajiAndHungarianOnly_FR14` | (A)/(B) mezőkövetelmény |
+| `correctAnswerPool_captionedImage_isNeverAnImageCandidate_CR05_ADR011` | a feliratos kép (`quizUsable = false`) sem helyesként, sem opcióként nem kerül (C)/(D) kérdésbe |
+| `correctAnswerPool_placeholderIllustration_isNotAValidatedImage_CR05` | a `Placeholder` nem validált kép |
+| `optionPool_imageToJp_optionsAreNamesNotImages_FR13` | (C)-nél csak a helyesnek kell kép |
+| `optionPool_jpToImage_visuallyIdenticalImagesCountAsOneOption_FR13` | azonos ujjlenyomatú két kép nem négy valódi opció |
+| `buildableQuestionCount_jpToImage_fourDistinctImages_isBuildable_FR13` | négy különböző képpel a (D) összeáll |
+| `buildableQuestionCount_fewerThanFourOptions_yieldsNoQuestion_FR14` | nincs három opciós kérdés |
+| `skipReasons_disabledType_isReportedAsDisabledNotAsMissingData_FR12` | a letiltott típus oka a letiltás, nem adathiány |
+| `skipReasons_noValidatedImage_skipsImageTypesWithDocumentedReason_TR03` | (C)/(D) kihagyása dokumentált okkal |
+| `skipReasons_imageToJp_imagePresentButTooFewNames_isCandidateShortage_FR14` | a két ok elhatárolása |
+| `skipReason_everyDatasetTrustLevel_keepsTheGateDownwardOnly_ADR010` | a bizalmi szint nem írja felül a képhiányt |
+| `realContent_imageTypes_haveExactlySevenQuizUsableCandidates_TR03_CR05` | a valódi tartalomban 7 kvízképes kép (a 3 feliratos kiesik) |
+| `realContent_imageCandidates_areAllInTheStancesCategory_TR03` | mind az `stances` kategóriában |
+| `realContent_imageTypesOutsideStances_areSkippedWithDocumentedReason_TR03_FR13` | `punches` szűrővel a (C)/(D) kimarad, a szöveges típusok állnak |
+| `realContent_stancesCategory_buildsEveryQuestionType_TR03` | `stances` szűrővel mind a négy típus összeáll |
+| `realContent_categoryFilter_neverLeaksTechniqueFromAnotherCategory_FR11` | a szűrő nem szivárog |
+| `realContent_everyTextTypeCandidate_isEligibleAcrossAllCategories_FR14` | 161 rekord mind jogosult a szöveges típusokban |
+
+### Rétegszabály és eltérés a tervtől
+
+- A `core/quiz` főkódja továbbra is csak a `core:model`-re és a
+  `kotlinx-serialization-json`-ra függ; nincs `android`/`androidx`/`room` import, és
+  tényleges `Random.Default` / rendszeróra-hívás sincs (ADR-001 L1, NFR-07).
+- **Eltérés a task „Teendők" listájától:** a `quizEligible` formulát nem írtuk meg újra –
+  az már a T-105-ben elkészült `QuizEligibility`-ben él, egyetlen helyen (ADR-010). A T-108
+  ezt **alkalmazza**. Ez tudatos: két igazságforrás a kvízképességre regresszió lenne.
+- **Teszt-refaktor:** a valódi tudástár JSON → `KnowledgeInput` leképezése a
+  `RealKnowledgeBaseValidationTest`-ből a közös `RealKnowledgeBase` teszt-fixture-be
+  került, mert a TR-03 készlet is ugyanazt a tartalmat olvassa. Két példányban az egyik
+  csendben elavulna.
+- Felhasználói szöveg nem keletkezett: a `SkipReason` enum, a magyar üzenet a UI-ban,
+  `strings.xml`-ből (FR-22, T-404).
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-108 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-02 teljes készlet | **NEM FUTOTT** – a distraktorválasztás (T-109) és a seedelt keverés (T-110) még nincs meg; a tesztek a T-112-ben. |
+| TR-03 teljes készlet | **RÉSZBEN** – a kategóriaszűrés és a kérdéstípus-jogosultság lefedve (fenti 23 teszt); a generált kérdéseken át vezetett végponti TR-03 ellenőrzés a T-112-ben. |
+| TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |

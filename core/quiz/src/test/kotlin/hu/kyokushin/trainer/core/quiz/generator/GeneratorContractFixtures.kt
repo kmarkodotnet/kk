@@ -1,6 +1,7 @@
 package hu.kyokushin.trainer.core.quiz.generator
 
 import hu.kyokushin.trainer.core.model.CategoryId
+import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.QuestionType
@@ -45,6 +46,8 @@ internal fun technique(
     hungarian: String = "Előre rúgás",
     illustration: IllustrationRef? = null,
     status: VerificationStatus = VerificationStatus.AWAITING_REVIEW,
+    quizExcluded: Boolean = false,
+    retired: Boolean = false,
 ) = Technique(
     id = TechniqueId.of(id),
     categoryId = CategoryId.of(categoryId),
@@ -53,5 +56,55 @@ internal fun technique(
     hungarian = hungarian,
     illustration = illustration,
     status = status,
+    quizExcluded = quizExcluded,
+    retired = retired,
     datasetVersion = "0.1.0",
+)
+
+/**
+ * Egy kvízben használható illusztráció (ADR-003). A [quizUsable] `false` értéke a
+ * **feliratos** képet modellezi: szakmailag hiteles, de elárulná a megoldást (ADR-011).
+ */
+internal fun asset(
+    ref: String = "KY-0001",
+    quizUsable: Boolean = true,
+) = IllustrationRef.Asset(
+    ref = ref,
+    fileName = "$ref.webp",
+    quizUsable = quizUsable,
+    hideableOnStudyCard = !quizUsable,
+)
+
+/** Négy technikából álló, szöveges típusokra teljesen kvízképes alapkészlet. */
+internal fun textCandidates(categoryId: String = "geri"): List<Technique> =
+    (1..4).map { index ->
+        technique(
+            id = "KY-000$index",
+            categoryId = categoryId,
+            romaji = "Technique $index",
+            hungarian = "Technika $index",
+        )
+    }
+
+/** Egy kérés a megadott jelöltekkel; minden egyéb paraméter érvényes alapérték. */
+internal fun request(
+    techniques: List<Technique> = textCandidates(),
+    enabledTypes: Set<QuestionType> = QuestionType.entries.toSet(),
+    categoryFilter: Set<String> = emptySet(),
+    requestedCount: Int = 10,
+    seed: Long = 42L,
+    datasetTrust: DatasetTrust = DatasetTrust.PRACTICE_ON_UNREVIEWED,
+    synonymGroups: List<Set<String>> = emptyList(),
+    illustrationDigests: Map<String, String> = emptyMap(),
+) = QuizRequest(
+    candidates = QuizCandidateSet(
+        techniques = techniques,
+        synonymGroups = synonymGroups.map { group -> group.mapTo(LinkedHashSet(), TechniqueId::of) },
+        illustrationDigests = illustrationDigests.mapKeys { TechniqueId.of(it.key) },
+    ),
+    enabledTypes = enabledTypes,
+    categoryFilter = categoryFilter.mapTo(LinkedHashSet(), CategoryId::of),
+    requestedCount = requestedCount,
+    seed = seed,
+    datasetTrust = datasetTrust,
 )
