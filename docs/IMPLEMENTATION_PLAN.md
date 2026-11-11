@@ -71,7 +71,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | 🟡 **T-101, T-102 kész** (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`; 24 zöld teszt); T-103 hátra |
+| 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
 | 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | ⬜ |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ⬜ |
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | ⬜ |
@@ -165,12 +165,13 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-103** – `core/model`: a felhasználói adatmodellek. (**T-101, T-102 elkészült:**
-   azonosító value class-ok, enumok, `Technique`, `Category`, `IllustrationRef`.)
-2. **T-104…T-106** – `core/quiz` validátor + **TR-01 tesztek**: itt lesz az első valódi,
-   zöld tesztfuttatás (most még `NO-SOURCE`).
-3. **T-107…T-112** – kvízgenerátor + **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja,
+1. **T-104…T-106** – `core/quiz` validátor + **TR-01 tesztek**. (**A Fázis 2.1 lezárva:**
+   azonosító value class-ok, enumok, `Technique`, `Category`, `IllustrationRef`, és a
+   felhasználói adatmodellek – `QuizAttempt`, `StudyReview`, `QuizSession`.)
+2. **T-107…T-112** – kvízgenerátor + **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja,
    ahol eldől, hogy a termék helyes-e.
+3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
+   kvíz, dupla válasz (a T-103 `QuizAttempt`-jére épül).
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
@@ -207,3 +208,10 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   24 teszt, 0 hiba; `assembleDebug` exit 0. Eltérés: az `Asset` az ADR-003 szövegéhez
   képest két mezővel bővebb (ADR-011 kiegészítés, T-108/T-305 igénye) – az ADR szövegének
   átvezetése hátralévő dokumentációs feladat.
+- 2026-11-11 – **T-103 kész** (Fázis 2.1 **lezárva**): `core/model` felhasználói adat
+  domain modell – `QuizAttempt` (a `questionId`-vel, ami nélkül az
+  `UNIQUE(sessionId, questionId)` index nem építhető meg – ADR-005), `StudyReview` és
+  `QuizSession` (nullable `finishedAt` a megszakított kvízhez – FR-19, tárolt `seed` –
+  ADR-007). `testDebugUnitTest` exit 0, 35 teszt, 0 hiba; `assembleDebug` exit 0.
+  Eltérés: az `ARCHITECTURE.md` 3. szakaszának `QuizAttempt` vázlatából hiányzik a
+  `questionId` – az átvezetés hátralévő dokumentációs feladat.
