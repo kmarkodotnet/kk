@@ -65,7 +65,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | Parancs | Exit | Eredmény |
 |---|---|---|
 | `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – 40 teszt, 0 hiba (`core/model` 35 + `core/quiz` 5) |
-| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk`, 19 625 677 bájt |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk`, 19 627 013 bájt |
 
 **Megjegyzés:**
 
