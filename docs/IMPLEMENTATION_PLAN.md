@@ -64,7 +64,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 1.3 | 11 modul létrehozása (`core/model` és `core/quiz` Kotlin JVM modul) | NFR-03 | ✅ kész |
 | 1.4 | `AndroidManifest.xml` – **nincs** INTERNET permission, egy Activity | NFR-01, TR-08 | ✅ kész – összevont manifesten ellenőrizve |
 | 1.5 | Material 3 téma világos/sötét, `strings.xml` váz, vektoros ikon | NFR-05 | ✅ kész |
-| 1.6 | Hilt bekötés (`@HiltAndroidApp`, `@AndroidEntryPoint`) | NFR-03 | ✅ kész (Hilt modulok tartalma a Fázis 3-ban) |
+| 1.6 | Hilt bekötés (`@HiltAndroidApp`, `@AndroidEntryPoint`) | NFR-03 | ✅ kész; a Hilt **modulok tartalma** is kész – T-203, lásd a Fázis 3 3.9 sorát |
 | 1.7 | Ellenőrzés: `./gradlew assembleDebug` | — | ✅ **exit 0**, `app-debug.apk` 18,69 MB |
 
 ## Fázis 2 – Domain modell és kvízmotor (tiszta Kotlin, Android nélkül)
@@ -95,6 +95,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ✅ **kész** – T-117: publikus `ContentImporter` + `ImportResult`, `internal RoomContentImporter` (verziókapu a tárolt `dataset_version`-re, validáció, **upsert egyetlen tranzakcióban**, a csomagból kimaradt technika `retired = true` – fizikai törlés nincs), `content_state` összegzés, `lastValidationReport()` a diagnosztikához, injektált `Clock` és `@IoDispatcher`. Tartalom oldali entitás ↔ domain mapperek. 16 új teszt |
 | 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | 🔄 **részben** – T-201: publikus `TechniqueRepository` + `ContentState` domain modell (`NotImported` / `Imported`), `internal RoomTechniqueRepository` (`@Inject`, `@IoDispatcher`). A `retired` szűrés **SQL-ben**, a listán és a kvízjelölteknél (ADR-004); a `getTechnique` a dokumentált kivétel, mert a Haladás képernyőnek a visszavont technikát is fel kell oldania (DR-07). Aliasok egyetlen lekérdezésből (nincs N+1), szinonimacsoportok a `synonym_group`-ból a szűrés utáni készletre vágva (CR-07). 12 új teszt, köztük egy reflexiós, ami a publikus API-t Room típusokra vizsgálja (TR-07). T-202: a keresés **SQL-be** költözött – előre normalizált `technique.search_romaji` / `search_hungarian` oszlopok, `LIKE '%…%' ESCAPE` a három normalizált oszlopon (alias-ág `EXISTS` altkérdéssel), az egyező alias ugyanabból a lekérdezésből a `TechniqueMatch`-ben; séma `version` 1 → 2 explicit `KyokushinMigrations.MIGRATION_1_2`-vel, `2.json` exporttal és `MigrationTestHelper` teszttel (ADR-012, DR-08). Hátra: `ProgressRepository` (T-301, T-401), aggregált statisztika (T-501) |
 | 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ✅ **kész** – T-118: `ContentUpdateProgressTest` 10 `TR05` jelölésű teszt in-memory Roomon (v1 → előrehaladás → v2 → v3): a `quiz_attempt`/`study_review` sorok és a belőlük levezetett statisztika **bitre azonos** a frissítés előttivel; átnevezésnél az `id` marad és az előrehaladás az új névre oldódik fel (DR-06); a kimaradt és a tartalom által visszavont technika próbálkozásai feloldhatók maradnak (ADR-004); ugyanaz a verzió kétszer nem duplikál (FR-30); az elutasított frissítés sem a tartalomhoz, sem az előrehaladáshoz nem nyúl |
+| 3.9 | **Hilt modulok** (`DatabaseModule`, `ContentModule`, `RepositoryModule`, `TimeModule`, `DispatcherModule`, `QuizModule`) | NFR-03, NFR-07 | ✅ **kész** – T-203: a Room/olvasó/repository kötések a `core/data`-ban (a típusok `internal`-ok), a `Clock`, a két dispatcher, a `QuizGenerator`, a `KnowledgeValidator` és az RNG a `di`-ben. Az adatbázis `addMigrations(*KyokushinMigrations.ALL)`-lal épül, destruktív tartalék nélkül (DR-08). `@DefaultDispatcher` qualifier hozzáadva. A gráfot a `KyokushinGraph` `@EntryPoint` fordítási időben, a `HiltGraphTest` (Robolectric) futásidőben ellenőrzi; 7 új teszt |
 
 ## Fázis 4 – Tudástár UI
 
@@ -165,16 +166,15 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-203** – `di`: Hilt modulok. A `RoomContentImporter` és a `RoomTechniqueRepository`
-   `@Inject` konstruktorral kész, de a kötéseik (`KyokushinDatabase`,
-   `KnowledgeContentReader`, `Clock`, `@IoDispatcher`, `@Binds ContentImporter`,
-   `@Binds TechniqueRepository`) még nincsenek megírva – és mivel az adatbázis és a
-   beolvasó `internal`, ezeknek a kötéseknek a `core/data`-ban kell élniük, nem a `di`
-   modulban. **Az adatbázist építő kötésnek `addMigrations(*KyokushinMigrations.ALL)`-t
-   kell adnia, destruktív tartalék nélkül** (DR-08, ADR-012) – a séma már a 2-es
-   verzión van.
-2. **T-204** – `core/ui`: `TechniqueIllustration`.
-3. **T-205** – `core/ui`: jelölők és állapotkomponensek.
+1. **T-204** – `core/ui`: `TechniqueIllustration`.
+2. **T-205** – `core/ui`: jelölők és állapotkomponensek.
+3. **T-206** – `navigation`: NavHost és alsó navigáció.
+
+(**A T-203 kész:** a Hilt gráf teljes és felépül. Az első ViewModel (T-207) a
+`TechniqueRepository`-t, a `ContentImporter`-t, a `Clock`-ot, az RNG-t és a két
+dispatchert konstruktorban kérheti – a `@DefaultDispatcher` a CPU-munkára, az
+`@IoDispatcher` a Room/asset elérésre. A `feature` modulok a `di`-re **nem** függenek és
+nem is kell: a kötések a `SingletonComponent`-ben állnak össze.)
 
 (**A T-202 kész:** a keresés SQL-oldali, előre normalizált oszlopokon fut, és a találat
 megmondja, melyik alias egyezett – a megjelenítés, az „Egyezés: `{alias}`" sor és a
@@ -569,4 +569,43 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   `TEST_REPORT.md` rögzíti.
   Következő: T-203, a Hilt kötések – az adatbázis-kötésnek
   `addMigrations(*KyokushinMigrations.ALL)`-t kell adnia.
+
+- 2026-11-11 – **T-203 kész** (Fázis 3.9; a Fázis 1.6 „Hilt modulok tartalma" hátraléka
+  ezzel lezárva): **a Hilt gráf teljes és felépül.** Hat Hilt modul, **két** Gradle
+  modulban – és ez szándékos eltérés az ARCHITECTURE 7. táblázatától (lásd az új 7.1
+  szakaszt): a `KyokushinDatabase`, a DAO-k, a `KnowledgeContentReader` és a két
+  repository-implementáció `internal` (ADR-001, L3/L4), `internal` típust pedig csak az a
+  modul tud kötni, amelyik látja. Ezért a `core/data`-ban él a `DatabaseModule`
+  (adatbázis + mind a 8 DAO), a `ContentModule` (`KnowledgeAssetSource` →
+  `AndroidKnowledgeAssetSource`, `KnowledgeContentReader`) és a `RepositoryModule`
+  (`@Binds TechniqueRepository` → `RoomTechniqueRepository`,
+  `@Binds ContentImporter` → `RoomContentImporter`); a `di` modulban a `TimeModule`
+  (`Clock.systemUTC()`, UTC – a tárolt időbélyegek zónamentes `Instant`-ok, DR-05), a
+  `DispatcherModule` (`@IoDispatcher` = `Dispatchers.IO`, `@DefaultDispatcher` =
+  `Dispatchers.Default`) és a `QuizModule` (`DefaultQuizGenerator`,
+  `DefaultKnowledgeValidator`, RNG).
+  **Az adatbázis-kötés `addMigrations(*KyokushinMigrations.ALL)`-t kap, destruktív
+  tartalékot nem** (DR-08): a séma a 2-es verzión áll, a `fallbackToDestructiveMigration()`
+  csendben törölné a `quiz_attempt` és `study_review` sorokat. Egy forrásszkennelő teszt
+  a `core/data` egész `main` forrásfáján ki is zárja ezt a hívást, és azt is ellenőrzi,
+  hogy a kötés tényleg átadja a migrációkat.
+  Új qualifier: `@DefaultDispatcher` (a `core/data` `di` csomagjában, az `@IoDispatcher`
+  mellett – a qualifiert az injektálást kérő modulnak kell látnia, a kötését a `di` adja).
+  Az ARCHITECTURE `RandomFactory` sora `kotlin.random.Random` kötésként valósult meg: a
+  seedelt sorozatot a generátor építi a kapott `Long`-ból, a kötés feladata a **seed
+  sorsolása** (ADR-007, NFR-07) – egy gyártó interfész a `di`-ben lakna, azt pedig a
+  `feature` modulok szándékosan nem látják.
+  **A DoD „az app elindul, a Hilt gráf felépül" pontja két, egymást erősítő módon
+  igazolt:** (1) a `di` modul `KyokushinGraph` `@EntryPoint`-ja fordítási időben
+  kikényszeríti a gráf teljességét – hiányzó vagy kétértelmű kötés mellett az
+  `assembleDebug` elbukik, nem az első olyan képernyő, amelyik először kérné; (2) a
+  `HiltGraphTest` (app modul, Robolectric, `HiltTestApplication`) **futásidőben** felépíti
+  ugyanazt a `SingletonComponent`-et, és mind a nyolc kötést feloldja – a Room adatbázis
+  megnyílik, az assetolvasó megkapja az `AssetManager`-t, a repository és az importáló
+  megépül. Valódi eszközön/emulátoron az indítás továbbra **nem** futott (B-03), ezt a
+  TR-06 (T-606) fedi.
+  7 új teszt (összesen **365 zöld teszt**), `testDebugUnitTest` és `assembleDebug`
+  exit 0. Új katalógusbejegyzés: `hilt-android-testing`, ugyanabból a `hilt` kiadásból
+  (2.60.1) – nem új verzió.
+  Következő: T-204, a `core/ui` `TechniqueIllustration` komponense.
 

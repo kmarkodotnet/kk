@@ -34,3 +34,4 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-118](T-118-tr-05-tartalomfrissites-tesztek.md) | TR-05: tartalomfrissítés tesztek | E1 | `core/data` | 2026-11-11 |
 | [T-201](T-201-core-data-techniquerepository.md) | core/data: TechniqueRepository | E2 | `core/data` | 2026-11-11 |
 | [T-202](T-202-core-data-kereses.md) | core/data: keresés | E2 | `core/data` | 2026-11-11 |
+| [T-203](T-203-di-hilt-modulok.md) | di: Hilt modulok | E2 | `di` | 2026-11-11 |

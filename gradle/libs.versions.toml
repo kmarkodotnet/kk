@@ -82,6 +82,10 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+# A Hilt teszttámogatása ugyanabból a kiadásból, mint a `hilt-android` (2.60.1): a
+# `HiltTestApplication` ezzel építi fel a teljes gráfot Robolectric alatt, emulátor nélkül
+# (T-203). Nem új verzió, ugyanaz a `hilt` version.ref.
+hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 
 # --- teszt ---
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-203](T-203-di-hilt-modulok.md) | di: Hilt modulok | E2 | `di` | M | T-201 |
 | [T-204](T-204-core-ui-techniqueillustration.md) | core/ui: TechniqueIllustration | E2 | `core/ui` | M | T-102 |
 | [T-205](T-205-core-ui-jelolok-es-allapotkomponensek.md) | core/ui: jelölők és állapotkomponensek | E2 | `core/ui` | M | — |
 | [T-206](T-206-navigation-navhost-es-bottom-navigation.md) | navigation: NavHost és bottom navigation | E2 | `navigation` | M | T-205 |

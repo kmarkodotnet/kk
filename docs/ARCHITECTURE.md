@@ -390,6 +390,36 @@ Miért ez a megoldás:
 `Instant.now()`, `Random.Default` **nem fordulhat elő** (NFR-07, auditor ellenőrzi).
 A dispatcher is injektált, hogy a ViewModel tesztelhető legyen `TestDispatcher`-rel.
 
+### 7.1 A kötések tényleges helye (T-203, eltérés a fenti táblázattól)
+
+A fenti táblázat mindegyik modult a `di`-hez rendeli; a megvalósításban a kötések **két**
+Gradle modulban élnek, mert a Room típusok `internal`-ok (ADR-001, L3/L4), és egy
+`internal` típust csak az a modul tud kötni, amelyik látja:
+
+| Hilt modul | Gradle modul | Kötések |
+|---|---|---|
+| `DatabaseModule` | `core/data` | `KyokushinDatabase` (`addMigrations(*KyokushinMigrations.ALL)`, destruktív tartalék **nélkül**, DR-08) + mind a 8 DAO |
+| `ContentModule` | `core/data` | `KnowledgeAssetSource` → `AndroidKnowledgeAssetSource`, `KnowledgeContentReader` |
+| `RepositoryModule` | `core/data` | `@Binds TechniqueRepository` → `RoomTechniqueRepository`, `@Binds ContentImporter` → `RoomContentImporter` |
+| `TimeModule` | `di` | `Clock` = `Clock.systemUTC()` |
+| `DispatcherModule` | `di` | `@IoDispatcher` = `Dispatchers.IO`, `@DefaultDispatcher` = `Dispatchers.Default` |
+| `QuizModule` | `di` | `QuizGenerator` = `DefaultQuizGenerator`, `KnowledgeValidator` = `DefaultKnowledgeValidator()`, RNG = `Random.Default` |
+
+A qualifier **annotációk** (`@IoDispatcher`, `@DefaultDispatcher`) a `core/data`-ban élnek,
+mert azoknak a moduloknak kell látniuk őket, amelyek az injektálást kérik; a kötésük a
+`di`-ben dől el. A gráf a `SingletonComponent`-ben áll össze, tehát a kötés fizikai helye a
+modulhatárokat nem mozdítja – az alternatíva (a DAO-k publikussá tétele a DI kedvéért)
+pontosan azt a határt nyitná meg, amit az ADR-001 zárva akar tartani.
+
+Az ARCHITECTURE `RandomFactory` sora **`kotlin.random.Random`** kötésként valósult meg: a
+seedelt sorozatokat már a generátor építi a kapott `Long`-ból, a kötés egyetlen feladata a
+**seed sorsolása** (ADR-007). Egy gyártó interfész a `di`-ben lakna, azt pedig a
+`feature` modulok szándékosan nem látják.
+
+A gráf teljességét a `di` modul `KyokushinGraph` `@EntryPoint`-ja **fordítási időben**
+kikényszeríti (hiányzó kötés → `assembleDebug` elbukik), futásidőben pedig a
+`HiltGraphTest` (app modul, Robolectric) építi fel és kérdezi le – emulátor nélkül.
+
 ---
 
 ## 8. Adatfolyam végig: egy kvízkérdés megválaszolása

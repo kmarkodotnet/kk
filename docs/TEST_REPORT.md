@@ -1577,3 +1577,62 @@ környezetspecifikus akadályt kellett megoldani, és mindkettő a jövőbeli mi
 | Az alias-ág mérése **valódi** tartalmon | **NEM MÉRHETŐ** – az `aliases` mező a kapott tudástárban mindenhol üres (R-05), ezért az alias-tesztek fixtúrája szintetikus. A tárolt `aliasNormalized` ugyanaz a normalizáló kimenete, mint éles úton. |
 | A `search_hungarian` oszlop **pontos** értéke migráció után, import előtt | **NEM ÁLL ELŐ** – a migráció SQL-oldali `lower()`-e az ékezeteket nem bontja le; a pontos értéket a verziókapu nyitása után a következő import írja be (ADR-012). A teszt ezért a `contentVersion = NULL` kaput méri, nem egy ékezetmentes magyar alakot. |
 
+---
+
+## 2026-11-11 – T-203 · `di`: Hilt modulok (Hilt gráf)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | **0** | `BUILD SUCCESSFUL in 30s` – **365 teszt, 0 hiba, 0 kihagyott** (a T-202 utáni 358-hoz képest +7) |
+| `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL in 13s` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+Környezet: `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
+Windows PowerShell, Gradle wrapper 9.9.1.
+
+### Új tesztek (7)
+
+| Teszt | Mit igazol |
+|---|---|
+| `HiltGraphTest.hiltGraph_providesRepositoryAndImporterBehindInterfaces_NFR03` | a `@Binds` a Room-implementációkra mutat, a hívó mégis csak az interfészt látja |
+| `HiltGraphTest.hiltGraph_providesQuizEngineBindings_NFR03` | `QuizGenerator` = `DefaultQuizGenerator`, `KnowledgeValidator` = `DefaultKnowledgeValidator` |
+| `HiltGraphTest.hiltGraph_providesInjectedClockAndRandom_NFR07` | a `Clock` injektált és UTC zónájú; az RNG-ből valóban húzható seed |
+| `HiltGraphTest.hiltGraph_bindsDistinctIoAndDefaultDispatchers_NFR07` | a két qualifier két **különböző** készletre mutat |
+| `DatabaseModuleTest.provideDatabase_opensWithCurrentSchemaVersionAndIsUsable_NFR03` | a kötés adta példány a 2-es sémával megnyílik és lekérdezhető |
+| `DatabaseModuleTest.provideDaos_bindEveryDaoFromTheSingleDatabase_NFR03` | mind a 8 DAO-nak van kötése, egyetlen adatbázisból (DR-04) |
+| `DatabaseModuleTest.coreDataMainSources_containNoDestructiveMigrationFallback_DR08` | a `core/data` `main` forrásfájában nincs `fallbackToDestructiveMigration`, és a kötés átadja a migrációkat |
+
+### A Hilt gráf felépülése – mivel igazolt
+
+1. **Fordítási időben.** A `di` modul `KyokushinGraph` `@EntryPoint`-ja mind a nyolc
+   alkalmazásszintű kötést kéri, így azok a Dagger *pruned* gráfjába is bekerülnek: egy
+   hiányzó vagy kétértelmű kötés az `:app:hiltJavaCompileDebug` taskot – és ezzel az
+   `assembleDebug`-ot – elbuktatja. Entry point nélkül a nem használt kötések hiányzó
+   függőségei csendben elnézve maradnának, mert a ViewModeleket csak a későbbi feladatok
+   hozzák.
+2. **Futásidőben, emulátor nélkül.** A `HiltGraphTest` `@HiltAndroidTest` +
+   `HiltTestApplication` + Robolectric (`@Config(sdk = [34])`): ugyanaz a
+   `SingletonComponent` épül fel, mint a `@HiltAndroidApp` alatt, minden classpathon lévő
+   `@InstallIn(SingletonComponent::class)` modullal. Az `@Inject` mezők feloldása tehát a
+   **példányosítást** is igazolja – a Room adatbázis megnyílik, az assetolvasó megkapja az
+   `AssetManager`-t, a repository és az importáló megépül.
+
+### Menet közbeni hibák és megoldásuk (hitelesség kedvéért rögzítve)
+
+1. `:di:compileDebugKotlin FAILED` – `Syntax error: Missing '}'` + `Unclosed comment`.
+   Ok: a KDoc szövegében szereplő `` `feature/*` `` **nested blokk-megjegyzést** nyitott
+   (a Kotlin blokk-megjegyzései egymásba ágyazhatók), így a záró `*/` csak a belsőt zárta.
+   Megoldás: a KDoc nem ír `/*` karakterpárt.
+2. `:core:data:compileDebugUnitTestKotlin FAILED` – `Unsupported escape sequence`.
+   Ok: a forrásszkennelő teszt regexe sima string literálban kapott `\*`-ot. Megoldás:
+   nyers (`"""…"""`) string literál.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A gráf felépülését Robolectric méri; a valódi indítást a TR-06 (T-606) fedi. |
+| Az app indítása **valódi eszközön/emulátoron** | **NEM FUTOTT** – B-03. A DoD „az app elindul" pontja a fenti kettős (fordítási idejű + Robolectric futásidejű) gráfellenőrzéssel igazolt, eszközindítással nem. |
+| `./gradlew ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
+| `@DefaultDispatcher` **tényleges használata** üzleti kódban | **NINCS MÉG HASZNÁLÓJA** – a qualifier és a kötése kész, az első fogyasztója az első ViewModel (T-207) lesz. A kötést a `HiltGraphTest` ennek ellenére feloldja, tehát nem „halott" kötés. |
+

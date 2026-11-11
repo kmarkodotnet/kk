@@ -44,6 +44,15 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests {
+            // A `HiltGraphTest` Robolectric alatt felépíti a teljes Hilt gráfot: ehhez a
+            // teszt JVM-nek látnia kell az Android erőforrásokat és a csomagolt
+            // manifestet (ugyanaz a konvenció, mint a `core/data`-ban).
+            isIncludeAndroidResources = true
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -79,6 +88,14 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)
+    // A Hilt gráf futásidejű ellenőrzése emulátor nélkül (T-203, DoD: „az app elindul, a
+    // Hilt gráf felépül"). A `kspTest` kell, hogy a `HiltTestApplication` komponense a
+    // teszt source setben is legenerálódjon.
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
