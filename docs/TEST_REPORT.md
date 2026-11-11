@@ -1646,7 +1646,7 @@ Windows PowerShell, Gradle wrapper 9.9.1.
 | `.\gradlew.bat test testDebugUnitTest --rerun-tasks` | **0** | `BUILD SUCCESSFUL in 32s` – a teljes készlet újrafúratva: **375 teszt, 0 hiba, 0 kihagyott** (a T-203 utáni 365-höz képest +10) |
 | `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL in 2s` – `app/build/outputs/apk/debug/app-debug.apk` (20 288 364 byte) |
 
-Környezet: `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
+Commit: `85caebe`. Környezet: `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
 Windows PowerShell, Gradle wrapper 9.9.1.
 
 Modulonkénti bontás a `build/test-results` XML-ekből: `core/quiz` 227, `core/data` 99,
