@@ -461,18 +461,17 @@ ADR-ben indokolva.
 
 | ADR | Döntés | Állapot |
 |---|---|---|
-| ADR-001 | Egyetlen Gradle projekt, több Gradle modul (nem egyetlen monolit modul) – a rétegszabály fordítási időben kényszeríthető | javasolt |
-| ADR-002 | `VerificationStatus` háromállapotú enum a `verified: Boolean` helyett a domainben | javasolt |
-| ADR-003 | `IllustrationRef` sealed típus a nullable képhivatkozás helyett | javasolt |
-| ADR-004 | Tartalomtörlés helyett `retired = true`; nincs `CASCADE DELETE` a felhasználói adatra | javasolt |
-| ADR-005 | `UNIQUE(sessionId, questionId)` index a dupla válasz adatbázis-szintű kizárására | javasolt |
-| ADR-006 | A kvízkérdés csak technikaazonosítókat tárol, megjelenített szöveget/képet nem | javasolt |
-| ADR-007 | A `seed` a `QuizSession`-ben és a `SavedStateHandle`-ben is tárolódik a reprodukálhatóságért | javasolt |
-| ADR-008 | AGP/Gradle/Kotlin/Compose verziók rögzítése csak az SDK telepítése után | nyitott (B-04) |
-| ADR-009 | `minSdk` megválasztása | nyitott (OQ-03) |
+| [ADR-001](adr/ADR-001-multi-module.md) | Teljes modulbontás (11 Gradle modul) – a rétegszabály fordítási időben kényszerül ki | **elfogadva** |
+| [ADR-002](adr/ADR-002-verification-status.md) | `VerificationStatus` háromállapotú enum a `verified: Boolean` helyett a domainben | **elfogadva** |
+| [ADR-003](adr/ADR-003-illustration-ref.md) | `IllustrationRef` sealed típus a nullable képhivatkozás helyett | **elfogadva** |
+| [ADR-004](adr/ADR-004-retired-not-deleted.md) | Tartalomtörlés helyett `retired = true`; nincs `CASCADE DELETE` a felhasználói adatra | **elfogadva** |
+| [ADR-005](adr/ADR-005-unique-answer-index.md) | `UNIQUE(sessionId, questionId)` index a dupla válasz adatbázis-szintű kizárására | **elfogadva** |
+| [ADR-006](adr/ADR-006-questions-hold-ids-only.md) | A kvízkérdés csak technikaazonosítókat tárol, megjelenített szöveget/képet nem | **elfogadva** |
+| [ADR-007](adr/ADR-007-seed-persistence.md) | A `seed` a `QuizSession`-ben és a `SavedStateHandle`-ben is tárolódik a reprodukálhatóságért | **elfogadva** |
+| ADR-008 | AGP/Gradle/Kotlin/Compose/Room/Hilt verziók rögzítése a telepített SDK alapján | nyitott (B-04) |
+| [ADR-009](adr/ADR-009-min-sdk.md) | `minSdk = 26` (Android 8.0) – natív `java.time`, nincs desugaring | **elfogadva** |
 
-Az ADR-ek részletes szövege a `docs/adr/` könyvtárba kerül, ADR-NNN-cim.md néven,
-az implementációs fázis első lépéseként.
+Az ADR-ek részletes szövege a [`docs/adr/`](adr/) könyvtárban található.
 
 ---
 

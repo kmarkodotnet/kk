@@ -1,8 +1,21 @@
 # Build környezet állapota
 
-**Utolsó felmérés: 2026-11-11** (gép: Windows 11 Pro 10.0.26300, munkakönyvtár `F:\Claude\kyo`)
+**Utolsó frissítés: 2026-11-11** (gép: Windows 11 Pro 10.0.26300, munkakönyvtár `F:\Claude\kyo`)
 
-## 1. Tényleges felmérés eredménye
+## 0. Aktuális állapot (telepítés után)
+
+| Komponens | Állapot | Tényleges verzió / útvonal |
+|---|---|---|
+| JDK | ✅ **telepítve** | Temurin 17.0.21+9 – `C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot` |
+| `JAVA_HOME` | ✅ beállítva (gépszintű) | a telepítő állította be |
+| Android Studio | ✅ **telepítve** | `C:\Program Files\Android\Android Studio` (2026.2.2.8) |
+| Android SDK cmdline-tools | ⏳ folyamatban | `commandlinetools-win-16111833` kicsomagolása `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latest` alá |
+| SDK platform / build-tools | ⬜ még nincs | az `sdkmanager` telepíti, a tényleges `--list` kimenet alapján |
+| Emulátor (AVD) | ⬜ még nincs | a TR-06 UI tesztekhez kell |
+
+Az alábbi 1–3. fejezet a **telepítés előtti** kiindulási felmérést őrzi meg, változatlanul.
+
+## 1. Kiinduló felmérés eredménye (2026-11-11, telepítés előtt)
 
 Futtatott ellenőrzések és kimenetük:
 
@@ -56,3 +69,15 @@ hajtható végre. A felmérés és a dokumentálás jóváhagyás nélkül is fr
 ## 5. Változásnapló
 
 - 2026-11-11 – első felmérés; B-01…B-04 nyitott.
+- 2026-11-11 – **B-01 feloldva:** Temurin JDK 17.0.21 telepítve
+  (`winget install EclipseAdoptium.Temurin.17.JDK`, exit 0). Ellenőrizve:
+  `java -version` → `openjdk version "17.0.21" 2026-10-20`.
+- 2026-11-11 – Android Studio 2026.2.2.8 telepítve
+  (`winget install Google.AndroidStudio`, exit 0). Az IDE **nem** hozza magával az SDK-t:
+  azt a first-run varázsló töltené le, ezért headless úton a hivatalos
+  `commandlinetools-win-16111833_latest.zip` csomagot szereztük be a
+  `https://dl.google.com/android/repository/repository2-3.xml` manifestből kiolvasott
+  URL-ről. **B-02 feloldása folyamatban.**
+- 2026-11-11 – Döntések (felhasználói jóváhagyással): ADR-001 teljes modulbontás,
+  ADR-009 `minSdk = 26`, demó adatkészlet 4 kategória × ~5 rekord. ADR-002…ADR-007
+  a javaslat szerint elfogadva.

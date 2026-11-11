@@ -245,7 +245,7 @@ Az architektúra ezekre **előkészít** (séma bővíthetőség, modulhatárok)
 
 | # | Kérdés | Hatás | Javasolt kezelés |
 |---|---|---|---|
-| OQ-01 | Van-e jogtisztán felhasználható, szakmailag ellenőrzött technikalista és illusztrációkészlet? | Ettől függ, hogy éles vagy demó adatkészlettel indulunk, és hogy a (C)/(D) kvíztípus aktiválható-e. | Az MVP demó adatkészlettel és képhelyőrzőkkel indul (CR-03, CR-05); az éles tartalom importtal jön. |
+| OQ-01 | Van-e jogtisztán felhasználható, szakmailag ellenőrzött technikalista és illusztrációkészlet? | Ettől függ, hogy éles vagy demó adatkészlettel indulunk, és hogy a (C)/(D) kvíztípus aktiválható-e. | **ELDÖNTVE (2026-11-11): nincs még.** Az MVP demó adatkészlettel indul – 4 kategória × ~5 rekord, képhelyőrzőkkel (CR-03, CR-05). A (C)/(D) kvíztípus nem aktiválható; az éles tartalom importtal jön (FR-34). |
 | OQ-02 | Ki a szakmai hitelesítő (szenszei / dojo / szövetség)? | A `verified = true` átállítás folyamata. | A folyamat dokumentálása `docs/KNOWLEDGE_BASE.md`-ben; a hitelesítőt a felhasználó nevezi meg. |
-| OQ-03 | Melyik `minSdk`? | Eszköztámogatás vs. Compose/Room követelmények. | ADR az Android SDK telepítése után, ellenőrzött verziómátrix alapján (B-04). |
-| OQ-04 | Legyen-e felhasználói adat exportálása az MVP-ben? | Adatvédelem, felhasználói kontroll. | Javaslat: „Előrehaladás törlése" igen (FR-35, S), export később. |
+| OQ-03 | Melyik `minSdk`? | Eszköztámogatás vs. Compose/Room követelmények. | **ELDÖNTVE (2026-11-11): `minSdk = 26` (Android 8.0)** – natív `java.time`, nincs core library desugaring. Lásd [ADR-009](adr/ADR-009-min-sdk.md). |
+| OQ-04 | Legyen-e felhasználói adat exportálása az MVP-ben? | Adatvédelem, felhasználói kontroll. | „Előrehaladás törlése" igen (FR-35, S); export a Fázis 8 után, igény szerint. |

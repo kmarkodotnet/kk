@@ -21,9 +21,18 @@ A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza a
 | 0.4 | Követelményspecifikáció | ✅ kész – `docs/REQUIREMENTS.md` v1.0 |
 | 0.5 | Funkcionális specifikáció | ✅ kész – `docs/FUNCTIONAL_SPEC.md` v1.0 |
 | 0.6 | Architektúraterv | ✅ kész – `docs/ARCHITECTURE.md` v1.0 |
-| 0.7 | **Felhasználói jóváhagyás a tervekre** | ⏸ **ITT ÁLLUNK – várakozás** |
-| 0.8 | JDK 17 + Android SDK telepítése (`/kyo-setup-env`), verziómátrix rögzítése | ⬜ blokkolt: B-01, B-02, B-04 – felhasználói jóváhagyás kell |
-| 0.9 | ADR-001…ADR-007 kiírása `docs/adr/` alá | ⬜ |
+| 0.7 | **Felhasználói jóváhagyás a tervekre és a nyitott döntésekre** | ✅ kész – lásd „Meghozott döntések" |
+| 0.8 | JDK 17 + Android SDK telepítése, verziómátrix rögzítése | 🔄 folyamatban – JDK 17.0.21 ✅, Android Studio ✅, cmdline-tools letöltése fut; SDK platform/build-tools és ADR-008 hátravan |
+| 0.9 | ADR-ek kiírása `docs/adr/` alá | 🔄 ADR-001…007 és ADR-009 ✅ kész; **ADR-008** (verziómátrix) a 0.8 befejezésére vár |
+
+### Meghozott döntések (2026-11-11)
+
+| Kérdés | Döntés |
+|---|---|
+| OQ-03 / ADR-009 – `minSdk` | **26 (Android 8.0)** – natív `java.time`, nincs desugaring |
+| ADR-001 – modulbontás | **teljes bontás**: app + 4 core + 4 feature + navigation + di |
+| ADR-002…ADR-007 | a javaslat szerint elfogadva (lásd `docs/adr/`) |
+| OQ-01 – éles tartalom | **nincs még.** Az MVP demó adatkészlettel indul: **4 kategória × ~5 rekord**, képhelyőrzőkkel, minden rekord `verified: false`. Következmény: a (C)/(D) kvíztípus nem aktiválható, és a kvíz nem indul hitelesként. |
 
 ---
 
@@ -126,22 +135,28 @@ A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza a
 
 | # | Blokkoló | Mit blokkol | Mi oldja fel |
 |---|---|---|---|
-| B-01 | Nincs JDK | minden Gradle művelet: 1.7, 2.8, minden teszt és build | `winget install EclipseAdoptium.Temurin.17.JDK` (jóváhagyás kell) |
-| B-02 | Nincs Android SDK | Fázis 1 Android fordítás | Android Studio vagy cmdline-tools (jóváhagyás kell) |
-| B-03 | Nincs emulátor | 8.3 (TR-06 UI tesztek) | AVD vagy fizikai eszköz |
-| B-04 | Verziómátrix nem ellenőrizhető | 1.2 (`libs.versions.toml`) | B-02 után `sdkmanager --list` |
-| OQ-01 | Nincs hitelesített karate tartalom | az éles adatkészlet; a (C)/(D) kvíztípus aktiválása | felhasználói döntés / szakmai hitelesítő |
+| ~~B-01~~ | ~~Nincs JDK~~ | — | ✅ **feloldva**: Temurin JDK 17.0.21 telepítve |
+| B-02 | Android SDK platform/build-tools még nincs | Fázis 1 Android fordítás | 🔄 cmdline-tools letöltése fut, utána `sdkmanager` |
+| B-03 | Nincs emulátor (AVD) | 8.3 (TR-06 UI tesztek) | AVD létrehozása az SDK után, vagy fizikai eszköz |
+| B-04 | Verziómátrix nem ellenőrizhető | 1.2 (`libs.versions.toml`), ADR-008 | B-02 után `sdkmanager --list` |
+| OQ-01 | Nincs hitelesített karate tartalom | az éles adatkészlet; a (C)/(D) kvíztípus aktiválása | ✅ döntés: demó adatkészlettel indulunk; az éles tartalom később importtal (FR-34) |
 
-A blokkolók **nem** állítják le a munkát: a Fázis 0.9, 2.1–2.7, 3.1–3.3 és a dokumentáció
-kódja és tartalma megírható; csak a *futtatás* igazolása vár a JDK-ra.
+A maradék blokkolók **nem** állítják le a munkát: a Fázis 2.1–2.7 és 3.1–3.3 kódja és
+tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SDK-ra.
 
 ## Következő három lépés
 
-1. **0.7** – A felhasználó átnézi és jóváhagyja a három tervdokumentumot (vagy javítást kér).
-2. **0.8** – JDK 17 és Android SDK telepítése jóváhagyással, majd a verziómátrix rögzítése.
-3. **0.9 + Fázis 1** – ADR-ek kiírása, majd a Gradle projektváz és a modulstruktúra.
+1. **0.8 befejezése** – cmdline-tools kicsomagolása, `sdkmanager --list`, platform és
+   build-tools telepítése, `local.properties`, majd **ADR-008** a tényleges verziókkal.
+2. **Fázis 1** – Gradle projektváz, `libs.versions.toml`, 11 modul, manifest (INTERNET
+   permission nélkül), Material 3 téma, Hilt bekötés → `./gradlew assembleDebug`.
+3. **Fázis 2** – `core/model` + `core/quiz` (validátor, generátor, scoring) és a TR-01…TR-04
+   unit tesztek → `./gradlew testDebugUnitTest`.
 
 ## Változásnapló
 
 - 2026-11-11 – Fázis 0.1–0.6 kész: környezetfelmérés, Claude környezet, követelmény-,
   funkcionális és architektúraspecifikáció. Build/teszt nem futott (B-01, B-02).
+- 2026-11-11 – Fázis 0.7 kész: tervek jóváhagyva, `minSdk = 26`, teljes modulbontás,
+  demó adatkészlet 4×5 rekorddal. Fázis 0.9: ADR-001…007 és ADR-009 kiírva.
+  JDK 17.0.21 és Android Studio telepítve; az SDK beszerzése folyamatban.

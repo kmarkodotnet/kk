@@ -1,0 +1,162 @@
+﻿id,category_id,category_hu,japanese_romaji,japanese_romaji_ascii,hungarian_name,description_hu,image_path,review_status
+KY-0001,etiquette,Etikett és köszönések,Osu,Osu,Tiszteletteljes köszönés és válasz,"A Kyokushinban gyakran használt köszönés, megerősítés és a kitartás kifejezése.",,editorial_review_required
+KY-0002,etiquette,Etikett és köszönések,Rei,Rei,Meghajlás,Tiszteletadás meghajlással.,,editorial_review_required
+KY-0003,etiquette,Etikett és köszönések,Shōmen ni rei,Shomen ni rei,Meghajlás az edzőterem fő iránya felé,Az edzés elején vagy végén alkalmazott tiszteletadás.,,editorial_review_required
+KY-0004,etiquette,Etikett és köszönések,Sensei ni rei,Sensei ni rei,Meghajlás a mester felé,Tiszteletadás az oktatónak.,,editorial_review_required
+KY-0005,etiquette,Etikett és köszönések,Senpai ni rei,Senpai ni rei,Meghajlás a rangidős tanítvány felé,Tiszteletadás a magasabb rangú tanítványnak.,,editorial_review_required
+KY-0006,etiquette,Etikett és köszönések,Mokusō,Mokuso,"Meditáció, összpontosítás",Rövid elcsendesedés az edzés elején vagy végén.,,editorial_review_required
+KY-0007,etiquette,Etikett és köszönések,Mokusō yame,Mokuso yame,Meditáció vége,Utasítás az elcsendesedés befejezésére.,,editorial_review_required
+KY-0008,etiquette,Etikett és köszönések,Onegaishimasu,Onegaishimasu,"Kérem, tanítson / kérem az együttműködést",Udvarias kifejezés gyakorlás kezdetén.,,editorial_review_required
+KY-0009,etiquette,Etikett és köszönések,Arigatō gozaimashita,Arigato gozaimashita,Köszönöm szépen (a megtörténtért),Udvarias köszönet a gyakorlás végén.,,editorial_review_required
+KY-0010,commands,Vezényszavak és alapfogalmak,Yōi,Yoi,Készülj!,Felkészülés a gyakorlatra.,,editorial_review_required
+KY-0011,commands,Vezényszavak és alapfogalmak,Hajime,Hajime,Kezdd!,A gyakorlat vagy küzdelem indítása.,,editorial_review_required
+KY-0012,commands,Vezényszavak és alapfogalmak,Yame,Yame,Állj!,A mozgás vagy küzdelem megszakítása.,,editorial_review_required
+KY-0013,commands,Vezényszavak és alapfogalmak,Naore,Naore,Vissza alaphelyzetbe!,Visszatérés a kiinduló testhelyzetbe.,,editorial_review_required
+KY-0014,commands,Vezényszavak és alapfogalmak,Mawatte,Mawatte,Fordulj meg!,Fordulásra felszólító vezényszó.,,editorial_review_required
+KY-0015,commands,Vezényszavak és alapfogalmak,Yasume,Yasume,Pihenj!,Pihenő vagy lazítás vezényszava.,,editorial_review_required
+KY-0016,commands,Vezényszavak és alapfogalmak,Kamaete,Kamaete,Vedd fel a tartást!,A megadott harci vagy gyakorló tartás felvétele.,,editorial_review_required
+KY-0017,commands,Vezényszavak és alapfogalmak,Kiai,Kiai,Harci kiáltás,Erőteljes kilégzéssel kísért hangadás.,,editorial_review_required
+KY-0018,commands,Vezényszavak és alapfogalmak,Seiza,Seiza,Térdelő ülés,Hagyományos japán térdelő ülés.,,editorial_review_required
+KY-0019,commands,Vezényszavak és alapfogalmak,Tatte,Tatte,Állj fel!,Felállásra felszólító utasítás.,,editorial_review_required
+KY-0020,commands,Vezényszavak és alapfogalmak,Ki o tsuke,Kirotsuke,Vigyázz!,Figyelemre és rendezett testtartásra felszólítás.,,editorial_review_required
+KY-0021,commands,Vezényszavak és alapfogalmak,Migi,Migi,Jobb,Jobb oldal vagy irány.,,editorial_review_required
+KY-0022,commands,Vezényszavak és alapfogalmak,Hidari,Hidari,Bal,Bal oldal vagy irány.,,editorial_review_required
+KY-0023,commands,Vezényszavak és alapfogalmak,Mae,Mae,"Előre, elöl",Elülső irány.,,editorial_review_required
+KY-0024,commands,Vezényszavak és alapfogalmak,Ushiro,Ushiro,"Hátra, hátul",Hátsó irány.,,editorial_review_required
+KY-0025,commands,Vezényszavak és alapfogalmak,Yoko,Yoko,Oldalra,Oldalsó irány.,,editorial_review_required
+KY-0026,commands,Vezényszavak és alapfogalmak,Mawashi,Mawashi,Köríves,Köríven végrehajtott mozdulatra utal.,,editorial_review_required
+KY-0027,commands,Vezényszavak és alapfogalmak,Jōdan,Jodan,Felső szint,Fej vagy felső célterület.,,editorial_review_required
+KY-0028,commands,Vezényszavak és alapfogalmak,Chūdan,Chudan,Középső szint,Törzs magassága.,,editorial_review_required
+KY-0029,commands,Vezényszavak és alapfogalmak,Gedan,Gedan,Alsó szint,"Alsó célterület, például láb.",,editorial_review_required
+KY-0030,commands,Vezényszavak és alapfogalmak,Kihon,Kihon,Alaptechnikák,Alapmozdulatok gyakorlása.,,editorial_review_required
+KY-0031,commands,Vezényszavak és alapfogalmak,Idō geiko,Ido geiko,Mozgásos alaptechnikai gyakorlás,Alaptechnikák gyakorlása helyváltoztatással.,,editorial_review_required
+KY-0032,commands,Vezényszavak és alapfogalmak,Kata,Kata,Formagyakorlat,Előre meghatározott mozdulatsor.,,editorial_review_required
+KY-0033,commands,Vezényszavak és alapfogalmak,Kumite,Kumite,Küzdelem,Páros küzdőgyakorlat.,,editorial_review_required
+KY-0034,commands,Vezényszavak és alapfogalmak,Tameshiwari,Tameshiwari,Töréstechnika,"Tárgyak, például deszkák törése.",,editorial_review_required
+KY-0035,commands,Vezényszavak és alapfogalmak,Dōjō,Dojo,Edzőterem,A harcművészet gyakorlásának helye.,,editorial_review_required
+KY-0036,commands,Vezényszavak és alapfogalmak,Gi,Gi,Karateruha,Edzéshez viselt hagyományos ruha.,,editorial_review_required
+KY-0037,commands,Vezényszavak és alapfogalmak,Obi,Obi,Öv,"A ruha öve, gyakran fokozatjelző.",,editorial_review_required
+KY-0038,commands,Vezényszavak és alapfogalmak,Kyū,Kyu,Tanulófokozat,Dan előtti fokozat.,,editorial_review_required
+KY-0039,commands,Vezényszavak és alapfogalmak,Dan,Dan,Mesterfokozat,Fekete öves fokozatok rendszere.,,editorial_review_required
+KY-0040,commands,Vezényszavak és alapfogalmak,Sensei,Sensei,"Mester, tanár",Oktató megszólítása.,,editorial_review_required
+KY-0041,commands,Vezényszavak és alapfogalmak,Senpai,Senpai,Rangidős tanítvány,Tapasztaltabb vagy magasabb rangú gyakorló.,,editorial_review_required
+KY-0042,commands,Vezényszavak és alapfogalmak,Kōhai,Kohai,Fiatalabb tanítvány,Alacsonyabb rangú vagy később csatlakozott gyakorló.,,editorial_review_required
+KY-0043,commands,Vezényszavak és alapfogalmak,Sōsai,Sosai,Alapító vezető címe,A Kyokushin alapítójára is használt cím.,,editorial_review_required
+KY-0044,stances,Állások,Fudō dachi,Fudo dachi,"Természetes, stabil állás","Laza, de készültséget biztosító alapállás.",,editorial_review_required
+KY-0045,stances,Állások,Heisoku dachi,Heisoku dachi,Zárt lábú állás,Lábfejek és sarkak egymás mellett.,,editorial_review_required
+KY-0046,stances,Állások,Musubi dachi,Musubi dachi,V alakú zárt állás,"Sarkak közel, lábfejek kifelé fordulnak.",,editorial_review_required
+KY-0047,stances,Állások,Heikō dachi,Heiko dachi,Párhuzamos állás,"Párhuzamos lábfejek, kis terpesz.",,editorial_review_required
+KY-0048,stances,Állások,Hachiji dachi,Hachiji dachi,Nyitott lábfejű természetes állás,Lábfejek kifelé mutatnak.,,editorial_review_required
+KY-0049,stances,Állások,Uchi hachiji dachi,Uchi hachiji dachi,Befelé fordított lábfejű állás,A lábfejek enyhén befelé fordulnak.,,editorial_review_required
+KY-0050,stances,Állások,Zenkutsu dachi,Zenkutsu dachi,Elülső súlypontú hosszú állás,A testsúly nagyobb része az elülső lábon.,,editorial_review_required
+KY-0051,stances,Állások,Kōkutsu dachi,Kokutsu dachi,Hátsó súlypontú állás,A testsúly nagyobb része a hátsó lábon.,,editorial_review_required
+KY-0052,stances,Állások,Kiba dachi,Kiba dachi,Lovaglóállás,"Széles, alacsony állás, jellemzően párhuzamos lábfejekkel.",,editorial_review_required
+KY-0053,stances,Állások,Shiko dachi,Shiko dachi,Szumóállás,Széles állás kifelé fordított lábfejekkel.,,editorial_review_required
+KY-0054,stances,Állások,Sanchin dachi,Sanchin dachi,Sanchin állás,"Rövid, feszes, befelé irányított lábfejű állás.",,editorial_review_required
+KY-0055,stances,Állások,Neko ashi dachi,Neko ashi dachi,Macskaállás,"A testsúly döntően a hátsó lábon, az első láb könnyű.",,editorial_review_required
+KY-0056,stances,Állások,Tsuru ashi dachi,Tsuru ashi dachi,Darulábállás,Egy lábon egyensúlyozó állás.,,editorial_review_required
+KY-0057,stances,Állások,Kake dachi,Kake dachi,Keresztezett lábú állás,A lábak keresztezésével kialakított állás.,,editorial_review_required
+KY-0058,stances,Állások,Kumite dachi,Kumite dachi,Küzdőállás,Küzdelemhez igazított mozgékony testtartás.,,editorial_review_required
+KY-0059,blocks,Védések,Jōdan age uke,Jodan age uke,Felső emelkedő védés,Alulról felfelé végzett védekező karmozdulat a felső szintre.,,editorial_review_required
+KY-0060,blocks,Védések,Chūdan soto uke,Chudan soto uke,Középső külső védés,Kívülről befelé vagy kifelé értelmezése iskolánként eltérhet; a helyi oktató mozgásirányát kövesd.,,editorial_review_required
+KY-0061,blocks,Védések,Chūdan uchi uke,Chudan uchi uke,Középső belső védés,A soto/uchi elnevezés irányértelmezése stílusonként eltérhet.,,editorial_review_required
+KY-0062,blocks,Védések,Gedan barai,Gedan barai,Alsó söprő védés,"Lefelé irányuló, söprő alkarvédekezés.",,editorial_review_required
+KY-0063,blocks,Védések,Shutō mawashi uke,Shuto mawashi uke,Köríves kézélvédés,"Kétkezes, köríves védekező mozdulat.",,editorial_review_required
+KY-0064,blocks,Védések,Shutō jōdan uke,Shuto jodan uke,Felső kézélvédés,"Nyitott kézzel, kézéllel végzett felső védekezés.",,editorial_review_required
+KY-0065,blocks,Védések,Shutō chūdan uke,Shuto chudan uke,Középső kézélvédés,"Nyitott kézzel, kézéllel végzett középső védekezés.",,editorial_review_required
+KY-0066,blocks,Védések,Shutō gedan barai,Shuto gedan barai,Alsó kézél-söprés,Nyitott kézzel végzett alsó söprő védés.,,editorial_review_required
+KY-0067,blocks,Védések,Morote uke,Morote uke,"Kétkezes, megtámasztott védés",Az egyik kar védekezését a másik kéz segíti.,,editorial_review_required
+KY-0068,blocks,Védések,Jūji uke,Juji uke,Keresztvédés,Keresztezett karokkal végzett védés.,,editorial_review_required
+KY-0069,blocks,Védések,Kake uke,Kake uke,Kampózó védés,A támadó végtag megakasztására vagy elvezetésére szolgál.,,editorial_review_required
+KY-0070,blocks,Védések,Osae uke,Osae uke,Lenyomó védés,"Lefelé nyomó, kontrolláló védekezés.",,editorial_review_required
+KY-0071,blocks,Védések,Sukui uke,Sukui uke,Merítő védés,"Alulról felfelé terelő, merítő jellegű védés.",,editorial_review_required
+KY-0072,blocks,Védések,Hiji uke,Hiji uke,Könyökvédés,Könyökkel vagy alkarral történő közeli védekezés.,,editorial_review_required
+KY-0073,punches,Kéz- és könyöktechnikák,Seiken chūdan tsuki,Seiken chudan tsuki,Egyenes ökölütés középre,A mutató- és középső ujj bütykeivel célzott egyenes ütés.,,editorial_review_required
+KY-0074,punches,Kéz- és könyöktechnikák,Seiken jōdan tsuki,Seiken jodan tsuki,Egyenes ökölütés felső szintre,Egyenes ütés a felső célterület irányába.,,editorial_review_required
+KY-0075,punches,Kéz- és könyöktechnikák,Seiken gedan tsuki,Seiken gedan tsuki,Egyenes ökölütés alsó szintre,Egyenes ütés az alsó célterület irányába.,,editorial_review_required
+KY-0076,punches,Kéz- és könyöktechnikák,Oi tsuki,Oi tsuki,"Előrelépő, azonos oldali ütés",Az előrelépő lábbal azonos oldali kéz üt.,,editorial_review_required
+KY-0077,punches,Kéz- és könyöktechnikák,Gyaku tsuki,Gyaku tsuki,Ellentétes oldali egyenes ütés,Az elöl lévő lábbal ellentétes kéz üt.,,editorial_review_required
+KY-0078,punches,Kéz- és könyöktechnikák,Seiken ago uchi,Seiken ago uchi,Állra irányuló ökölütés,"Rövid, felfelé vagy előre vezetett ütés az áll irányába.",,editorial_review_required
+KY-0079,punches,Kéz- és könyöktechnikák,Seiken mawashi uchi,Seiken mawashi uchi,Köríves ökölütés,Oldalról köríven vezetett ökölütés.,,editorial_review_required
+KY-0080,punches,Kéz- és könyöktechnikák,Seiken shita tsuki,Seiken shita tsuki,Alulról felfelé vezetett ökölütés,"Rövid, emelkedő pályájú ütés a törzs irányába.",,editorial_review_required
+KY-0081,punches,Kéz- és könyöktechnikák,Uraken shōmen uchi,Uraken shomen uchi,Elülső kézhátütés,A kézhát bütykös részével előre végzett ütés.,,editorial_review_required
+KY-0082,punches,Kéz- és könyöktechnikák,Uraken sayū uchi,Uraken sayu uchi,Oldalirányú kézhátütés,Kézhátütés oldalirányba.,,editorial_review_required
+KY-0083,punches,Kéz- és könyöktechnikák,Uraken hizō uchi,Uraken hizo uchi,Kézhátütés borda/törzs irányába,"Oldalsó, testre irányuló kézhátütés.",,editorial_review_required
+KY-0084,punches,Kéz- és könyöktechnikák,Uraken mawashi uchi,Uraken mawashi uchi,Köríves kézhátütés,Köríves pályán végrehajtott kézhátütés.,,editorial_review_required
+KY-0085,punches,Kéz- és könyöktechnikák,Tettsui oroshi uchi,Tettsui oroshi uchi,Lefelé csapó kalapácsököl,Az ököl kisujj felőli részével lefelé csapó ütés.,,editorial_review_required
+KY-0086,punches,Kéz- és könyöktechnikák,Tettsui yoko uchi,Tettsui yoko uchi,Oldalsó kalapácsököl,Az ököl kisujj felőli részével oldalra végzett ütés.,,editorial_review_required
+KY-0087,punches,Kéz- és könyöktechnikák,Shutō sakotsu uchi,Shuto sakotsu uchi,Kézélütés kulcscsontra,A kéz kisujj felőli élével végzett csapás.,,editorial_review_required
+KY-0088,punches,Kéz- és könyöktechnikák,Shutō sakotsu uchikomi,Shuto sakotsu uchikomi,Behatoló kézélütés kulcscsontra,Előre vezetett kézéltechnika.,,editorial_review_required
+KY-0089,punches,Kéz- és könyöktechnikák,Shutō uchi uchi,Shuto uchi uchi,Belső irányú kézélütés,A kézéllel végrehajtott belső irányú csapás.,,editorial_review_required
+KY-0090,punches,Kéz- és könyöktechnikák,Shutō ganmen uchi,Shuto ganmen uchi,Kézélütés arcra,Kézéllel az arc irányába vezetett ütés.,,editorial_review_required
+KY-0091,punches,Kéz- és könyöktechnikák,Nukite,Nukite,Ujjhegyes szúrás,Nyitott kéz összezárt ujjaival végzett szúró technika.,,editorial_review_required
+KY-0092,punches,Kéz- és könyöktechnikák,Hiji ate,Hiji ate,Könyökütés,Könyökkel végzett közeli támadás.,,editorial_review_required
+KY-0093,punches,Kéz- és könyöktechnikák,Hiji age uchi,Hiji age uchi,Emelkedő könyökütés,Alulról felfelé vezetett könyökütés.,,editorial_review_required
+KY-0094,punches,Kéz- és könyöktechnikák,Hiji oroshi uchi,Hiji oroshi uchi,Lefelé csapó könyökütés,Felülről lefelé vezetett könyökütés.,,editorial_review_required
+KY-0095,punches,Kéz- és könyöktechnikák,Hiji mawashi uchi,Hiji mawashi uchi,Köríves könyökütés,Oldalról köríven végzett könyökütés.,,editorial_review_required
+KY-0096,kicks,Rúgások és térdtechnikák,Mae geri,Mae geri,Elülső rúgás,"Előre irányuló rúgás, jellemzően a talppárnával.",,editorial_review_required
+KY-0097,kicks,Rúgások és térdtechnikák,Mae keage,Mae keage,Elülső lendítő rúgás,"Nyújtottabb lábbal, lendítő jelleggel végzett rúgás.",,editorial_review_required
+KY-0098,kicks,Rúgások és térdtechnikák,Yoko geri,Yoko geri,Oldalrúgás,"Oldalirányú rúgás, gyakran sarokkal vagy talpéllel.",,editorial_review_required
+KY-0099,kicks,Rúgások és térdtechnikák,Yoko keage,Yoko keage,Oldalsó lendítő rúgás,"Oldalirányú, emelkedő lendítő lábtechnika.",,editorial_review_required
+KY-0100,kicks,Rúgások és térdtechnikák,Yoko kekomi,Yoko kekomi,Oldalsó tolórúgás,"Oldalirányú, erőteljesen kitolt rúgás.",,editorial_review_required
+KY-0101,kicks,Rúgások és térdtechnikák,Mawashi geri,Mawashi geri,Köríves rúgás,Köríves pályán vezetett lábtechnika.,,editorial_review_required
+KY-0102,kicks,Rúgások és térdtechnikák,Ushiro geri,Ushiro geri,Hátrarúgás,"Hátrafelé, általában sarokkal végzett rúgás.",,editorial_review_required
+KY-0103,kicks,Rúgások és térdtechnikák,Ushiro mawashi geri,Ushiro mawashi geri,Hátsó köríves rúgás,"Fordulásból, hátrafelé ívelő rúgás.",,editorial_review_required
+KY-0104,kicks,Rúgások és térdtechnikák,Ura mawashi geri,Ura mawashi geri,Fordított köríves rúgás,A köríves rúgással ellentétes íven visszahúzó rúgás.,,editorial_review_required
+KY-0105,kicks,Rúgások és térdtechnikák,Hiza geri,Hiza geri,Térdrúgás,Térddel végrehajtott közeli támadás.,,editorial_review_required
+KY-0106,kicks,Rúgások és térdtechnikák,Kin geri,Kin geri,Ágyékrúgás,"Alulról felfelé, az ágyék felé irányuló rúgás.",,editorial_review_required
+KY-0107,kicks,Rúgások és térdtechnikák,Kansetsu geri,Kansetsu geri,Ízületre irányuló rúgás,Elsősorban lábízület irányába vezetett technika; kontrolláltan gyakorolandó.,,editorial_review_required
+KY-0108,kicks,Rúgások és térdtechnikák,Uchi mawashi geri,Uchi mawashi geri,Befelé ívelő köríves rúgás,Befelé vezetett köríves lábmozdulat.,,editorial_review_required
+KY-0109,kicks,Rúgások és térdtechnikák,Soto mawashi geri,Soto mawashi geri,Kifelé ívelő köríves rúgás,Kifelé vezetett köríves lábmozdulat.,,editorial_review_required
+KY-0110,kicks,Rúgások és térdtechnikák,Oroshi kakato geri,Oroshi kakato geri,Lefelé csapó sarokrúgás,"Felemelt lábbal, sarokkal lefelé végrehajtott rúgás.",,editorial_review_required
+KY-0111,kicks,Rúgások és térdtechnikák,Tobi mae geri,Tobi mae geri,Ugró elülső rúgás,Ugrás közben végrehajtott előrerúgás.,,editorial_review_required
+KY-0112,kicks,Rúgások és térdtechnikák,Tobi yoko geri,Tobi yoko geri,Ugró oldalrúgás,Ugrás közben végrehajtott oldalrúgás.,,editorial_review_required
+KY-0113,kicks,Rúgások és térdtechnikák,Tobi mawashi geri,Tobi mawashi geri,Ugró köríves rúgás,Ugrás közben végrehajtott köríves rúgás.,,editorial_review_required
+KY-0114,kicks,Rúgások és térdtechnikák,Mae hiza geri,Mae hiza geri,Elülső térdrúgás,Előrefelé vezetett térdtámadás.,,editorial_review_required
+KY-0115,kicks,Rúgások és térdtechnikák,Gedan mawashi geri,Gedan mawashi geri,Alsó köríves rúgás,"Köríves rúgás alsó célterületre, gyakran combra.",,editorial_review_required
+KY-0116,kicks,Rúgások és térdtechnikák,Chūdan mawashi geri,Chudan mawashi geri,Középső köríves rúgás,Köríves rúgás a törzs magasságába.,,editorial_review_required
+KY-0117,kicks,Rúgások és térdtechnikák,Jōdan mawashi geri,Jodan mawashi geri,Felső köríves rúgás,Köríves rúgás a fej magasságába.,,editorial_review_required
+KY-0118,body_parts,Ütőfelületek és testrészek,Seiken,Seiken,Első két ökölbütyök,A zárt ököl mutató- és középső ujj felőli ütőfelülete.,,editorial_review_required
+KY-0119,body_parts,Ütőfelületek és testrészek,Uraken,Uraken,Kézhát / kézhátbütykök,A kéz hátsó ütőfelülete.,,editorial_review_required
+KY-0120,body_parts,Ütőfelületek és testrészek,Tettsui,Tettsui,Kalapácsököl,Az ököl kisujj felőli oldala.,,editorial_review_required
+KY-0121,body_parts,Ütőfelületek és testrészek,Shutō,Shuto,Kézél,A tenyér kisujj felőli éle.,,editorial_review_required
+KY-0122,body_parts,Ütőfelületek és testrészek,Haitō,Haito,Belső kézél,A tenyér hüvelykujj felőli éle.,,editorial_review_required
+KY-0123,body_parts,Ütőfelületek és testrészek,Shōtei,Shotei,Tenyértő,"A tenyér alsó, húsos része.",,editorial_review_required
+KY-0124,body_parts,Ütőfelületek és testrészek,Hiji,Hiji,Könyök,Könyök mint technikai ütőfelület.,,editorial_review_required
+KY-0125,body_parts,Ütőfelületek és testrészek,Hiza,Hiza,Térd,Térd mint technikai ütőfelület.,,editorial_review_required
+KY-0126,body_parts,Ütőfelületek és testrészek,Chūsoku,Chusoku,Talppárna,A lábujjak alatti talpi rész.,,editorial_review_required
+KY-0127,body_parts,Ütőfelületek és testrészek,Sokutō,Sokuto,Talp külső éle,A láb kisujj felőli külső éle.,,editorial_review_required
+KY-0128,body_parts,Ütőfelületek és testrészek,Kakato,Kakato,Sarok,A láb sarokrésze.,,editorial_review_required
+KY-0129,body_parts,Ütőfelületek és testrészek,Haisoku,Haisoku,Lábfej felső része,A lábfej felső ütőfelülete.,,editorial_review_required
+KY-0130,body_parts,Ütőfelületek és testrészek,Teisoku,Teisoku,Talp belső/alsó felülete,A talp ütőfelületként használt része.,,editorial_review_required
+KY-0131,body_parts,Ütőfelületek és testrészek,Sune,Sune,Sípcsont,A lábszár elülső csontos része.,,editorial_review_required
+KY-0132,numbers,Japán számok,Ichi,Ichi,Egy,Japán számnév: 1.,,editorial_review_required
+KY-0133,numbers,Japán számok,Ni,Ni,Kettő,Japán számnév: 2.,,editorial_review_required
+KY-0134,numbers,Japán számok,San,San,Három,Japán számnév: 3.,,editorial_review_required
+KY-0135,numbers,Japán számok,Shi,Shi,Négy,Japán számnév: 4; yon változat is létezik.,,editorial_review_required
+KY-0136,numbers,Japán számok,Go,Go,Öt,Japán számnév: 5.,,editorial_review_required
+KY-0137,numbers,Japán számok,Roku,Roku,Hat,Japán számnév: 6.,,editorial_review_required
+KY-0138,numbers,Japán számok,Shichi,Shichi,Hét,Japán számnév: 7; nana változat is létezik.,,editorial_review_required
+KY-0139,numbers,Japán számok,Hachi,Hachi,Nyolc,Japán számnév: 8.,,editorial_review_required
+KY-0140,numbers,Japán számok,Ku,Ku,Kilenc,Japán számnév: 9; kyū változat is létezik.,,editorial_review_required
+KY-0141,numbers,Japán számok,Jū,Ju,Tíz,Japán számnév: 10.,,editorial_review_required
+KY-0142,kata,Katák,Taikyoku sono ichi,Taikyoku sono ichi,Taikyoku első forma,Alapvető mozgásokat és irányváltásokat tanító kata.,,editorial_review_required
+KY-0143,kata,Katák,Taikyoku sono ni,Taikyoku sono ni,Taikyoku második forma,A Taikyoku sorozat második gyakorlata.,,editorial_review_required
+KY-0144,kata,Katák,Taikyoku sono san,Taikyoku sono san,Taikyoku harmadik forma,A Taikyoku sorozat harmadik gyakorlata.,,editorial_review_required
+KY-0145,kata,Katák,Pinan sono ichi,Pinan sono ichi,Pinan első forma,A Pinan formagyakorlatok első tagja.,,editorial_review_required
+KY-0146,kata,Katák,Pinan sono ni,Pinan sono ni,Pinan második forma,A Pinan formagyakorlatok második tagja.,,editorial_review_required
+KY-0147,kata,Katák,Pinan sono san,Pinan sono san,Pinan harmadik forma,A Pinan formagyakorlatok harmadik tagja.,,editorial_review_required
+KY-0148,kata,Katák,Pinan sono yon,Pinan sono yon,Pinan negyedik forma,A Pinan formagyakorlatok negyedik tagja.,,editorial_review_required
+KY-0149,kata,Katák,Pinan sono go,Pinan sono go,Pinan ötödik forma,A Pinan formagyakorlatok ötödik tagja.,,editorial_review_required
+KY-0150,kata,Katák,Sanchin,Sanchin,Három csata,"Légzésre, testfeszítésre és stabilitásra összpontosító kata.",,editorial_review_required
+KY-0151,kata,Katák,Yantsu,Yantsu,Yantsu kata,"Rövidebb, hagyományos Kyokushin formagyakorlat; a név fordítása vitatott.",,editorial_review_required
+KY-0152,kata,Katák,Tsuki no kata,Tsuki no kata,Ütések formagyakorlata,Ütéskombinációkra épülő kata.,,editorial_review_required
+KY-0153,kata,Katák,Gekisai dai,Gekisai dai,Gekisai nagy forma,Erőteljes technikákat tartalmazó kata.,,editorial_review_required
+KY-0154,kata,Katák,Gekisai shō,Gekisai sho,Gekisai kis forma,A Gekisai sorozat másik formagyakorlata.,,editorial_review_required
+KY-0155,kata,Katák,Tenshō,Tensho,Forgó tenyerek,"Nyitott kezes, légzéssel összehangolt kata.",,editorial_review_required
+KY-0156,kata,Katák,Saiha,Saiha,Saiha kata,Haladó kata; a név fordítása szervezetenként eltérhet.,,editorial_review_required
+KY-0157,kata,Katák,Seienchin,Seienchin,Seienchin kata,"Haladó formagyakorlat, erős és lassú elemekkel.",,editorial_review_required
+KY-0158,kata,Katák,Garyū,Garyu,Fekvő sárkány,Masutatsu Oyama nevéhez kapcsolódó kata.,,editorial_review_required
+KY-0159,kata,Katák,Seipai,Seipai,Tizennyolc,"Haladó kata, a név hagyományosan a 18-as számhoz kapcsolódik.",,editorial_review_required
+KY-0160,kata,Katák,Kankū dai,Kanku dai,Égre tekintés (nagy forma),"Hosszabb, haladó formagyakorlat.",,editorial_review_required
+KY-0161,kata,Katák,Sūshiho,Sushiho,Ötvennégy lépés,"Haladó kata, a név az 54-es számhoz kapcsolódik.",,editorial_review_required
