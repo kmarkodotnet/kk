@@ -54,3 +54,12 @@ dependencies {
     testImplementation(libs.room.testing)
     testImplementation(libs.androidx.test.core)
 }
+
+tasks.withType<Test>().configureEach {
+    // A tartalomimport tesztjei a valódi tudástáron is lefutnak
+    // (`knowledgebase_transfer/`, 161 rekord), a teszt JVM munkakönyvtára viszont a modul
+    // könyvtára. Az útvonalat ezért rendszertulajdonságként adjuk át, nem relatív `../..`
+    // hivatkozással – az csendben elromlana, ha a modul máshová kerül. Ugyanaz a
+    // konvenció, mint a `core/quiz`-ben. (A tartalmat az `app` assetsbe a T-601 másolja.)
+    systemProperty("kyo.repoRoot", rootDir.absolutePath)
+}

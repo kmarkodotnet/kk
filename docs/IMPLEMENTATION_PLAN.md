@@ -72,7 +72,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
-| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), a V010 a `core/data` importrétegé (T-115) |
+| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula). A V010 a `core/data` importrétegében készült el (T-115, `KnowledgeContentReader`), így a V001…V010 kódkészlet teljes |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ✅ **kész** – T-106: `KnowledgeValidationRuleTableTest` 31 nevesített, parametrizált eset a V001…V010 kódokra + `KnowledgeValidationRuleCoverageTest` (gépi lefedettségi őr), `KnowledgeValidatorGuaranteesTest` (nem dob kivételt / nem emel státuszt), `RealKnowledgeBaseValidationTest` (a valós 161 rekord, 0 BLOKKOLÓ hiba). **105 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0 |
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07, NFR-07 | ✅ **kész** – T-107 (szerződés), T-108 (jelöltszűrés), T-109 (distraktorválasztás), T-110 (seedelt determinizmus) és T-111 (`dryRun` készenléti összegzés): a `QuizCandidateFilter`, a `DistractorSelector` és a `DefaultQuizGenerator` – Fisher–Yates keverés kizárólag a seedelt RNG-ből, kérdés- és opciósorrend a seedből, ismétlésmentes helyes válaszok, tényleges `Shortfall`, és kérdésépítés nélküli `dryRun`, amely a `generate`-tel közös slotlistából számol |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ✅ **kész** – T-112: a nyolc kvízmotor-invariáns egy 21 kérés × 7 seed mátrixon és a valódi 161 rekordos tartalmon; kategóriaszűrés, feliratos/placeholder/hiányzó kép, shortfall-okprioritás, `dryRun` ↔ `generate` egyezés a közös `questionSlots` ponton. **236 zöld teszt** |
@@ -87,7 +87,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 3.1 | A kanonikus séma implementálása (ADR-011): manifest + `entries`, `schema_version` string | FR-29 | ⬜ |
+| 3.1 | A kanonikus séma implementálása (ADR-011): manifest + `entries`, `schema_version` string | FR-29 | ✅ **kész** – T-115: `core/data` `internal` DTO-k (`ManifestDto`, `CategoryDto`, `IllustrationDto`, `EntriesFileDto`, `EntryDto`) `@SerialName` snake_case leképezéssel és `ignoreUnknownKeys = true`, `KnowledgeAssetSource` + `AndroidKnowledgeAssetSource` (assets-olvasás, képfájllista), `KnowledgeContentReader` (`Parsed` / `Unreadable` → **V010**), DTO → `KnowledgeInput` mapper. 16 új teszt, a valódi 161 rekordon is |
 | 3.2 | A `knowledgebase/` tartalom bemásolása `app/src/main/assets/knowledge/` alá + `editorial_status` alapú `datasetTrust` (ADR-010) | CR-01, CR-03 | ⬜ |
 | 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ⬜ |
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ⬜ |
@@ -165,11 +165,12 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-115** – `core/data`: a kanonikus séma beolvasása (`manifest.json` + `techniques.json`
-   DTO-k, `schemaVersion`/`contentVersion` kezelés, V010 az importrétegben). (**A Fázis 2 és
-   vele az M1 mérföldkő lezárva:** T-114 után a kvízmotor helyességi magja – validátor,
-   generátor, eredményszámítás – 262 zöld teszttel igazolt; `assembleDebug` exit 0.)
-2. **T-116…T-117** – `core/data`: a Room séma és a `ContentImporter` (a tartalomfrissítés
+1. **T-116** – `core/data`: a Room séma (tartalom- és felhasználói táblák, DAO-k,
+   `@TypeConverter`-ek, `UNIQUE(sessionId, questionId)` index). (**A T-115 kész:** a
+   kanonikus séma beolvasása, a V010 és a DTO → `KnowledgeInput` leképezés megvan,
+   278 zöld teszttel.)
+2. **T-117** – `core/data`: a `ContentImporter` (a `KnowledgeContentReader` kimenetéből
+   validátor → upsert, idempotens, `retired` jelölés, a tartalomfrissítés
    előrehaladás-megőrzésével).
 3. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése.
 
@@ -394,3 +395,35 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   szerződése első futásra elbírta a teljes mátrixot. **262 zöld teszt** (core/model 35 +
   core/quiz 227; 17 új), `testDebugUnitTest` és `assembleDebug` exit 0. Következő: T-115,
   a `core/data` kanonikus sémabeolvasás (Fázis 3, M2).
+- 2026-11-11 – **T-115 kész (Fázis 3.1): a kanonikus séma beolvasása a `core/data`-ban.**
+  Új, kizárólag `internal` tartalomimport-réteg a `hu.kyokushin.trainer.core.data.content`
+  csomagban (ADR-001 L3: egyetlen DTO sem szivárog ki a modulból): `ManifestDto`,
+  `CategoryDto`, `IllustrationDto`, `EntriesFileDto`, `EntryDto` – mind `@SerialName`
+  snake_case leképezéssel, **minden mező `null`-tűrő, alapértelmezett értékkel**, és
+  `ignoreUnknownKeys = true` (`KnowledgeJson`), hogy a tartalom bővíthető legyen a már
+  kiadott app elszállása nélkül. `KnowledgeAssetSource` interfész +
+  `AndroidKnowledgeAssetSource` (assets-olvasás és a tényleges képfájllista összegyűjtése a
+  V005 bemenetéhez), `KnowledgeContentReader` (`Parsed` / `Unreadable` ág), valamint a
+  DTO → `KnowledgeInput` mapper (`dataset_version` → `contentVersion`,
+  `editorial_status` → `datasetKind`, `review_status == "reviewed"` → `verified`,
+  `quizEligible = null` – ADR-010).
+  **A V010 itt készült el:** olvashatatlan vagy a csomagból hiányzó tudástárfájl esetén a
+  beolvasó nem dob kivételt, hanem kész `ValidationReport`-ot ad egyetlen V010 (BLOKKOLÓ,
+  DATASET hatókör) észrevétellel, a fájlnévvel a diagnosztikában – a V001…V010 kódkészlet
+  ezzel teljes. A hiányzó *kötelező mező* szándékosan **nem** V010: azt a validátor jelenti
+  rekordszinten (V002), így egyetlen hiányos rekord nem viszi el a többi 160-at.
+  `.\gradlew.bat testDebugUnitTest` **exit 0** – **278 teszt, 0 hiba** (16 új a
+  `:core:data`-ban); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`,
+  19 719 165 bájt).
+  *Tudatos duplikáció:* a `core/quiz` teszt-oldali `RealKnowledgeBaseFixture.kt` ugyanezt a
+  leképezést végzi a validátor TR-01 készletéhez. A két leképezés eltérése maga is hiba
+  lenne, ezért a `RealKnowledgeContentReaderTest` **ugyanazokat** az elvárásokat állítja a
+  valódi tartalomra (161 rekord, 9 kategória, 10 illusztráció, 0 BLOKKOLÓ hiba,
+  10 `Asset`, a három feliratos kép – KY-0045/KY-0050/KY-0052 – kvízben nem használható).
+  *Megjegyzés a következő taskhoz:* az `entries.json` megismétli a manifest
+  `schema_version` / `dataset_version` értékét; a beolvasó beolvassa, de **a manifest a
+  hiteles forrás**, és a két hely eltérését egyelőre semmi nem jelzi – ha szükséges, önálló
+  szabálykód (és task) kell rá, nem csendes felülírás.
+  *Nem futott:* az `AndroidKnowledgeAssetSource` vékony delegáló osztályára nincs unit teszt
+  (a `core/data` modulnak nincs saját assets könyvtára, a tartalom másolása a T-601) –
+  lásd `docs/TEST_REPORT.md`.

@@ -1131,3 +1131,86 @@ magyar szöveg és a százalékformázás a T-411 (eredményképernyő) tárgya.
 
 **Mérföldkő:** a TR-01 (validátor), TR-02/TR-03 (generátor) és TR-04 (eredményszámítás)
 készlet együtt zöld → a Fázis 2 és az **M1 mérföldkő** (a termék helyességének magja) lezárva.
+
+---
+
+## 2026-11-11 – T-115: a kanonikus séma beolvasása (core/data)
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:testDebugUnitTest` | 0 | BUILD SUCCESSFUL – **16 teszt, 0 hiba, 0 kihagyott** (`KnowledgeContentReaderTest` 10, `RealKnowledgeContentReaderTest` 6) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **278 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 227 + core/data 16) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 719 165 bájt) |
+
+A tesztszámok a `core/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`,
+`failures`, `errors` és `skipped` attribútumainak összegei, nem becslés (24 XML fájl).
+Ez az első `:core:data` modulban futó tesztkészlet: korábban a modul tesztje `NO-SOURCE` volt.
+
+### Ami elkészült
+
+Négy új `main` fájl a `core/data/src/main/kotlin/hu/kyokushin/trainer/core/data/content/`
+alatt – **mind `internal`** (ADR-001 L3: egyetlen DTO sem szivárog ki a modulból):
+
+| Fájl | Tartalom |
+|---|---|
+| `KnowledgeDto.kt` | `KnowledgeJson` (`ignoreUnknownKeys = true`), `ManifestDto`, `CategoryDto`, `IllustrationDto`, `EntriesFileDto`, `EntryDto` – `@SerialName` snake_case leképezés, minden mező `null`-tűrő |
+| `KnowledgeAssetSource.kt` | `KnowledgeAssetSource` interfész, `KnowledgeAssetLayout` (fájlnevek), `AndroidKnowledgeAssetSource` (assets-olvasás + képfájllista) |
+| `KnowledgeInputMapper.kt` | DTO → `KnowledgeInput` / `ManifestInput` / `CategoryInput` / `IllustrationInput` / `TechniqueInput` |
+| `KnowledgeContentReader.kt` | a beolvasás egyetlen belépési pontja, `Parsed` / `Unreadable` kimenet, a **V010** jelentés előállítása |
+
+Két új teszt- és egy segédfájl a `core/data/src/test/` alatt:
+`KnowledgeContentReaderTest.kt`, `RealKnowledgeContentReaderTest.kt`,
+`TestKnowledgeAssetSources.kt`.
+
+### A lefedett esetek (16)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `read_unknownExtraFields_areIgnoredAndDoNotFailTheLoad_FR29` | jövőbeli extra mező manifest-, kategória-, illusztráció- és rekordszinten sem hiba |
+| `read_schemaVersion_isSemverString_notInteger_FR29` | a `schema_version` semver **string**, nem Int (ADR-011) |
+| `read_mapsEveryCanonicalFieldToTheValidatorInput_FR29` | a teljes mezőleképezés, a `quiz_eligible` hiánya (ADR-010) és a képfájllista |
+| `read_reviewStatus_onlyReviewedMeansVerified_CR01` | csak a `reviewed` jelent hitelesítést; ismeretlen státusz nem emel szintet |
+| `read_missingMandatoryField_isReportedByTheValidatorAsV002_notAsParseFailure_DR05` | hiányzó `hungarian_name` → **nem** V010, hanem rekordszintű V002; a másik rekord elfogadva |
+| `read_malformedJson_producesV010AndRejectsTheDataset_DR05` | csonka JSON → egyetlen V010 (BLOKKOLÓ, DATASET), a fájlnév a diagnosztikában, `datasetRejected == true` |
+| `read_structurallyWrongJson_producesV010_DR05` | érvényes JSON, de `entries` objektum tömb helyett → V010 |
+| `read_missingContentFile_producesV010_DR05` | hiányzó `manifest.json` → V010, nem kivétel (FR-31) |
+| `read_missingIllustrationFile_isNotALoadFailureButAV005Warning_DR05` | üres képkönyvtár → V005 FIGYELMEZTETÉS, a rekord megmarad |
+| `read_emptyEntriesList_isValidContentNotAParseFailure_DR05` | üres `entries` tömb érvényes tartalom |
+| `read_realKnowledgeBase_parsesTheCanonicalSchema_FR29` | a valódi tartalom: 161 rekord, 9 kategória (1…9 `sort_order`), 10 illusztráció |
+| `read_realKnowledgeBase_collectsThePackagedIllustrationFiles_FR29` | a csomagolt 10 képfájl csupasz neve pontosan a manifest `file` értékeinek utolsó szegmense |
+| `read_realKnowledgeBase_neverClaimsVerifiedContent_CR01` | mind a 161 rekord `verified = false`, `quizEligible = null` |
+| `read_realKnowledgeBase_passesTheValidatorWithoutBlockingIssue_DR05` | a saját leképezéssel is **0 BLOKKOLÓ hiba**, `accepted = 161`, `datasetTrust = PRACTICE_ON_UNREVIEWED` |
+| `read_realKnowledgeBase_resolvesEveryIllustrationToAnAsset_DR05` | 10 `Asset`, 0 `Placeholder`, a három feliratos kép (KY-0045/KY-0050/KY-0052) kvízben nem használható |
+| `read_realKnowledgeBase_findsNoSynonymCollision_DR05` | 0 V006 észrevétel, 0 szinonimacsoport – a konverter megállapításával egyezően |
+
+### A V010 helye
+
+A `V010` kódot **az importréteg** állítja elő, nem a validátor: a `KnowledgeContentReader`
+elfogja a `SerializationException` / `IOException` / `IllegalArgumentException` hibákat, és
+kész `ValidationReport`-ot ad egyetlen V010 észrevétellel (BLOKKOLÓ, DATASET hatókör), a
+fájlnévvel a `field` mezőben. Ezzel a V001…V010 kódkészlet teljes: a T-106
+`V010_isNeverProducedByTheValidator` tagadó tesztje és ez a készlet együtt írja le a
+felelősségmegosztást.
+
+### Rétegszabály, NFR-07, felhasználói szöveg
+
+- Minden új típus `internal` (ellenőrizve: a `content` csomagban nincs `public` deklaráció),
+  tehát a DTO-k nem szivárognak ki a `core/data`-ból (ADR-001 L3/L4, TR-07).
+- Nincs `Clock`, `Instant.now()` vagy `Random` hívás (NFR-07): a réteg állapotmentes.
+- Felhasználói szöveg nem keletkezett. A V010 `detail` szövege **diagnosztikai** üzenet
+  (fejlesztői diagnosztika, FR-45), nem UI-felirat – a `ValidationIssue.detail` szerződése
+  szerint ezek nem `strings.xml`-be tartoznak.
+- A valódi tartalom útvonalát a `kyo.repoRoot` rendszertulajdonság adja át
+  (`core/data/build.gradle.kts`), nem relatív `../..` hivatkozás – ugyanaz a konvenció,
+  mint a `core/quiz`-ben.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `AndroidKnowledgeAssetSource` unit teszt | **NEM FUTOTT** – a `core/data` modulnak nincs saját `assets/` könyvtára (a tudástár másolása az `app` assetsbe a T-601), és a Robolectric `AssetManager` csak a modul tényleges assetjeit látja. A beolvasó logikája a `KnowledgeAssetSource` absztrakción keresztül teljesen lefedett; a delegáló osztály (útvonal-összefűzés + UTF-8 olvasás) első valódi ellenőrzése a T-601 utáni indításkor és a T-606 UI tesztekben történik. |
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-115 tisztán JVM unit teszt. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-05 | **NEM FUTOTT** – a tartalomfrissítés előrehaladás-megőrzése Room sémát és importálót igényel: T-116, T-117, majd a tesztek T-118. |
