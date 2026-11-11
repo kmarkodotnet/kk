@@ -1,0 +1,164 @@
+package hu.kyokushin.trainer.navigation
+
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+
+/**
+ * A navigációs váz szabályai (NFR-03, TR-06, FUNCTIONAL_SPEC 1.).
+ *
+ * Miért sima JVM teszt, és nem Compose UI teszt? A [KyokushinScreen] és a
+ * [BottomNavDestination] szándékosan Android-mentes adat: az útvonalak, a fülhöz
+ * tartozás és a bottom nav látszása eldönthető a Compose fa kirenderelése nélkül.
+ * A tényleges koppintás-bejárás emulátort igényel – az a T-606 tárgya.
+ */
+class NavigationGraphTest {
+
+    @Test
+    fun navGraph_declaresExactlyTheSpecifiedRoutes_NFR03() {
+        val routes = KyokushinScreen.entries.map { it.routePattern }
+
+        assertThat(routes).containsExactly(
+            "library/list",
+            "library/detail/{techniqueId}",
+            "learn/setup",
+            "learn/cards",
+            "quiz/setup",
+            "quiz/run/{sessionId}",
+            "quiz/result/{sessionId}",
+            "progress/overview",
+            "progress/technique/{techniqueId}",
+            "settings",
+        )
+    }
+
+    @Test
+    fun navGraph_hasNoDuplicateRoutePattern_NFR03() {
+        val routes = KyokushinScreen.entries.map { it.routePattern }
+
+        assertThat(routes).hasSize(routes.toSet().size)
+    }
+
+    @Test
+    fun navGraph_startsOnTheLibraryList_NFR03() {
+        assertThat(KyokushinScreen.startRoute).isEqualTo(KyokushinScreen.LIBRARY_LIST.routePattern)
+        assertThat(KyokushinScreen.LIBRARY_LIST.topLevel).isTrue()
+    }
+
+    @Test
+    fun bottomNav_hasTheFourSpecifiedDestinationsInOrder_NFR03() {
+        val destinations = BottomNavDestination.entries
+
+        assertThat(destinations.map { it.route }).containsExactly(
+            "library/list",
+            "learn/setup",
+            "quiz/setup",
+            "progress/overview",
+        ).inOrder()
+    }
+
+    @Test
+    fun bottomNav_everyDestinationStartsOnATopLevelScreen_NFR03() {
+        BottomNavDestination.entries.forEach { destination ->
+            assertThat(destination.screen.topLevel).isTrue()
+        }
+    }
+
+    @Test
+    fun bottomNav_everyScreenBelongsToExactlyOneTab_NFR03() {
+        KyokushinScreen.entries.forEach { screen ->
+            val selected = BottomNavDestination.entries.filter { it.isSelected(screen) }
+            assertThat(selected).hasSize(1)
+        }
+    }
+
+    @Test
+    fun bottomNav_keepsTheOwningTabSelectedOnDeeperScreens_NFR03() {
+        assertThat(BottomNavDestination.selectedFor(KyokushinScreen.LIBRARY_DETAIL))
+            .isEqualTo(BottomNavDestination.LIBRARY)
+        assertThat(BottomNavDestination.selectedFor(KyokushinScreen.LEARN_CARDS))
+            .isEqualTo(BottomNavDestination.LEARN)
+        assertThat(BottomNavDestination.selectedFor(KyokushinScreen.PROGRESS_TECHNIQUE))
+            .isEqualTo(BottomNavDestination.PROGRESS)
+    }
+
+    @Test
+    fun bottomNav_settingsKeepsTheProgressTabSelected_NFR03() {
+        // A `settings` a Haladás szakaszból nyílik, nincs önálló füle (FUNCTIONAL_SPEC 1.).
+        assertThat(BottomNavDestination.selectedFor(KyokushinScreen.SETTINGS))
+            .isEqualTo(BottomNavDestination.PROGRESS)
+    }
+
+    @Test
+    fun bottomBar_isHiddenWhileAQuizIsRunning_TR06() {
+        assertThat(isBottomBarVisible("quiz/run/{sessionId}")).isFalse()
+        assertThat(KyokushinScreen.QUIZ_RUN.showsBottomBar).isFalse()
+    }
+
+    @Test
+    fun bottomBar_isHiddenOnTheQuizResult_TR06() {
+        assertThat(isBottomBarVisible("quiz/result/{sessionId}")).isFalse()
+        assertThat(KyokushinScreen.QUIZ_RESULT.showsBottomBar).isFalse()
+    }
+
+    @Test
+    fun bottomBar_isVisibleOnEveryScreenOutsideTheRunningQuiz_TR06() {
+        val hidden = KyokushinScreen.entries.filterNot { it.showsBottomBar }
+
+        assertThat(hidden).containsExactly(
+            KyokushinScreen.QUIZ_RUN,
+            KyokushinScreen.QUIZ_RESULT,
+        )
+    }
+
+    @Test
+    fun bottomBar_isVisibleOnAnUnknownRoute_TR06() {
+        // Ismeretlen útvonal ne zárja csapdába a felhasználót azzal, hogy elveszi a navigációt.
+        assertThat(isBottomBarVisible(null)).isTrue()
+        assertThat(isBottomBarVisible("valami/ismeretlen")).isTrue()
+    }
+
+    @Test
+    fun routeLookup_matchesThePatternNotTheFilledRoute_NFR03() {
+        // A Navigation Compose a mintát adja vissza a `NavDestination.route`-ban.
+        assertThat(KyokushinScreen.forRoutePattern("quiz/run/{sessionId}"))
+            .isEqualTo(KyokushinScreen.QUIZ_RUN)
+        assertThat(KyokushinScreen.forRoutePattern("nincs/ilyen")).isNull()
+    }
+
+    @Test
+    fun routeBuilders_fillTheArgumentIntoTheDeclaredPattern_NFR03() {
+        assertThat(KyokushinRoutes.libraryDetail("mae-geri"))
+            .isEqualTo(
+                KyokushinScreen.LIBRARY_DETAIL.routePattern
+                    .replace("{" + NavArgs.TECHNIQUE_ID + "}", "mae-geri"),
+            )
+        assertThat(KyokushinRoutes.progressTechnique("mae-geri"))
+            .isEqualTo(
+                KyokushinScreen.PROGRESS_TECHNIQUE.routePattern
+                    .replace("{" + NavArgs.TECHNIQUE_ID + "}", "mae-geri"),
+            )
+        assertThat(KyokushinRoutes.quizRun("s-1"))
+            .isEqualTo(
+                KyokushinScreen.QUIZ_RUN.routePattern
+                    .replace("{" + NavArgs.SESSION_ID + "}", "s-1"),
+            )
+        assertThat(KyokushinRoutes.quizResult("s-1"))
+            .isEqualTo(
+                KyokushinScreen.QUIZ_RESULT.routePattern
+                    .replace("{" + NavArgs.SESSION_ID + "}", "s-1"),
+            )
+    }
+
+    @Test
+    fun argumentCarryingRoutes_useTheSharedArgumentNames_NFR03() {
+        val withArguments = KyokushinScreen.entries.filter { it.routePattern.contains("{") }
+
+        assertThat(withArguments).hasSize(4)
+        withArguments.forEach { screen ->
+            val usesKnownArgument =
+                screen.routePattern.contains("{" + NavArgs.TECHNIQUE_ID + "}") ||
+                    screen.routePattern.contains("{" + NavArgs.SESSION_ID + "}")
+            assertThat(usesKnownArgument).isTrue()
+        }
+    }
+}

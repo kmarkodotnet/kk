@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-206](T-206-navigation-navhost-es-bottom-navigation.md) | navigation: NavHost és bottom navigation | E2 | `navigation` | M | T-205 |
 | [T-207](T-207-feature-library-lista-viewmodel.md) | feature/library: lista ViewModel | E2 | `feature/library` | L | T-202, T-203 |
 | [T-208](T-208-feature-library-lista-ui.md) | feature/library: lista UI | E2 | `feature/library` | L | T-207, T-204 |
 | [T-209](T-209-feature-library-reszletezo-kepernyo.md) | feature/library: részletező képernyő | E2 | `feature/library` | L | T-207 |

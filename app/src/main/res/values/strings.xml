@@ -3,9 +3,10 @@
 <resources>
     <string name="app_name">Kyokushin Trainer</string>
 
-    <!-- Navigáció -->
-    <string name="nav_library">Tudástár</string>
-    <string name="nav_learn">Tanulás</string>
-    <string name="nav_quiz">Kvíz</string>
-    <string name="nav_progress">Haladás</string>
+    <!--
+        A navigáció feliratai (`nav_library`, `nav_learn`, `nav_quiz`, `nav_progress`) a
+        `:navigation` modul `strings.xml`-jében élnek, mert a bottom navigation is ott van
+        (T-206). Egy szövegkulcs egy modulhoz tartozik, különben az erőforrás-összefűzés
+        csendben felülírná az egyiket a másikkal.
+    -->
 </resources>

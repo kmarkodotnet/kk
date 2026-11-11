@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A navigáció felhasználói szövegei. Minden szöveg magyar és KIZÁRÓLAG itt él
+    (NFR-02, FUNCTIONAL_SPEC 8.).
+-->
+<resources>
+
+    <!-- A bottom navigation négy fülének felirata (FUNCTIONAL_SPEC 1.). -->
+    <string name="nav_library">Tudástár</string>
+    <string name="nav_learn">Tanulás</string>
+    <string name="nav_quiz">Kvíz</string>
+    <string name="nav_progress">Haladás</string>
+
+    <!-- A fülek ikonjainak akadálymentes leírása. -->
+    <string name="nav_a11y_back">Vissza</string>
+
+    <!--
+        A képernyők címei a felső sávban. A funkciómodulok (T-207-tól) ugyanezeket a
+        kulcsokat használják, hogy a cím a navigációval együtt maradjon konzisztens.
+    -->
+    <string name="nav_title_library_list">Tudástár</string>
+    <string name="nav_title_library_detail">Technika</string>
+    <string name="nav_title_learn_setup">Tanulás</string>
+    <string name="nav_title_learn_cards">Tanulókártyák</string>
+    <string name="nav_title_quiz_setup">Kvíz</string>
+    <string name="nav_title_quiz_run">Kvíz folyamatban</string>
+    <string name="nav_title_quiz_result">Kvíz eredménye</string>
+    <string name="nav_title_progress_overview">Haladás</string>
+    <string name="nav_title_progress_technique">Technika haladása</string>
+    <string name="nav_title_settings">Beállítások</string>
+
+    <!--
+        Helyőrző képernyők. A navigációs váz (T-206) előbb készül el, mint a képernyők
+        (T-207-től), ezért minden cél egy nyíltan megjelölt helyőrzőt mutat. A szöveg
+        szándékosan megmondja, hogy ez még nem a végleges képernyő – nem állítjuk azt,
+        hogy a funkció kész.
+    -->
+    <string name="nav_placeholder_notice">Ez a képernyő még fejlesztés alatt áll. A navigációs váz működik, a tartalom a következő fejlesztési lépésekben készül el.</string>
+    <string name="nav_placeholder_argument">Átadott azonosító: %1$s</string>
+
+    <!-- A helyőrzők továbbvivő műveletei: ezekkel járható be a teljes navigációs váz. -->
+    <string name="nav_placeholder_open_technique">Technika megnyitása</string>
+    <string name="nav_placeholder_start_cards">Kártyák indítása</string>
+    <string name="nav_placeholder_start_quiz">Kvíz indítása</string>
+    <string name="nav_placeholder_finish_quiz">Kvíz befejezése</string>
+    <string name="nav_placeholder_back_to_quiz_setup">Vissza a kvíz beállításához</string>
+    <string name="nav_placeholder_open_technique_progress">Technika haladása</string>
+    <string name="nav_placeholder_open_settings">Beállítások</string>
+
+</resources>

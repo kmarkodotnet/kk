@@ -102,7 +102,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | ✅ **kész** – T-204: `TechniqueIllustration` (mindhárom `IllustrationRef` eset, 6+4 teszt); T-205: `VerificationBadge`, `UnreviewedBanner` (a „DemoBanner" tényleges, ADR-010 szerinti alakja), `EmptyState(EmptyStateReason)`, `ErrorState` (+18 teszt) |
-| 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | — | ⬜ |
+| 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | NFR-03, TR-06 | ✅ **kész** – T-206: a FUNCTIONAL_SPEC 1. tíz útvonala, négy fül magyar felirattal és ikonnal, a bottom nav a `quiz/run` és `quiz/result` képernyőn elrejtve (+15 teszt). A képernyők még megjelölt helyőrzők (T-207-től cserélődnek) |
 | 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | ⬜ |
 | 4.4 | Tudástár részletező | FR-04, FR-05 | ⬜ |
 | 4.5 | Üres/hiba állapotok a funkcionális spec 2.4 és 10. pontja szerint | NFR-06 | ⬜ |
@@ -166,9 +166,18 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-206** – `navigation`: NavHost és alsó navigáció.
-2. **T-207** – `feature/library`: lista ViewModel.
-3. **T-208** – `feature/library`: lista UI.
+1. **T-207** – `feature/library`: lista ViewModel.
+2. **T-208** – `feature/library`: lista UI.
+3. **T-209** – `feature/library`: részletező képernyő.
+
+(**A T-206 kész:** a navigációs váz áll, a Fázis 1 helyőrző kezdőképernyő lecserélve.
+A képernyőket a `navigation` modul `KyokushinNavHost.kt`-ja köti be; a következő
+feladatok egy-egy `composable { … }` blokk tartalmát cserélik le a `PlaceholderScreen`
+helyén, az útvonalakat és az argumentumneveket nem írják át. Az útvonalak egyetlen
+hiteles forrása a `KyokushinScreen` enum, az argumentumnevek a `NavArgs` objektum
+(`techniqueId`, `sessionId`), az argumentumot hordozó útvonalakat a `KyokushinRoutes`
+építi. A funkciómodulok **nem** navigálnak maguktól: eseményt (lambdát) adnak kifelé, az
+útvonalat a `navigation` modul dönti el – ez tartja a L5 rétegszabályt.)
 
 (**A T-205 kész:** a `core/ui` megosztott jelölői és állapotkomponensei készen állnak.
 A következő képernyők ezeket használják, és nem írnak új magyar szöveget a kódba:
@@ -688,3 +697,39 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
     felsorolás elválasztója (`", "`) üresen jött át és a mezők szóköz nélkül
     ragadtak össze. Megoldás: dupla idézőjelbe zárt erőforrásérték.
   Következő: T-206, a `navigation` NavHost és az alsó navigáció.
+
+- 2026-11-11 – **T-206 kész (Fázis 4.2): a `navigation` NavHost és az alsó navigáció.**
+  A Fázis 1 ideiglenes kezdőképernyő („A projektváz felállt") lecserélve: a
+  `KyokushinApp()` már csak a `:navigation` modul `KyokushinNavHost()`-ját hívja, és az
+  `app` modul nem tud a képernyőkről.
+  - **Tíz útvonal** a FUNCTIONAL_SPEC 1. szerint: `library/list`,
+    `library/detail/{techniqueId}`, `learn/setup`, `learn/cards`, `quiz/setup`,
+    `quiz/run/{sessionId}`, `quiz/result/{sessionId}`, `progress/overview`,
+    `progress/technique/{techniqueId}`, `settings`. Az útvonalak egyetlen hiteles forrása
+    a `KyokushinScreen` enum: útvonalminta + magyar cím + szakasz + „fülkezdő-e" +
+    „látszik-e a bottom nav". Így nem lehet olyan képernyő, amelynek útvonala van, de a
+    fülkijelölés vagy a bottom nav látszása nincs eldöntve.
+  - **Négy fül** (`BottomNavDestination`): Tudástár, Tanulás, Kvíz, Haladás – magyar
+    felirattal (`navigation/.../values/strings.xml`) és ikonnal. A fül a szakasz alapján
+    kijelölt, ezért a Tudástár fül a részletezőn is kijelölve marad, és a `settings` a
+    Haladás fülhöz tartozik (nincs önálló füle, a Haladásból nyílik).
+  - **A futó kvíz nem hagyható el véletlenül** (a task lényegi pontja): a `quiz/run` és
+    `quiz/result` képernyőn a bottom nav **nincs összeállítva**, és a felső sávban sincs
+    vissza nyíl. A döntés egyetlen helyen, adatként áll (`showsBottomBar`), nem elszórt
+    `if`-ekben. A megszakítás explicit megerősítést kérő útja a **T-410** tárgya.
+  - **Állapotmegőrzés fülváltáskor:** `popUpTo(startDestination) { saveState = true }` +
+    `restoreState = true` + `launchSingleTop = true`.
+  - **Helyőrző képernyők:** minden cél egy nyíltan megjelölt `PlaceholderScreen`-t mutat
+    („Ez a képernyő még fejlesztés alatt áll."), az argumentumot hordozó útvonalak
+    kiírják a megkapott azonosítót, és gombok vezetnek tovább – így a teljes váz
+    bejárható. A helyőrző azonosítók (`placeholder-technique`, `placeholder-session`)
+    **nem tartalom**: nem a tudástárból jönnek és nem állítanak semmit egy technikáról.
+  - **15 új teszt** (összesen **408 zöld teszt**), sima JVM JUnit – a `KyokushinScreen` és
+    a `BottomNavDestination` szándékosan Android-mentes adat, ezért az útvonalak, a
+    fülkijelölés és a bottom nav látszása Compose-fa kirenderelése nélkül eldönthető.
+    A tényleges koppintás-bejárás és a fülállapot megmaradásának mérése emulátort kér:
+    **T-606** (B-03).
+  - **Szövegkulcs-átrendezés:** a `nav_library`/`nav_learn`/`nav_quiz`/`nav_progress`
+    kulcsok az `app` modulból a `navigation` modulba kerültek, mert a bottom nav is ott
+    van. Így az erőforrás-összefűzés nem írja felül csendben az egyiket a másikkal.
+  Következő: T-207, a `feature/library` lista ViewModelje.

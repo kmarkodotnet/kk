@@ -1774,3 +1774,57 @@ elvárása volt, ezért a kód – pontosabban az erőforrás – javult, nem a 
 | `@Preview` **tényleges kirenderelése** (világos/sötét) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel, fejnélküli CLI-ből nem fut. Ami igazolt: a kilenc előnézet-függvény (18 `@Preview` bejegyzés) **lefordul** (`:core:ui:compileDebugKotlin` exit 0), és a világos + `UI_MODE_NIGHT_YES` párosítás kódban ellenőrizhető. |
 | WCAG AA kontrasztmérés a jelölők és a szalag színein | **NEM FUTOTT** – eszköz nélkül nem mérhető. Ami igazolt: minden szín Material 3 téma-tokenpárból jön (`surfaceVariant`/`onSurfaceVariant`, `errorContainer`/`onErrorContainer`), hardcode-olt `Color(0xFF…)` nincs a komponensekben. A tényleges mérés a T-604 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-11 – T-206 · `navigation`: NavHost és alsó navigáció
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :navigation:testDebugUnitTest` | 0 | `BUILD SUCCESSFUL` – 15 új teszt zöld |
+| `.\gradlew.bat testDebugUnitTest` | 0 | `BUILD SUCCESSFUL` |
+| `.\gradlew.bat test testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **408 teszt, 0 hiba, 0 kihagyott** (393 → 408) |
+| `.\gradlew.bat assembleDebug --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` (19 925 550 byte) |
+
+A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések `tests`, `failures`,
+`errors` és `skipped` attribútumainak összegzése adta (41 teszt-XML).
+
+### Új tesztek (15) – `NavigationGraphTest`
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `navGraph_declaresExactlyTheSpecifiedRoutes_NFR03` | a tíz útvonal **pontosan** a FUNCTIONAL_SPEC 1. szerinti, se több, se kevesebb |
+| `navGraph_hasNoDuplicateRoutePattern_NFR03` | nincs két cél ugyanazon az útvonalon |
+| `navGraph_startsOnTheLibraryList_NFR03` | az indulási útvonal a Tudástár listája, és az fülkezdő |
+| `bottomNav_hasTheFourSpecifiedDestinationsInOrder_NFR03` | négy fül, a specifikált sorrendben |
+| `bottomNav_everyDestinationStartsOnATopLevelScreen_NFR03` | fül nem vihet mélyebb képernyőre |
+| `bottomNav_everyScreenBelongsToExactlyOneTab_NFR03` | mind a tíz képernyő **pontosan egy** fülhöz tartozik – nincs „egyik fül sem kijelölt" állapot |
+| `bottomNav_keepsTheOwningTabSelectedOnDeeperScreens_NFR03` | a részletezőn, a kártyákon és a technika-haladáson a saját fül marad kijelölve |
+| `bottomNav_settingsKeepsTheProgressTabSelected_NFR03` | a `settings`-nek nincs önálló füle, a Haladásból nyílik |
+| `bottomBar_isHiddenWhileAQuizIsRunning_TR06` | **a task lényegi pontja:** `quiz/run` → nincs bottom nav |
+| `bottomBar_isHiddenOnTheQuizResult_TR06` | `quiz/result` → nincs bottom nav |
+| `bottomBar_isVisibleOnEveryScreenOutsideTheRunningQuiz_TR06` | a rejtés **csak** erre a két képernyőre szól (a lista zárt: nem csúszhat bele több) |
+| `bottomBar_isVisibleOnAnUnknownRoute_TR06` | ismeretlen útvonal nem veszi el a navigációt, nem zárja csapdába a felhasználót |
+| `routeLookup_matchesThePatternNotTheFilledRoute_NFR03` | a keresés a `NavDestination.route`-ban kapott **mintára** illeszkedik |
+| `routeBuilders_fillTheArgumentIntoTheDeclaredPattern_NFR03` | a `KyokushinRoutes` által épített útvonal és a gráfban deklarált minta nem csúszhat el |
+| `argumentCarryingRoutes_useTheSharedArgumentNames_NFR03` | mind a négy argumentumos útvonal a `NavArgs` nevét használja |
+
+### Miért sima JVM teszt, és nem Compose UI teszt?
+
+A `KyokushinScreen` és a `BottomNavDestination` szándékosan **Android-mentes adat**:
+az útvonalminta, a szakaszhoz tartozás és a „látszik-e a bottom nav" eldönthető a Compose
+fa kirenderelése nélkül. A rejtés nem elszórt `if`-ekben él, hanem egyetlen helyen,
+adatként (`KyokushinScreen.showsBottomBar`), és a `KyokushinNavHost` a `bottomBar` lambdát
+csak akkor állítja össze, ha az `isBottomBarVisible` igazat ad. Így a teszt a tényleges
+döntési pontot méri, nem egy mellékhatást. A `navigation` modulnak nincs Robolectric
+függősége, és nem is kellett hozzáadni.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| A fülállapot megmaradásának **tényleges** mérése fülváltáskor | **NEM FUTOTT** – B-03. Ami igazolt: a fülre navigálás `popUpTo(startDestination) { saveState = true }` + `restoreState = true` + `launchSingleTop = true` beállítással történik, ami a Navigation Compose állapotmegőrző útja. A tényleges „beírom a keresőt, fület váltok, visszaváltok" bejárás emulátort kér – T-606. |
+| Compose UI teszt a bottom nav elrejtésére (koppintás-bejárás) | **NEM FUTOTT** – B-03. A döntést a fenti három `TR06` teszt fedi le a tényleges döntési ponton. |
+| `@Preview` **tényleges kirenderelése** (világos/sötét) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a négy előnézet-függvény (`PlaceholderScreen` és `KyokushinBottomBar`, világos + sötét) **lefordul** (`:navigation:compileDebugKotlin` exit 0). |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
