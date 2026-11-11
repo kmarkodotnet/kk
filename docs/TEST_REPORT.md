@@ -1299,3 +1299,70 @@ A `1.json` ellenőrzött lényege (a tesztek ezt állítják, nem leírás):
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
 | Room `MigrationTestHelper` | **NEM FUTOTT** – `version = 1`, migráció még nem létezik; az első migrációs teszt a `2.json` megjelenésekor esedékes (DR-08). |
 | TR-05 teljes lefedése | **RÉSZBEN** – a `userData_survivesRetiringAndDeletingTheTechnique_TR05` és a `contentUpsert_isIdempotentAndKeepsUserRows_FR32` a séma szintjén már bizonyítja az előrehaladás megőrzését, de a teljes TR-05 (átnevezés, valódi `contentVersion` váltás a `ContentImporter`-en keresztül, statisztika-változatlanság) a T-117 után, a T-118 tárgya. |
+
+---
+
+## 2026-11-11 – T-117: ContentImporter (core/data)
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:testDebugUnitTest` | 0 | BUILD SUCCESSFUL – **68 teszt, 0 hiba, 0 kihagyott** (`ContentImporterTest` 10, `ContentEntityMappersTest` 6, a T-115/T-116 52 tesztje változatlanul zöld) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **330 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 227 + core/data 68); 16 új teszt |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 789 772 bájt) |
+
+A tesztszámok a `*/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`, `failures` és
+`errors` attribútumainak összegei, nem becslés.
+
+### Amit a tesztek mérnek
+
+| Teszt | Mit rögzít |
+|---|---|
+| `importIfNeeded_loadsPackagedContentIntoTheContentTables_FR29` | kategória, technika, alias (normalizált alakkal) és `Asset` illusztráció bekerül; a hitelesítési státusz a tartalomból jön |
+| `importIfNeeded_fillsContentStateWithTheValidationSummary_FR32` | a `content_state` egy sora: séma- és tartalomverzió, `datasetTrust`, fix `importedAt`, elfogadott/elvetett darabszám |
+| `lastValidationReport_exposesTheReportOfTheLastImport_FR32` | import előtt `null`, utána a tényleges jelentés – a fejlesztői diagnosztika forrása |
+| `importIfNeeded_sameVersionTwice_skipsTheImportAndDoesNotDuplicate_FR30` | **új importáló példánnyal**: a verziókapu a tárolt állapotból dönt, nincs duplikáció, validáció sem fut |
+| `importIfNeeded_newVersionRetiresMissingTechniqueAndKeepsUserRows_FR33` | a kimaradt technika `retired = true` (sora megvan), a `quiz_attempt` és `study_review` sorszám **változatlan**, a hivatkozás feloldható, az átnevezett technika `id`-ja ugyanaz |
+| `importIfNeeded_removedAliasDoesNotSurviveTheUpdate_FR29` | az aliaslista cserélődik, nem gyűlik |
+| `importIfNeeded_retiredTechniqueReturningInANewVersionBecomesActiveAgain_ADR004` | a visszatérő technika `retired` jelölése feloldódik (az upsert a teljes sort írja) |
+| `importIfNeeded_unreadableContentIsRejectedAndKeepsTheLoadedContent_FR31` | V010: a tartalomtáblák és a kijelzett `contentVersion` az előző, sikeres kiadásé marad |
+| `importIfNeeded_unsupportedSchemaVersionIsRejectedWithoutWritingContent_FR31` | V001: egyetlen tartalomsor sem keletkezik; első indulásnál az elutasítás a `content_state`-be kerül |
+| `importIfNeeded_rejectedRecordIsNotImportedButDoesNotStopTheRest_FR31` | V002-s rekord kimarad, a többi betöltődik |
+| `technique_roundTripsThroughTheEntityWithoutLoss_DR01` | entitás ↔ domain körbejárás veszteségmentes |
+| `technique_illustrationRefKeepsItsThreeStates_ADR003` | nincs kép / `Placeholder` / `Asset` a négy nullázható oszlopon át is megmarad, a kvízkapukkal együtt |
+| `techniqueAlias_normalizedFormIsDerivedOnImport_FR03` | az `aliasNormalized` a `NameNormalizer` kimenete (kisbetű, ékezet nélkül, összehúzott whitespace) |
+| `category_roundTripsAndKeepsTheContentDrivenOrder_DR02` | kategória körbejárás a tartalom diktálta `sortOrder`-rel |
+| `categoryInput_missingSortOrderFallsBackToTheArrayOrder_DR02` | hiányzó `sort_order` → tömbindex; azonosító nélküli bejegyzés kimarad; név nélküli kategória az azonosítóját mutatja (kitalált magyar nevet nem gyártunk) |
+| `synonymGroups_areStoredDeterministically_CR07` | a `synonym_group` sorai `TechniqueId` szerint rendezve, determinisztikusan |
+
+### A FR-33 garancia helye a kódban
+
+A `RoomContentImporter` **nem hivatkozik** a `quiz_session`, `quiz_attempt` és
+`study_review` táblákra – a felhasználói adat megőrzése nem futásidejű óvatosság, hanem
+szerkezeti tény. A tartalomoldalon `DELETE ALL` nincs: a technikára csak `@Upsert` és
+`markRetired` megy (ADR-004), aliasra technikánkénti csere, és az egyetlen teljes ürítés a
+`synonym_group`, amelynek `groupId`-ja nem stabil azonosító, és felhasználói adat nem
+hivatkozik rá.
+
+### Rétegszabály, NFR-07, felhasználói szöveg
+
+- A `ContentImporter` interfész és az `ImportResult` publikus, a `RoomContentImporter`,
+  a DAO-k, az entitások és a mapperek `internal` (ADR-001 L4).
+- A `core/data` → `core/quiz` függés `implementation`-ből `api`-ra változott, mert a
+  publikus szerződés `core/quiz` típust ad vissza (`ValidationReport`). A `core/quiz`
+  tiszta Kotlin, a továbbadása nem sért rétegszabályt (L1/L2 a fordított irányt tiltja).
+- NFR-07: az `importedAt` injektált `Clock`-ból, a futás injektált `@IoDispatcher`-en;
+  `Instant.now()`, `System.currentTimeMillis()` és `Random` nincs. A tesztek fix órát és
+  `UnconfinedTestDispatcher`-t adnak.
+- Felhasználói szöveg nem keletkezett: a jelentés `detail` szövegei fejlesztői
+  diagnosztika, nem UI-felirat.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). Az import viselkedését Robolectric + in-memory Room méri. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-05 teljes lefedése | **RÉSZBEN** – a `importIfNeeded_newVersionRetiresMissingTechniqueAndKeepsUserRows_FR33` már a valódi importálón mér (sorszám-változatlanság, visszavonás, átnevezés), de a teljes TR-05 készlet (aggregált statisztika változatlansága, több körös frissítés, `TR05` jelölésű tesztnevek) a T-118 tárgya. |
+| Az import az **éles** csomagolt assetsen | **NEM FUTOTT** – az `app/src/main/assets/knowledge/` feltöltése a T-601 feladata; addig az importáló szintetikus tartalmon fut, a beolvasó pedig a valódi 161 rekordon (T-115). |

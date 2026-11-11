@@ -92,7 +92,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ⬜ |
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ✅ **kész** – T-116: `KyokushinDatabase` (`version = 1`, `exportSchema = true`), 5 tartalom- és 3 felhasználói tábla, 8 `internal` DAO (minden művelet `suspend` vagy `Flow`), `KyokushinTypeConverters` (`Instant` ↔ epoch milli, enum ↔ **név**, azonosító value classok az `of()` gyárukon át). A felhasználói táblák `techniqueId`-jén **nincs** idegen kulcs a tartalomra (ADR-004) |
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
-| 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ⬜ |
+| 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ✅ **kész** – T-117: publikus `ContentImporter` + `ImportResult`, `internal RoomContentImporter` (verziókapu a tárolt `dataset_version`-re, validáció, **upsert egyetlen tranzakcióban**, a csomagból kimaradt technika `retired = true` – fizikai törlés nincs), `content_state` összegzés, `lastValidationReport()` a diagnosztikához, injektált `Clock` és `@IoDispatcher`. Tartalom oldali entitás ↔ domain mapperek. 16 új teszt |
 | 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | ⬜ |
 | 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ⬜ |
 
@@ -165,14 +165,18 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-117** – `core/data`: a `ContentImporter` (a `KnowledgeContentReader` kimenetéből
-   validátor → upsert, idempotens, `retired` jelölés, a tartalomfrissítés
-   előrehaladás-megőrzésével). (**A T-116 kész:** a Room séma, a DAO-k és a konverterek
-   megvannak, 314 zöld teszttel; a sémaexport a `core/data/schemas/` alatt van.)
-2. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése. A
-   Robolectric + in-memory Room futtatás a T-116 óta bizonyítottan működik ehhez.
-3. **T-201** – `core/data`: `TechniqueRepository` implementáció (entitás → domain mapper,
-   `retired = false` szűrés).
+1. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése a kész
+   `ContentImporter`-en (aggregált statisztika változatlansága, több körös frissítés,
+   `TR05` jelölésű tesztnevek). (**A T-117 kész:** az importáló, a verziókapu, a `retired`
+   jelölés és a tartalom oldali mapperek megvannak, 330 zöld teszttel.)
+2. **T-201** – `core/data`: `TechniqueRepository` implementáció (`retired = false` szűrés,
+   keresés); az entitás → domain mapper a T-117 óta megvan, a `ContentState` domain
+   modellje még nem.
+3. **T-203** – `di`: Hilt modulok. A `RoomContentImporter` `@Inject` konstruktorral kész,
+   de a kötései (`KyokushinDatabase`, `KnowledgeContentReader`, `Clock`,
+   `@IoDispatcher`, `@Binds ContentImporter`) még nincsenek megírva – és mivel az
+   adatbázis és a beolvasó `internal`, ezeknek a kötéseknek a `core/data`-ban kell élniük,
+   nem a `di` modulban.
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
@@ -453,3 +457,24 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   **314 zöld teszt** (36 új: 10 konverter, 14 sémaszerződés az exportált JSON-ból, 2 DAO
   szerződés reflexióval, 10 in-memory adatbázis Robolectricen), `testDebugUnitTest` és
   `assembleDebug` exit 0. Következő: T-117, a `ContentImporter`.
+
+- 2026-11-11 – **T-117 kész (Fázis 3.6): a `ContentImporter` a `core/data`-ban.**
+  A tartalombetöltés menete: `KnowledgeContentReader` → **verziókapu** → `KnowledgeValidator`
+  → **upsert** egyetlen Room tranzakcióban. A publikus szerződés a `ContentImporter`
+  interfész és az `ImportResult` (`UpToDate` / `Imported` / `Rejected`); a
+  `RoomContentImporter` `internal` (ADR-001 L4).
+  **A FR-33 garancia szerkezeti, nem futásidejű:** az importáló egyetlen helyen sem
+  hivatkozik a `quiz_session`, `quiz_attempt`, `study_review` táblákra, a technikára pedig
+  csak `@Upsert` és `markRetired` megy – `DELETE` nincs (ADR-004). Ami kimaradt az
+  aktuális csomagból (az **elvetett** rekordot is beleértve), az `retired = true` jelölést
+  kap; a visszatérő technika jelölése az upserttel feloldódik.
+  Az elutasított adathalmaz (V001 séma, V010 parse) a tartalomtáblákhoz **nem nyúl**, és a
+  `content_state` sorát is csak akkor írja, ha még egy sikeres betöltés sem volt – különben
+  a kijelzett verzió elcsúszna a táblák tényleges tartalmától.
+  A `core/data` → `core/quiz` függés `api`-ra változott: a publikus szerződés
+  `ValidationReport`-ot ad vissza (ARCHITECTURE 5.3).
+  Nyitott, új taskot érdemlő apróság: a manifest **kategóriamezőinek** nincs validációs
+  szabálykódja (V001…V010 egyike sem fedi), ezért a név nélküli kategória az azonosítóját
+  mutatja megjelenítendő névként – kitalált magyar nevet nem gyártunk (CR-01).
+  **330 zöld teszt** (16 új: 10 importáló Robolectricen + in-memory Roomon, 6 mapper tiszta
+  JVM-en), `testDebugUnitTest` és `assembleDebug` exit 0. Következő: T-118, a TR-05 tesztek.

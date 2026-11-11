@@ -44,7 +44,12 @@ ksp {
 
 dependencies {
     api(project(":core:model"))
-    implementation(project(":core:quiz"))
+    // `api`, nem `implementation`: a `core/data` publikus szerződésében `core/quiz` típusok
+    // szerepelnek – a `ContentImporter.lastValidationReport()` `ValidationReport`-ot ad
+    // (ARCHITECTURE 5.3, FR-32), a `TechniqueRepository.getQuizCandidates` pedig
+    // `QuizCandidateSet`-et (T-402). A `core/quiz` tiszta Kotlin, Android nélkül, tehát a
+    // továbbadása nem sért rétegszabályt (ADR-001 L1/L2: csak a fordított irány tilos).
+    api(project(":core:quiz"))
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
