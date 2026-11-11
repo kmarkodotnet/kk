@@ -36,7 +36,7 @@ Nincs konverziós réteg és nincs párhuzamos „belső" JSON formátum.
   "japanese_script": null,
   "hungarian_name": "Tiszteletteljes köszönés és válasz",
   "description_hu": "...",
-  "image_path": null,
+  "illustration_ref": null,
   "aliases": [],
   "tags": [],
   "review_status": "editorial_review_required"
@@ -90,8 +90,9 @@ A `schema_version` **string** (semver), nem egész szám: a támogatott verziók
   bemásolja, a `knowledgebase/` marad a szerkesztési forrás).
 - Az `aliases` és `tags` tömb jelenleg mindenhol üres, de a séma része – a validátor és a
   szinonimakizárás (V006, CR-07) ettől függetlenül működik.
-- A **CSV a szerkesztési felület**, a JSON az app bemenete. Ha a kettő eltér, a JSON a
-  hiteles; a `/kyo-validate-kb` parancs ellenőrzi az egyezést is.
+- A **CSV a szerkesztési felület és a hiteles forrás** (a felhasználó így adta át:
+  „ez a tudástár"), a generált `entries.json` az app bemenete. Ha a forrás CSV és a forrás
+  JSON eltér, a **CSV nyer**, és a konverter `X003` kóddal jelzi az eltérést.
 - A `docs/KNOWLEDGE_BASE.md` és a `kyo-knowledge-base` skill sémaleírását ehhez kell
   igazítani (Fázis 3.3).
 
