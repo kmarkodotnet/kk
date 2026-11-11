@@ -880,3 +880,119 @@ A `DefaultQuizGenerator.dryRun()` mostantól **nem épít kérdést** (FR-13, FR
 | TR-03 teljes készlet | **RÉSZBEN** – a `dryRun`/`generate` egyezés és a kihagyási okok lefedve; a teljes TR-02/TR-03 készlet a T-112 tárgya. |
 | TR-02 teljes készlet | **RÉSZBEN** – változatlanul a T-110 lefedettsége; a végponti készlet a T-112. |
 | TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+---
+
+## 2026-11-11 – T-112: TR-02 + TR-03 generátor tesztek (core/quiz) – **M1 mag**
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:quiz:test` | 0 | BUILD SUCCESSFUL – a kvízmodul teljes készlete zöld |
+| `.\gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | BUILD SUCCESSFUL – `:core:model:test` + `:core:quiz:test` újrafuttatva, **236 teszt, 0 hiba** (core/model 35 + core/quiz 201) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` |
+
+A `JAVA_HOME` a futtatásokhoz: `C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+Tesztszám a `core/*/build/test-results/test/*.xml` JUnit XML-ekből összesítve
+(202 → 236, azaz **34 új teszt**; meglévő teszt nem íródott át).
+
+### Mit fed le a T-112 készlete
+
+Három új tesztosztály, mindegyik a `core/quiz` JVM unit tesztje (emulátor nélkül):
+
+| Osztály | Darab | Tárgy |
+|---|---|---|
+| `SeededShuffleTest` | 7 | a Fisher–Yates keverés elemi garanciái (T-110 alapköve) |
+| `QuizPlanInvariantTest` | 20 | a nyolc kvízmotor-invariáns egy **végigsöpört kérésmátrixon**, a kategóriaszűrés, a típusjogosultság, a shortfall-prioritás és a `dryRun` ↔ `generate` egyezés |
+| `RealContentQuizGenerationTest` | 7 | ugyanez a **valódi** `knowledgebase_transfer/` tartalmon (161 rekord) |
+
+A közös invariáns-ellenőrzés a `GeneratorContractFixtures.kt`-ba került
+(`assertQuizPlanInvariants(label, request, plan)`), hogy a szintetikus mátrix és a valódi
+tartalom **ugyanazt** a garanciát bizonyítsa, ne két, egymástól elcsúszó példányt.
+
+### A nyolc invariáns lefedése (TR-02)
+
+| # | Invariáns | Hol dől el |
+|---|---|---|
+| 1 | pontosan 4 opció | `assertQuizPlanInvariants` – minden terv minden kérdésére |
+| 2 | pontosan 1 helyes opció | ugyanott (`options.count { it == correct } == 1`) |
+| 3 | a 3 distraktor egymástól és a helyestől is különböző | ugyanott (`options.toSet().size == 4`) |
+| 4 | egyetlen opciópár sem szinonima (V006, CR-07) | ugyanott, **páronként** – nem csak a helyeshez mérve |
+| 5 | (D) `JP_TO_IMAGE`: nincs két vizuálisan azonos illusztráció | ugyanott + `generate_jpToImage_everyOptionHasADistinctQuizUsableImage_TR03`, `generate_jpToImage_visuallyIdenticalPairLeavesTooFewOptions_TR02` |
+| 6 | nincs ismétlés; kevesebb kérdés `Shortfall`-lal | ugyanott + `generate_shortfallPlan_stillSatisfiesEveryQuestionInvariant_TR02` |
+| 7 | determinizmus (kérdés- és opciósorrend is) | `generate_sameRequestOnEveryBranch_producesBitIdenticalPlan_TR02`, `generate_candidateInputOrderOnEveryBranch_doesNotChangeThePlan_TR02`, `realContent_sameSeed_producesIdenticalPlan_TR02` |
+| 8 | a motor nem gyárt opciót | ugyanott: minden opció létező rekord, benne van a típus `optionPool`-jában és a kategóriahatókörben |
+
+A mátrix 21 kérést × 7 seedet jár végig (`1, 2, 7, 42, -13, Long.MAX_VALUE, Long.MIN_VALUE`):
+bőséges és szűk készlet, négy alatti és **üres** jelöltkészlet, letiltott típusok és üres
+`enabledTypes`, kategóriaszűrő mindkét irányban, kép nélküli / feliratos / placeholderes
+illusztrációk, azonos és részben azonos képujjlenyomatok, szinonimacsoport és **átfedő**
+szinonimacsoportok, `INCOMPLETE` / `quizExcluded` / `retired` rekordok, mindkét bizalmi szint.
+
+### TR-03: kategóriaszűrés és típusjogosultság
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `generate_filteredCategory_neverLeaksAnOutsideTechniqueIntoAnyOption_TR03` | a szűrt kategórián kívüli technika **sem helyesként, sem distraktorként** nem jelenik meg – a feltöltés nem lép ki a szűrőből |
+| `generate_filteredCategoryTooSmall_buildsNoQuestionInsteadOfLeaving_TR03` | négy alatti kategóriában inkább nincs kérdés, mint kategórián kívüli opció |
+| `generate_captionedIllustrations_skipImageTypesWithReason_TR03` | feliratos kép (`quizUsable = false`) → (C)/(D) `NOT_ENOUGH_IMAGES`, a szöveges típusok állnak |
+| `generate_placeholderIllustrations_skipImageTypesWithReason_TR03` | `Placeholder` nem validált kép |
+| `generate_missingIllustration_keepsTextTypesAndSkipsImageTypes_TR03` | hiányzó kép ugyanígy |
+| `generate_imageToJp_correctAnswerAlwaysHasQuizUsableImage_TR03` | (C): a kép a **helyes** válaszé, a distraktorok nevek – kép nélküli rekord is lehet opció |
+| `generate_gateBlockedRecords_buildNoQuestionAtAll_TR03` | `INCOMPLETE` / `quizExcluded` / `retired` → egyetlen kérdés sem; a motor a tartalmi állapotot **nem emeli** (CR-02) |
+| `generate_mixedVerificationStatus_followsTheTrustGateOnly_TR03` | lektorálatlan rekord is kvízképes, ha a bizalmi szint engedi (ADR-010) |
+
+### Fallback és a `Shortfall` okprioritása
+
+A `generate_shortfallReason_followsTheDocumentedPriority_TR03` rögzíti a motordöntést:
+`ALL_TYPES_SKIPPED` → `NOT_ENOUGH_IMAGES` → `NOT_ENOUGH_DISTRACTORS` →
+`NOT_ENOUGH_CANDIDATES`. A `NOT_ENOUGH_DISTRACTORS` ághoz **átfedő** szinonimacsoportok
+kellenek (`{KY-0001, KY-0002}` és `{KY-0001, KY-0003}` öt rekord mellett): ekkor öt helyes
+jelölt közül csak kettő mellé áll össze három elfogadható distraktor – egyetlen
+szinonimacsoport önmagában szimmetrikusan zárna, és a típus egésze esne ki.
+A `generate_zeroCandidates_returnsEmptyExplainedPlan_TR02` a nulla jelöltet fedi: üres, de
+megindokolt terv, kivétel nélkül.
+
+### `dryRun()` ↔ `generate()`
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `dryRun_matchesGenerateOnTheWholeMatrix_TR03` | a 21 kérés × 7 seed teljes mátrixán egyezik a kérdésszám, a `skippedTypes`, a `shortfall` és a `canStart`; a terv minden felhasznált típusának kapacitása ≥ az abból adott kérdésszám |
+| `dryRunAndGenerate_shareTheSameQuestionSlotsFunction_TR03` | forrásellenőrzés: **mindkét** törzs a `questionSlots(request, skippedTypes)` közös pontot és a `QuizCandidateFilter.skipReasons(request)`-et hívja, és a `dryRun` nem számol másodszor `buildableCorrectAnswers`-ből – a két ág ezért nem tud elválni |
+| `dryRun_availableByTypeIsCapacityNotAllocation_TR03` | az `availableByType` típusonkénti **kapacitás**: 8 képes rekordnál mind a négy típus 8, az összeg 32, a várható kérdésszám 8 |
+| `realContent_dryRunMatchesGenerateForEveryCategory_TR03` | ugyanez a valódi tartalmon, mind a 9 kategóriára, szöveges és képes típusbeállítással |
+
+### Teszt a valódi tartalomra (TR-03)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `realContent_stancesCategory_yieldsImageQuestionsInThePlan_TR03` | az `stances` kategória terve mind a négy kérdéstípust tartalmazza – a (C)/(D) kérdések helyes válaszai a hét kvízképes rekord közül jönnek, `skippedTypes` üres |
+| `realContent_everyOtherCategory_yieldsNoImageQuestion_TR03` | a másik **8** kategória egyikében sem keletkezik képes kérdés, és a kihagyás oka mindenhol `NOT_ENOUGH_IMAGES`; a szöveges kvíz viszont minden kategóriában elindítható |
+| `realContent_imageOnlyQuizOutsideStances_cannotStart_TR03` | csak képes típusokkal, `kata` kategóriában a terv üres, az ok `ALL_TYPES_SKIPPED` |
+| `realContent_everyGeneratedQuestionSatisfiesAllInvariants_TR02` | 3 kérdésszám × 5 seed a teljes 161 rekordon, minden kérdésre a nyolc invariáns |
+| `realContent_differentSeeds_produceDifferentPlans_TR02` | más seed más kvíz ugyanabból a tartalomból |
+
+### Megfigyelés a valódi tartalomról
+
+A validátor a mostani tartalomra **üres** V006 szinonimacsoport-listát ad (ezt a
+`RealKnowledgeBaseValidationTest` is rögzíti). A valós tartalmi teszt ezért ezt a tényt
+mondja ki explicit `assert`-tel: ha a tartalom egyszer szinonimacsoportot hoz, az ne
+csendben kerüljön a motorba. A kölcsönös kizárás **viselkedését** a szintetikus mátrix fedi.
+
+### Rétegszabály
+
+A `core/quiz` főkódja **nem változott** ebben a taskban – a T-112 csak tesztet adott. A
+modul továbbra is csak a `core:model`-re, a `kotlinx-serialization-json`-ra és a
+`kotlin.random`-ra függ; `android`/`androidx`/`room` import nincs (ADR-001 L1, TR-07).
+Felhasználói szöveg nem keletkezett.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-112 tisztán JVM unit teszt. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-04…TR-08 | **NEM FUTOTT** – az eredményszámítás (TR-04) a T-113/T-114, a tartalomfrissítés (TR-05) a T-115…T-118, a UI (TR-06…TR-08) a 2. mérföldkő tárgya. |
+
+**TR-02 és TR-03 ezzel lefedett: az M1 mérföldkő kvízhelyességi magja kész.**

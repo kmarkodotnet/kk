@@ -53,3 +53,45 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | <COMMIT> |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:quiz:test` | 0 | BUILD SUCCESSFUL |
+| `.\gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | 236 teszt, 0 hiba (core/model 35 + core/quiz 201; 34 új) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:** A kvízmotor főkódja **nem változott** – a task tisztán tesztet adott, és a
+meglévő 202 teszt egyikét sem írta át. Három új osztály: `SeededShuffleTest` (7),
+`QuizPlanInvariantTest` (20), `RealContentQuizGenerationTest` (7). A nyolc kvízmotor-invariáns
+közös ellenőrzése a `GeneratorContractFixtures.assertQuizPlanInvariants(...)`-ban él, hogy a
+szintetikus 21 kérés × 7 seed mátrix és a valódi 161 rekordos tartalom ugyanazt a garanciát
+bizonyítsa.
+
+Amit a következő fejlesztőnek tudni kell:
+
+- A `Shortfall` okprioritása mostantól **tesztelt motordöntés**: `ALL_TYPES_SKIPPED` →
+  `NOT_ENOUGH_IMAGES` → `NOT_ENOUGH_DISTRACTORS` → `NOT_ENOUGH_CANDIDATES`. Ha a UI (T-404,
+  T-411) más sorrendet igényel, azt itt kell egyeztetni, és a teszt ki fogja kényszeríteni.
+- A `NOT_ENOUGH_DISTRACTORS` ág csak **átfedő** szinonimacsoportokkal áll elő: egyetlen
+  szinonimacsoport szimmetrikusan zár, és akkor a típus egésze esik ki
+  (`NOT_ENOUGH_CANDIDATES`). Ezt a teszt kommentárja is rögzíti.
+- A valódi tartalom V006 szinonimacsoport-listája **üres**, és ezt a
+  `RealContentQuizGenerationTest` explicit `assert`-tel kimondja: ha a tartalom egyszer
+  szinonimacsoportot hoz, az ne csendben kerüljön a motorba.
+- A `DefaultQuizGenerator` forrásszövegére két teszt is támaszkodik (a `dryRun` törzse nem
+  sorsol és nem épít kérdést; `generate` és `dryRun` is a `questionSlots(request,
+  skippedTypes)` közös pontot hívja). Átnevezés vagy átszervezés esetén ezeket is frissíteni
+  kell – ez szándékos: a két ág elválása így nem tud csendben megtörténni.
+- Nem futott: `connectedDebugAndroidTest` (nincs eszköz/emulátor, B-03) és
+  `lint ktlintCheck` (a ktlint konfigurálása a T-607).

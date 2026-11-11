@@ -1,5 +1,6 @@
 package hu.kyokushin.trainer.core.quiz.generator
 
+import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
@@ -108,3 +109,78 @@ internal fun request(
     seed = seed,
     datasetTrust = datasetTrust,
 )
+
+/**
+ * A kvízmotor **nyolc invariánsának** ellenőrzése egy kész terven (T-112, TR-02, TR-03).
+ *
+ * Azért közös függvény, és nem egy tesztosztály privát metódusa, mert két készlet futtatja
+ * ugyanezt: a szintetikus mátrix ([QuizPlanInvariantTest]) és a valódi tartalom
+ * ([RealContentQuizGenerationTest]). Ha két példányban élne, az egyik csendben elavulna, és
+ * a valódi tartalomra már nem ugyanazt a garanciát bizonyítanánk.
+ *
+ * Az ellenőrzések sorrendje a kvízmotor skill 3. pontját követi, hogy a bukó állítás
+ * azonnal megnevezze a megsértett szabályt. A [label] csak az üzenet olvashatóságát segíti.
+ */
+internal fun assertQuizPlanInvariants(label: String, request: QuizRequest, plan: QuizPlan) {
+    val known = request.candidates.techniques.associateBy { it.id }
+    val categoryScope = QuizCandidateFilter.inCategoryScope(request).mapTo(HashSet()) { it.id }
+
+    // 6/a. A terv soha nem ad több kérdést a kértnél, és a shortfall ezzel egyezik.
+    assertThat(plan.questionCount).isAtMost(request.requestedCount)
+    assertThat(plan.shortfall == null).isEqualTo(plan.questionCount == request.requestedCount)
+    assertThat(plan.shortfall?.actualCount ?: plan.questionCount).isEqualTo(plan.questionCount)
+
+    // 6/b. Ugyanaz a helyes technika egy terven belül legfeljebb egyszer szerepel.
+    val correctIds = plan.questions.map { it.correctTechniqueId }
+    assertThat(correctIds.toSet()).hasSize(correctIds.size)
+
+    plan.questions.forEach { question ->
+        val options = question.optionTechniqueIds
+
+        // 1. Pontosan négy opció.
+        assertThat(options).hasSize(QuizQuestion.OPTION_COUNT)
+        // 2. Pontosan egy opció a helyes válasz.
+        assertThat(options.count { it == question.correctTechniqueId }).isEqualTo(1)
+        // 3. A három distraktor egymástól és a helyestől is különböző.
+        assertThat(options.toSet()).hasSize(QuizQuestion.OPTION_COUNT)
+        assertThat(question.distractorTechniqueIds).hasSize(DistractorSelector.DISTRACTOR_COUNT)
+
+        // 4. Egyetlen opciópár sem szinonima egymásnak (V006, CR-07) – páronként, nem csak
+        // a helyes válaszhoz mérve.
+        options.forEachIndexed { index, first ->
+            options.drop(index + 1).forEach { second ->
+                assertThat(request.candidates.synonymsOf(first)).doesNotContain(second)
+                assertThat(request.candidates.synonymsOf(second)).doesNotContain(first)
+            }
+        }
+
+        // 5. (D) típusnál nincs két vizuálisan azonos illusztráció az opciók között.
+        if (question.type == QuestionType.JP_TO_IMAGE) {
+            val digests = options.mapNotNull { request.candidates.illustrationDigestOf(it) }
+            assertThat(digests.toSet()).hasSize(digests.size)
+        }
+
+        // 8. A motor nem gyárt opciót: minden opció létező, a típusra jogosult, a
+        // kategóriaszűrőn belüli technikarekord.
+        val optionPool = QuizCandidateFilter.optionPool(request, question.type)
+            .mapTo(HashSet()) { it.id }
+        options.forEach { id ->
+            assertThat(known.keys).contains(id)
+            assertThat(categoryScope).contains(id)
+            assertThat(optionPool).contains(id)
+        }
+        assertThat(QuizCandidateFilter.correctAnswerPool(request, question.type).map { it.id })
+            .contains(question.correctTechniqueId)
+
+        // A kérdés típusa engedélyezett, és nincs a kihagyott típusok között (FR-12).
+        assertThat(request.enabledTypes).contains(question.type)
+        assertThat(plan.skippedTypes).doesNotContainKey(question.type)
+    }
+
+    // A terv kérdésazonosítói egyediek és a lejátszási sorrendet követik (ADR-005).
+    val questionIds = plan.questions.map { it.id.value }
+    assertThat(questionIds.toSet()).hasSize(questionIds.size)
+    assertThat(questionIds).isInOrder()
+
+    assertThat(label).isNotEmpty()
+}
