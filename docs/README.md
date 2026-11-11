@@ -27,7 +27,7 @@ A napi fejlesztést vezérlő, gépi olvasásra szánt szabályok a Claude körn
 | `../.claude/skills/kyo-quiz-engine/` | kvízmotor szerződése, invariánsai, distraktorszabályai |
 | `../.claude/skills/kyo-android-module/` | modulhatárok, Compose/Room/Hilt konvenciók, akadálymentesség |
 | `../.claude/skills/kyo-build-env/` | környezet felmérése, telepítés, hiteles jelentés |
-| `../.claude/commands/` | **`/dev`** (a következő feladat végigvitele backlog → done), `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`, `/kyo-validate-kb`, `/kyo-doc-sync` |
+| `../.claude/commands/` | **`/dev`** (a következő feladat végigvitele backlog → done), **`/devall`** (ugyanez sorozatban, feladatonként egy subagenttel, sorosan), `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`, `/kyo-validate-kb`, `/kyo-doc-sync` |
 | `../.claude/agents/kyo-spec-auditor.md` | csak-olvasó auditor a spec-megfelelés ellenőrzéséhez |
 
 Ha a specifikáció és egy skill eltér, a hierarchia:

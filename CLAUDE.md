@@ -47,6 +47,11 @@ Ha bármi ütközik, a mesterprompt győz. A terveket a `docs/` könyvtár tarta
 lefejleszti, teszteli, és sikeres Definition of Done esetén átmozgatja a `docs/done/`
 mappába. Egy hívás = egy feladat.
 
+**`/devall`** – ugyanez sorozatban: feladatonként **egy** subagentet indít, megvárja,
+ellenőrzi az eredményt, majd indítja a következőt. Egyszerre mindig **pontosan egy**
+subagent fut. Hiba, holtpont vagy eltérő jelentés esetén megáll, nem próbálkozik újra.
+Korlátozható: `/devall 3`.
+
 Továbbá: `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`,
 `/kyo-validate-kb`, `/kyo-doc-sync`. Részletek: `.claude/commands/`.
 

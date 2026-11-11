@@ -13,6 +13,10 @@ A `/dev` parancs determinista szabályt követ:
    `docs/done/` mappában van (a „Függ” mező üres vagy teljesül).
 3. Ha egyetlen ilyen sincs, a parancs megáll és jelzi, melyik függőség hiányzik.
 
+A **`/devall`** ugyanezt a szabályt futtatja sorozatban: feladatonként egy subagentet
+indít, megvárja, ellenőrzi, hogy a fájl ténylegesen átkerült-e a `done/` mappába, majd
+indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
+
 Így a sorrend kiszámítható, és a függőségi lánc nem sérülhet.
 
 ## Feladatok
