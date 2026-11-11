@@ -796,6 +796,8 @@ első és egyetlen implementációja (NFR-07, ADR-007, FR-14, FR-22).
 
 ## 2026-11-11 – T-111: `dryRun()` készenléti összegzés (core/quiz)
 
+**Commit:** `9703870`
+
 **Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper 8.13,
 `JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
 
