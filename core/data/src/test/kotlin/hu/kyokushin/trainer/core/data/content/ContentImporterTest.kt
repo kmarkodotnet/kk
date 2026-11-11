@@ -316,65 +316,23 @@ class ContentImporterTest {
         )
     }
 
+    /**
+     * A csomagolt kiadás a közös fixture-ből; a tesztek a *különbséget* mondják ki,
+     * nem a JSON-t (lásd [KnowledgeSourceFixtures]).
+     */
     private fun source(
         version: String,
         schemaVersion: String = "1.0.0",
-        entries: List<String> = listOf(
-            entry(id = "KY-0001"),
-            entry(
-                id = "KY-0002",
-                romaji = "Kokutsu dachi",
-                hungarian = "Hátul álló állás",
-                aliases = emptyList(),
-            ),
-        ),
-    ) = FakeKnowledgeAssetSource(
-        files = mapOf(
-            KnowledgeAssetLayout.MANIFEST_FILE to manifest(version, schemaVersion),
-            KnowledgeAssetLayout.ENTRIES_FILE to """
-                { "schema_version": "$schemaVersion", "dataset_version": "$version",
-                  "entries": [ ${entries.joinToString(",")} ] }
-            """.trimIndent(),
-        ),
-        illustrationFiles = setOf("KY-0044.jpg"),
-    )
+        entries: List<String> = KnowledgeSourceFixtures.defaultEntries,
+    ) = KnowledgeSourceFixtures.source(version, schemaVersion, entries)
 
-    private fun manifest(version: String, schemaVersion: String = "1.0.0") = """
-        {
-          "schema_version": "$schemaVersion",
-          "dataset_version": "$version",
-          "editorial_status": "draft_review_required",
-          "categories": [ { "id": "stances", "name_hu": "Állások", "sort_order": 3 } ],
-          "illustrations": [
-            {
-              "ref": "KY-0044",
-              "file": "illustrations/KY-0044.jpg",
-              "license": "project-internal",
-              "quiz_usable": true,
-              "hideable_on_study_card": true
-            }
-          ]
-        }
-    """.trimIndent()
+    private fun manifest(version: String, schemaVersion: String = "1.0.0") =
+        KnowledgeSourceFixtures.manifest(version, schemaVersion)
 
     private fun entry(
         id: String,
         romaji: String? = "Zenkutsu dachi",
         hungarian: String? = "Elöl álló állás",
         aliases: List<String> = listOf("Zenkucu dachi"),
-    ) = """
-        {
-          "id": "$id",
-          "category_id": "stances",
-          "japanese_romaji": ${romaji.jsonOrNull()},
-          "hungarian_name": ${hungarian.jsonOrNull()},
-          "aliases": [ ${aliases.joinToString(",") { "\"$it\"" }} ],
-          "illustration_ref": "KY-0044",
-          "review_status": "editorial_review_required",
-          "quiz_excluded": false,
-          "retired": false
-        }
-    """.trimIndent()
-
-    private fun String?.jsonOrNull(): String = if (this == null) "null" else "\"$this\""
+    ) = KnowledgeSourceFixtures.entry(id, romaji, hungarian, aliases)
 }

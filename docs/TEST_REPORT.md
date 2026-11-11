@@ -1366,3 +1366,82 @@ hivatkozik rá.
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
 | TR-05 teljes lefedése | **RÉSZBEN** – a `importIfNeeded_newVersionRetiresMissingTechniqueAndKeepsUserRows_FR33` már a valódi importálón mér (sorszám-változatlanság, visszavonás, átnevezés), de a teljes TR-05 készlet (aggregált statisztika változatlansága, több körös frissítés, `TR05` jelölésű tesztnevek) a T-118 tárgya. |
 | Az import az **éles** csomagolt assetsen | **NEM FUTOTT** – az `app/src/main/assets/knowledge/` feltöltése a T-601 feladata; addig az importáló szintetikus tartalmon fut, a beolvasó pedig a valódi 161 rekordon (T-115). |
+
+---
+
+## 2026-11-11 – T-118: TR-05 tartalomfrissítés tesztek (core/data)
+
+### Futtatott parancsok
+
+`JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`, PowerShell, `F:\Claude\kyo`.
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:testDebugUnitTest` | 0 | BUILD SUCCESSFUL – **78 teszt, 0 hiba, 0 kihagyott** (`ContentUpdateProgressTest` 10 új teszt, a T-115/T-116/T-117 68 tesztje változatlanul zöld) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **340 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 227 + core/data 78); 10 új teszt |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL (`:app:assembleDebug` UP-TO-DATE – a feladat csak tesztkódot adott, az APK tartalma nem változott) |
+
+A tesztszámok a `core/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`, `failures`
+és `skipped` attribútumainak összegei, nem becslés.
+
+Közbenső, **elbukott** futás (a jelentés része): az első
+`.\gradlew.bat :core:data:testDebugUnitTest` exit 1, 2 hibás teszt – mindkettő **hibás
+teszt-elvárás** volt, nem terméktermékhiba: (1) a frissítés utáni technikasorok száma 4 és
+nem 3, mert a visszavont `KY-0003` sora megmarad (éppen ez a garancia), (2) a kimaradó
+technikára nem volt felvett önértékelés. Mindkettő a tesztben javítva, a termelési kód
+nem változott.
+
+### Amit a 10 új teszt mér (mind `TR05` jelöléssel)
+
+| Teszt | Mit rögzít |
+|---|---|
+| `contentUpdate_keepsEveryAttemptAndTheComputedStatisticsUnchanged_TR05` | v1 → előrehaladás → v2 (átnevezés + visszavonás + új technika **egyszerre**): a `quiz_attempt` és `study_review` sorok **bitre azonosak**, és a levezetett statisztika is (5 válasz, 3 helyes, 60 %, technikánkénti bontás, menetenkénti `answeredCount`) |
+| `contentUpdate_progressSurvivesSeveralConsecutiveVersions_TR05` | v1 → v2 → v3: több körös frissítés után is változatlan a teljes előrehaladás-kép |
+| `contentUpdate_keepsStudyReviewsAndTheLatestSelfRating_TR05` | az önértékelések megmaradnak, és a „legfrissebb ítélet" levezetés (DR-09) ugyanazt adja |
+| `contentUpdate_renamedTechniqueKeepsItsIdAndProgressFollowsTheNewName_TR05` | DR-06: az `id` marad, a `romaji`/magyar név/alias új, a próbálkozások ugyanazok, és az **új** rekordra oldódnak fel |
+| `contentUpdate_techniqueMissingFromTheNewVersionIsRetiredButStaysResolvable_TR05` | a csomagból kimaradt technika `retired = true`, kiesik az aktív listából, a sora és a rá hivatkozó előrehaladás viszont megvan és feloldható |
+| `contentUpdate_techniqueDeclaredRetiredByTheContentKeepsItsProgress_TR05` | a tartalom által kimondottan `retired: true` rekord: elfogadott marad (nem a `retireMissing` ágon jelölődik), az előrehaladása sértetlen |
+| `contentUpdate_retiredTechniqueComingBackKeepsItsEarlierProgress_TR05` | ADR-004: a visszatérő technika újra aktív, és a **teljes** korábbi előrehaladása alatta van |
+| `contentUpdate_sameVersionImportedTwice_duplicatesNothing_TR05` | FR-30 idempotencia új importálópéldánnyal: `UpToDate`, nincs tartalmi és nincs felhasználói duplikáció, validáció sem fut |
+| `contentUpdate_repeatedImportOfTheUpdatedVersionDuplicatesNothing_TR05` | a **frissítés után** harmadszor-negyedszer betöltött v2 sem duplikál; a 4 technikasor közül 3 aktív, 1 visszavont |
+| `contentUpdate_rejectedDatasetKeepsBothContentAndProgress_TR05` | V001-es elutasítás: a tartalom az előző kiadásé marad (FR-31) **és** az előrehaladás is sértetlen |
+
+### Hogyan mér „statisztikát", ha az aggregált lekérdezések még nincsenek meg
+
+A `ProgressRepository` aggregált lekérdezései a T-501 feladat tárgya. A teszt ezért a
+tárolt sorokból **maga** számolja a statisztikát (`ProgressSnapshot`: a nyers sorok, az
+összes helyes válasz, a találati arány százalékban, a technikánkénti bontás a legfrissebb
+önértékeléssel, és a menetek `answeredCount`-ja), majd a frissítés előtti és utáni
+pillanatképet **egyetlen egyenlőségvizsgálattal** veti össze. Ez ugyanaz az adat, amiből a
+későbbi lekérdezések is dolgoznak (DR-09: a statisztika levezetett, nem duplikált
+számláló), így a garancia a *tárolt tényekre* vonatkozik, és nem romlik el attól, ha a
+T-501 lekérdezései máshogy alakulnak. A nyers sorok és a levezetett számok együtt vannak
+a pillanatképben: az összegek egy sorcsere esetén még egyezhetnének.
+
+### Szerkezeti változás a tesztekben
+
+A csomagolt kiadás JSON-összeállítása a `TestKnowledgeAssetSources.kt`-ba került
+(`KnowledgeSourceFixtures`: `source()`, `manifest()`, `entry()`), mert a TR-05 garanciát
+két tesztosztály méri, és ugyanazt a tartalmat kell két kiadásban előállítani. A T-117
+`ContentImporterTest` **tesztjei változatlanok**, csak a privát segédfüggvényei
+delegálnak a közös fixture-re. A tartalom hiteles Kyokushin terminológia
+(`Zenkutsu dachi`, `Kokutsu dachi`, `Kiba dachi`, `Sanchin dachi`), minden rekord
+`review_status = editorial_review_required`, a hitelesítési szintet a teszt sem emeli
+(CR-02).
+
+### Rétegszabály, NFR-07, felhasználói szöveg
+
+- A feladat **csak tesztkódot** adott a `core/data` `test` forráskészletéhez; termelési
+  kód, séma és publikus szerződés nem változott.
+- NFR-07: fix `Clock.fixed(...)` és `UnconfinedTestDispatcher`; `Instant.now()`,
+  `System.currentTimeMillis()` és `Random` a tesztekben sincs.
+- Felhasználói szöveg nem keletkezett, UI nem érintett.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A TR-05 garanciát Robolectric + in-memory Room méri, `@Config(sdk = [34])` (a compileSdk = 37-hez nincs `android-all` artifact). |
+| `./gradlew ktlintCheck` | **NEM FUTOTT** – `Task 'ktlintCheck' not found in root project 'KyokushinKarateTrainer'`, exit 1: a ktlint konfigurációja még nincs beállítva (T-607). |
+| `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
+| A TR-05 az **éles** csomagolt assetsen | **NEM FUTOTT** – az `app/src/main/assets/knowledge/` feltöltése a T-601 feladata; a tesztek szintetikus, de hiteles terminológiájú kiadásokon futnak. |

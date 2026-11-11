@@ -50,3 +50,38 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | <rövid hash> |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:testDebugUnitTest` | 0 | 78 teszt, 0 hiba (10 új `TR05` teszt) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | 340 teszt, 0 hiba, 0 kihagyott |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL (`:app:assembleDebug` UP-TO-DATE – csak tesztkód változott) |
+
+**Megjegyzés:** A TR-05 négy kért esete mind lefedve, `TR05` jelölésű tesztnevekkel, a
+`core/data` meglévő `test` forráskészletében (külön forráskészlet nem kellett: a
+Robolectric + in-memory Room futás 8 s alatt lefut). Termelési kód **nem változott** – a
+T-117 szerkezeti FR-33 garanciája a viselkedés szintjén igazolódott.
+
+A statisztika-változatlanságot a teszt saját `ProgressSnapshot`-ja méri (nyers sorok +
+levezetett számok), mert a `ProgressRepository` aggregált lekérdezései a **T-501** tárgya.
+Amikor a T-501 megírja őket, érdemes egy TR-05 tesztet a *valódi* lekérdezésekre is
+ráhúzni – a pillanatkép számolása ugyanazt az adatot használja, tehát az eredménynek
+egyeznie kell.
+
+A csomagolt kiadások JSON-összeállítása a `TestKnowledgeAssetSources.kt`
+`KnowledgeSourceFixtures` objektumába került (két tesztosztály használja); a T-117
+`ContentImporterTest` tesztjei változatlanok, csak a privát segédei delegálnak.
+
+A `ktlintCheck` cél **nem létezik** a projektben (`Task 'ktlintCheck' not found`, exit 1) –
+a ktlint beállítása a T-607 feladata; a `docs/TEST_REPORT.md` „NEM FUTOTT" sora rögzíti.

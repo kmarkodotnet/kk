@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-118](T-118-tr-05-tartalomfrissites-tesztek.md) | TR-05: tartalomfrissítés tesztek | E1 | `core/data` | L | T-117 |
 | [T-201](T-201-core-data-techniquerepository.md) | core/data: TechniqueRepository | E2 | `core/data` | M | T-117 |
 | [T-202](T-202-core-data-kereses.md) | core/data: keresés | E2 | `core/data` | M | T-201 |
 | [T-203](T-203-di-hilt-modulok.md) | di: Hilt modulok | E2 | `di` | M | T-201 |

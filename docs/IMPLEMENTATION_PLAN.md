@@ -94,7 +94,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
 | 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ✅ **kész** – T-117: publikus `ContentImporter` + `ImportResult`, `internal RoomContentImporter` (verziókapu a tárolt `dataset_version`-re, validáció, **upsert egyetlen tranzakcióban**, a csomagból kimaradt technika `retired = true` – fizikai törlés nincs), `content_state` összegzés, `lastValidationReport()` a diagnosztikához, injektált `Clock` és `@IoDispatcher`. Tartalom oldali entitás ↔ domain mapperek. 16 új teszt |
 | 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | ⬜ |
-| 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ⬜ |
+| 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ✅ **kész** – T-118: `ContentUpdateProgressTest` 10 `TR05` jelölésű teszt in-memory Roomon (v1 → előrehaladás → v2 → v3): a `quiz_attempt`/`study_review` sorok és a belőlük levezetett statisztika **bitre azonos** a frissítés előttivel; átnevezésnél az `id` marad és az előrehaladás az új névre oldódik fel (DR-06); a kimaradt és a tartalom által visszavont technika próbálkozásai feloldhatók maradnak (ADR-004); ugyanaz a verzió kétszer nem duplikál (FR-30); az elutasított frissítés sem a tartalomhoz, sem az előrehaladáshoz nem nyúl |
 
 ## Fázis 4 – Tudástár UI
 
@@ -165,18 +165,17 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése a kész
-   `ContentImporter`-en (aggregált statisztika változatlansága, több körös frissítés,
-   `TR05` jelölésű tesztnevek). (**A T-117 kész:** az importáló, a verziókapu, a `retired`
-   jelölés és a tartalom oldali mapperek megvannak, 330 zöld teszttel.)
-2. **T-201** – `core/data`: `TechniqueRepository` implementáció (`retired = false` szűrés,
+1. **T-201** – `core/data`: `TechniqueRepository` implementáció (`retired = false` szűrés,
    keresés); az entitás → domain mapper a T-117 óta megvan, a `ContentState` domain
    modellje még nem.
-3. **T-203** – `di`: Hilt modulok. A `RoomContentImporter` `@Inject` konstruktorral kész,
+2. **T-203** – `di`: Hilt modulok. A `RoomContentImporter` `@Inject` konstruktorral kész,
    de a kötései (`KyokushinDatabase`, `KnowledgeContentReader`, `Clock`,
    `@IoDispatcher`, `@Binds ContentImporter`) még nincsenek megírva – és mivel az
    adatbázis és a beolvasó `internal`, ezeknek a kötéseknek a `core/data`-ban kell élniük,
    nem a `di` modulban.
+3. **T-202** – `core/data`: keresés (normalizált romaji, magyar név és aliasok felett).
+   (**A T-118 kész:** a TR-05 garancia – a tudástárfrissítés nem viszi el az
+   előrehaladást – mérve van, 340 zöld teszttel.)
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
@@ -478,3 +477,27 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   mutatja megjelenítendő névként – kitalált magyar nevet nem gyártunk (CR-01).
   **330 zöld teszt** (16 új: 10 importáló Robolectricen + in-memory Roomon, 6 mapper tiszta
   JVM-en), `testDebugUnitTest` és `assembleDebug` exit 0. Következő: T-118, a TR-05 tesztek.
+
+- 2026-11-11 – **T-118 kész (Fázis 3.8): a TR-05 garancia mérve.**
+  `ContentUpdateProgressTest` – 10 új, `TR05` jelölésű teszt in-memory Room adatbázison,
+  a **valódi** `RoomContentImporter`-en. A menet mindenhol ugyanaz: v1 kiadás betöltése,
+  előrehaladás felvétele (két kvízmenet, 5 válasz vegyes helyességgel, 4 önértékelés
+  ismétléssel), majd v2 betöltése – és a frissítés előtti/utáni **pillanatkép egyetlen
+  egyenlőségvizsgálattal** összevetve.
+  A pillanatkép a nyers `quiz_attempt` és `study_review` sorokat **és** a belőlük
+  levezetett statisztikát tartalmazza (helyes válaszok, találati arány, technikánkénti
+  bontás a legfrissebb önértékeléssel, menetenkénti `answeredCount`): az aggregált
+  lekérdezések a T-501 tárgya, de a garancia a *tárolt tényekre* vonatkozik, amiből azok
+  dolgozni fognak (DR-09).
+  Lefedve: statisztika-változatlanság egyetlen és több körös frissítésen át (v1 → v2 → v3);
+  átnevezés (az `id` marad, a próbálkozás az **új** rekordra oldódik fel – DR-06); a
+  csomagból kimaradt technika visszavonása; a tartalom által kimondottan `retired: true`
+  rekord; a visszatérő technika korábbi előrehaladásának épsége (ADR-004); idempotencia
+  új importálópéldánnyal és a frissítés után is (FR-30); és az elutasított frissítés, ami
+  sem a tartalomhoz, sem az előrehaladáshoz nem nyúl (FR-31 + FR-33).
+  A csomagolt kiadás JSON-összeállítása a `KnowledgeSourceFixtures` közös fixture-be
+  került, mert a garanciát két tesztosztály méri; a T-117 tesztjei változatlanok.
+  Termelési kód **nem változott** – a T-117 szerkezeti FR-33 garanciája a viselkedés
+  szintjén igazolódott.
+  **340 zöld teszt** (10 új, mind Robolectricen + in-memory Roomon), `testDebugUnitTest`
+  és `assembleDebug` exit 0. Következő: T-201, a `TechniqueRepository`.
