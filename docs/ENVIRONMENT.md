@@ -99,3 +99,13 @@ hajtható végre. A felmérés és a dokumentálás jóváhagyás nélkül is fr
 - 2026-11-11 – Döntések (felhasználói jóváhagyással): ADR-001 teljes modulbontás,
   ADR-009 `minSdk = 26`, demó adatkészlet 4 kategória × ~5 rekord. ADR-002…ADR-007
   a javaslat szerint elfogadva.
+- 2026-11-11 – **B-02 és B-04 feloldva.** cmdline-tools 23.0.0, `platforms/android-36`,
+  `platforms/android-37.0`, `build-tools/36.1.0`, `build-tools/37.0.0`, platform-tools 37.0.1
+  telepítve; Gradle 9.9.1 letöltve SHA-256 ellenőrzéssel, wrapper generálva.
+  **Első sikeres build:** `assembleDebug` exit 0 (app-debug.apk, 18,69 MB),
+  `testDebugUnitTest` exit 0 (még NO-SOURCE). Verziómátrix: ADR-008.
+- 2026-11-11 – Megérkezett a tényleges tudástár (`knowledgebase/`, 161 rekord, 9 kategória,
+  `dataset_version 0.1.0`, minden rekord `editorial_review_required`, kép nincs).
+  Ez **felülírja** a korábbi „demó adatkészlet 4×5 rekord" döntést. Két új döntés:
+  ADR-010 (kvíz lektorálatlan tartalmon, végig jelölve) és ADR-011 (a kapott séma a
+  kanonikus formátum). **Nyitott blokkoló: csak B-03 (nincs emulátor).**

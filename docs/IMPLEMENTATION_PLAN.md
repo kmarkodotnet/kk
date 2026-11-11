@@ -22,8 +22,8 @@ A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza a
 | 0.5 | Funkcionális specifikáció | ✅ kész – `docs/FUNCTIONAL_SPEC.md` v1.0 |
 | 0.6 | Architektúraterv | ✅ kész – `docs/ARCHITECTURE.md` v1.0 |
 | 0.7 | **Felhasználói jóváhagyás a tervekre és a nyitott döntésekre** | ✅ kész – lásd „Meghozott döntések" |
-| 0.8 | JDK 17 + Android SDK telepítése, verziómátrix rögzítése | 🔄 folyamatban – JDK 17.0.21 ✅, Android Studio ✅, cmdline-tools letöltése fut; SDK platform/build-tools és ADR-008 hátravan |
-| 0.9 | ADR-ek kiírása `docs/adr/` alá | 🔄 ADR-001…007 és ADR-009 ✅ kész; **ADR-008** (verziómátrix) a 0.8 befejezésére vár |
+| 0.8 | JDK 17 + Android SDK telepítése, verziómátrix rögzítése | ✅ kész – JDK 17.0.21, Android Studio, cmdline-tools, platform 36+37, build-tools 36.1/37.0, Gradle 9.9.1; ADR-008 |
+| 0.9 | ADR-ek kiírása `docs/adr/` alá | ✅ kész – ADR-001…ADR-011 |
 
 ### Meghozott döntések (2026-11-11)
 
@@ -32,7 +32,10 @@ A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza a
 | OQ-03 / ADR-009 – `minSdk` | **26 (Android 8.0)** – natív `java.time`, nincs desugaring |
 | ADR-001 – modulbontás | **teljes bontás**: app + 4 core + 4 feature + navigation + di |
 | ADR-002…ADR-007 | a javaslat szerint elfogadva (lásd `docs/adr/`) |
-| OQ-01 – éles tartalom | **nincs még.** Az MVP demó adatkészlettel indul: **4 kategória × ~5 rekord**, képhelyőrzőkkel, minden rekord `verified: false`. Következmény: a (C)/(D) kvíztípus nem aktiválható, és a kvíz nem indul hitelesként. |
+| OQ-01 – éles tartalom | **FELÜLÍRVA (2026-11-11).** Megérkezett a tényleges tudástár: `knowledgebase/` – **161 rekord, 9 kategória**, `dataset_version 0.1.0`, minden rekord `editorial_review_required`, illusztráció egyikhez sincs. A demó adatkészlet terve elesett. |
+| Kvíz lektorálatlan tartalmon | **engedélyezve, végig jelölve** – [ADR-010](adr/ADR-010-quiz-on-unreviewed-content.md). `INCOMPLETE` rekord továbbra is kizárva. |
+| Kanonikus séma | **a kapott séma**, kiegészítve – [ADR-011](adr/ADR-011-canonical-content-schema.md). Nincs konverziós réteg. |
+| Aktív kvíztípusok | csak **(A)** romaji→magyar és **(B)** magyar→romaji. A **(C)** és **(D)** képes típus nem aktiválható, mert egyetlen illusztráció sincs (CR-05, FR-13). |
 
 ---
 
@@ -40,13 +43,13 @@ A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza a
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 1.1 | `settings.gradle.kts`, root `build.gradle.kts`, Gradle wrapper | NFR-02 | ⬜ |
-| 1.2 | `gradle/libs.versions.toml` ellenőrzött verziókkal (B-04 után!) | NFR-02 | ⬜ |
-| 1.3 | Modulok létrehozása: `app`, `core/model`, `core/quiz`, `core/data`, `core/ui`, `feature/*`, `navigation`, `di` | NFR-03 | ⬜ |
-| 1.4 | `AndroidManifest.xml` – **nincs** INTERNET permission, egy Activity | NFR-01, TR-08 | ⬜ |
-| 1.5 | Material 3 téma világos/sötét, `strings.xml` váz | NFR-05 | ⬜ |
-| 1.6 | Hilt bekötés (`@HiltAndroidApp`, `@AndroidEntryPoint`), üres Hilt modulok | NFR-03 | ⬜ |
-| 1.7 | Ellenőrzés: `./gradlew assembleDebug` | — | ⬜ |
+| 1.1 | `settings.gradle.kts`, root `build.gradle.kts`, Gradle wrapper (9.9.1) | NFR-02 | ✅ kész |
+| 1.2 | `gradle/libs.versions.toml` ellenőrzött verziókkal | NFR-02 | ✅ kész – ADR-008 |
+| 1.3 | 11 modul létrehozása (`core/model` és `core/quiz` Kotlin JVM modul) | NFR-03 | ✅ kész |
+| 1.4 | `AndroidManifest.xml` – **nincs** INTERNET permission, egy Activity | NFR-01, TR-08 | ✅ kész – összevont manifesten ellenőrizve |
+| 1.5 | Material 3 téma világos/sötét, `strings.xml` váz, vektoros ikon | NFR-05 | ✅ kész |
+| 1.6 | Hilt bekötés (`@HiltAndroidApp`, `@AndroidEntryPoint`) | NFR-03 | ✅ kész (Hilt modulok tartalma a Fázis 3-ban) |
+| 1.7 | Ellenőrzés: `./gradlew assembleDebug` | — | ✅ **exit 0**, `app-debug.apk` 18,69 MB |
 
 ## Fázis 2 – Domain modell és kvízmotor (tiszta Kotlin, Android nélkül)
 
@@ -68,8 +71,8 @@ A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza a
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 3.1 | `assets/knowledge/manifest.json` + `techniques.json` séma, `datasetKind: "demo"` | FR-29, CR-03 | ⬜ |
-| 3.2 | Demó adatkészlet: szerkezetileg teljes, `verified: false`, `quizEligible: false`, képhelyőrzőkkel | CR-01, CR-03, CR-05 | ⬜ |
+| 3.1 | A kanonikus séma implementálása (ADR-011): manifest + `entries`, `schema_version` string | FR-29 | ⬜ |
+| 3.2 | A `knowledgebase/` tartalom bemásolása `app/src/main/assets/knowledge/` alá + `editorial_status` alapú `datasetTrust` (ADR-010) | CR-01, CR-03 | ⬜ |
 | 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ⬜ |
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ⬜ |
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ⬜ |
@@ -146,12 +149,13 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **0.8 befejezése** – cmdline-tools kicsomagolása, `sdkmanager --list`, platform és
-   build-tools telepítése, `local.properties`, majd **ADR-008** a tényleges verziókkal.
-2. **Fázis 1** – Gradle projektváz, `libs.versions.toml`, 11 modul, manifest (INTERNET
-   permission nélkül), Material 3 téma, Hilt bekötés → `./gradlew assembleDebug`.
-3. **Fázis 2** – `core/model` + `core/quiz` (validátor, generátor, scoring) és a TR-01…TR-04
-   unit tesztek → `./gradlew testDebugUnitTest`.
+1. **Dokumentumfrissítés** – a `REQUIREMENTS.md`, `FUNCTIONAL_SPEC.md` és
+   `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
+   (mezőnevek, `quizEligible` kapu, lektorálatlan jelölés, aktív kvíztípusok).
+2. **Fázis 2** – `core/model` + `core/quiz`: validátor, kvízgenerátor, scoring,
+   és a TR-01…TR-04 unit tesztek → `./gradlew testDebugUnitTest` **tényleges** zöld
+   eredménnyel (most még `NO-SOURCE`).
+3. **Fázis 3** – a kanonikus séma importja a 161 rekordra, Room, repository-k, TR-05.
 
 ## Változásnapló
 
@@ -160,3 +164,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 - 2026-11-11 – Fázis 0.7 kész: tervek jóváhagyva, `minSdk = 26`, teljes modulbontás,
   demó adatkészlet 4×5 rekorddal. Fázis 0.9: ADR-001…007 és ADR-009 kiírva.
   JDK 17.0.21 és Android Studio telepítve; az SDK beszerzése folyamatban.
+- 2026-11-11 – Fázis 0.8, 0.9 és **Fázis 1 kész.** Build környezet felállítva (JDK 17.0.21,
+  Android SDK 36+37, Gradle 9.9.1); 11 modulos Gradle projektváz; `assembleDebug` és
+  `testDebugUnitTest` egyaránt exit 0 (tesztek még `NO-SOURCE`). ADR-008 a verziómátrixszal.
+- 2026-11-11 – Megérkezett a tényleges tudástár (161 rekord). ADR-010 (kvíz lektorálatlan
+  tartalmon, végig jelölve) és ADR-011 (a kapott séma a kanonikus formátum) elfogadva;
+  ezek felülírják a demó adatkészlet tervét és a séma-mezőneveket.

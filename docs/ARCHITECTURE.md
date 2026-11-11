@@ -468,10 +468,17 @@ ADR-ben indokolva.
 | [ADR-005](adr/ADR-005-unique-answer-index.md) | `UNIQUE(sessionId, questionId)` index a dupla válasz adatbázis-szintű kizárására | **elfogadva** |
 | [ADR-006](adr/ADR-006-questions-hold-ids-only.md) | A kvízkérdés csak technikaazonosítókat tárol, megjelenített szöveget/képet nem | **elfogadva** |
 | [ADR-007](adr/ADR-007-seed-persistence.md) | A `seed` a `QuizSession`-ben és a `SavedStateHandle`-ben is tárolódik a reprodukálhatóságért | **elfogadva** |
-| ADR-008 | AGP/Gradle/Kotlin/Compose/Room/Hilt verziók rögzítése a telepített SDK alapján | nyitott (B-04) |
+| [ADR-008](adr/ADR-008-version-matrix.md) | Build toolchain és függőségi verziómátrix (AGP 9.5.1, Kotlin 2.4.21, Gradle 9.9.1, compileSdk 37) | **elfogadva, buildből igazolva** |
 | [ADR-009](adr/ADR-009-min-sdk.md) | `minSdk = 26` (Android 8.0) – natív `java.time`, nincs desugaring | **elfogadva** |
 
+| [ADR-010](adr/ADR-010-quiz-on-unreviewed-content.md) | Kvíz engedélyezése lektorálatlan tartalmon, végig jelölve; `INCOMPLETE` rekord továbbra is kizárva | **elfogadva** |
+| [ADR-011](adr/ADR-011-canonical-content-schema.md) | A kapott tudástár sémája a kanonikus formátum (nincs konverziós réteg) | **elfogadva** |
+
 Az ADR-ek részletes szövege a [`docs/adr/`](adr/) könyvtárban található.
+
+> **ADR-010 és ADR-011 felülír részeket ebben a dokumentumban:** az 5. fejezet séma- és
+> mezőnevei, valamint a `quizEligible` szigorú kapuja. A Fázis 3 implementációja az
+> ADR-eket követi; az 5. fejezet átírása a Fázis 3.3 lépés része.
 
 ---
 
