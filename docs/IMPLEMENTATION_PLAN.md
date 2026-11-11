@@ -72,7 +72,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
-| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | ⬜ |
+| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 kész: a szerződés (`KnowledgeValidator`, `KnowledgeInput`, `ValidationReport`, `RejectedRecord`, `ValidationIssue`, `IssueCode` V001…V010, `Severity`, `IssueScope`), 5 zöld szerződésteszt; a szabályok implementációja a T-105 |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ⬜ |
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | ⬜ |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ⬜ |
@@ -165,9 +165,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-104…T-106** – `core/quiz` validátor + **TR-01 tesztek**. (**A Fázis 2.1 lezárva:**
-   azonosító value class-ok, enumok, `Technique`, `Category`, `IllustrationRef`, és a
-   felhasználói adatmodellek – `QuizAttempt`, `StudyReview`, `QuizSession`.)
+1. **T-105…T-106** – a validátor szabály-implementációja + **TR-01 tesztek**. (**A T-104
+   lezárva:** a validátor szerződése és hibatípusai állnak, a `core/quiz` Android-mentes
+   marad, és a modul megkapta a `testDebugUnitTest` gyűjtőtaskot.)
 2. **T-107…T-112** – kvízgenerátor + **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja,
    ahol eldől, hogy a termék helyes-e.
 3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
@@ -215,3 +215,13 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   ADR-007). `testDebugUnitTest` exit 0, 35 teszt, 0 hiba; `assembleDebug` exit 0.
   Eltérés: az `ARCHITECTURE.md` 3. szakaszának `QuizAttempt` vázlatából hiányzik a
   `questionId` – az átvezetés hátralévő dokumentációs feladat.
+- 2026-11-11 – **T-104 kész** (Fázis 2.2 részben): `core/quiz` validátor-szerződés –
+  `KnowledgeValidator` (`fun interface`), `KnowledgeInput` / `ManifestInput` /
+  `CategoryInput` / `IllustrationInput` / `TechniqueInput` (nyers, `null`-tűrő bemenet),
+  `ValidationReport` / `RejectedRecord`, `ValidationIssue`, `IssueCode` V001…V010,
+  `Severity`, `IssueScope`. `.\gradlew.bat testDebugUnitTest` **exit 0** – 40 teszt,
+  0 hiba; `.\gradlew.bat assembleDebug` **exit 0**.
+  *Drift:* az `ARCHITECTURE.md` 4.1 kódvázlata még `validate(manifest, techniques)`,
+  `DatasetKind` és `contentVersion` néven szerepel, és `techniqueId: TechniqueId?`-t ír a
+  `ValidationIssue`-ba – a megvalósult szerződés a task-fájlt követi; a szakasz átvezetése
+  a dokumentációs körben (T-608 / `/kyo-doc-sync`) esedékes.

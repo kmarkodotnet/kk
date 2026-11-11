@@ -17,3 +17,4 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-101](T-101-core-model-azonositok-es-enumok.md) | core/model: azonosítók és enumok | E1 | `core/model` | 2026-11-11 |
 | [T-102](T-102-core-model-technique-category-illustrationref.md) | core/model: Technique, Category, IllustrationRef | E1 | `core/model` | 2026-11-11 |
 | [T-103](T-103-core-model-felhasznaloi-adatmodellek.md) | core/model: felhasználói adatmodellek | E1 | `core/model` | 2026-11-11 |
+| [T-104](T-104-core-quiz-a-validator-szerzodese.md) | core/quiz: a validátor szerződése | E1 | `core/quiz` | 2026-11-11 |

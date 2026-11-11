@@ -14,3 +14,13 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.truth)
 }
+
+// A globális Definition of Done a `./gradlew testDebugUnitTest` parancsot írja elő.
+// Kotlin JVM modulban ilyen task nem létezik (itt a teszttask neve `test`), ezért
+// azonos nevű gyűjtőtaskot veszünk fel – e nélkül a kötelező DoD-parancs csendben
+// kihagyná ennek a modulnak a tesztjeit.
+tasks.register("testDebugUnitTest") {
+    group = "verification"
+    description = "Alias a `test` taskra, hogy a globális DoD parancs ezt a modult is lefedje."
+    dependsOn(tasks.named("test"))
+}
