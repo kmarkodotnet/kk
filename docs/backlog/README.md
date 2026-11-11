@@ -1,0 +1,98 @@
+# docs/backlog – a nyitott fejlesztési feladatok
+
+Minden fejlesztési feladat **külön fájlban** él ebben a mappában. Egy elkészült feladat
+fájlja átkerül a [`../done/`](../done/) mappába – a két mappa együtt adja ki a teljes
+munkamennyiséget, és a `backlog/` tartalma mindig a hátralévő munka.
+
+## Hogyan választódik ki a következő feladat
+
+A `/dev` parancs determinista szabályt követ:
+
+1. Vedd a `docs/backlog/` fájljait **növekvő task-azonosító szerint** (T-101, T-102, …).
+2. Az első olyan feladat a soron következő, amelynek **minden függősége** már a
+   `docs/done/` mappában van (a „Függ” mező üres vagy teljesül).
+3. Ha egyetlen ilyen sincs, a parancs megáll és jelzi, melyik függőség hiányzik.
+
+Így a sorrend kiszámítható, és a függőségi lánc nem sérülhet.
+
+## Feladatok
+
+| Task | Cím | Epik | Modul | Méret | Függ |
+|---|---|---|---|---|---|
+| [T-101](T-101-core-model-azonositok-es-enumok.md) | core/model: azonosítók és enumok | E1 | `core/model` | S | — |
+| [T-102](T-102-core-model-technique-category-illustrationref.md) | core/model: Technique, Category, IllustrationRef | E1 | `core/model` | S | T-101 |
+| [T-103](T-103-core-model-felhasznaloi-adatmodellek.md) | core/model: felhasználói adatmodellek | E1 | `core/model` | S | T-101 |
+| [T-104](T-104-core-quiz-a-validator-szerzodese.md) | core/quiz: a validátor szerződése | E1 | `core/quiz` | M | T-102 |
+| [T-105](T-105-core-quiz-a-validator-implementacioja.md) | core/quiz: a validátor implementációja | E1 | `core/quiz` | L | T-104 |
+| [T-106](T-106-tr-01-validator-tesztek.md) | TR-01: validátor tesztek | E1 | `core/quiz` | M | T-105 |
+| [T-107](T-107-core-quiz-a-generator-szerzodese.md) | core/quiz: a generátor szerződése | E1 | `core/quiz` | M | T-102 |
+| [T-108](T-108-core-quiz-jeloltszures-es-jogosultsagi-kapuk.md) | core/quiz: jelöltszűrés és jogosultsági kapuk | E1 | `core/quiz` | M | T-107 |
+| [T-109](T-109-core-quiz-distraktorvalasztas.md) | core/quiz: distraktorválasztás | E1 | `core/quiz` | L | T-108 |
+| [T-110](T-110-core-quiz-seedelt-determinizmus.md) | core/quiz: seedelt determinizmus | E1 | `core/quiz` | M | T-109 |
+| [T-111](T-111-core-quiz-dryrun-keszenleti-osszegzes.md) | core/quiz: dryRun() készenléti összegzés | E1 | `core/quiz` | S | T-110 |
+| [T-112](T-112-tr-02-tr-03-generator-tesztek.md) | TR-02 + TR-03: generátor tesztek | E1 | `core/quiz` | L | T-111 |
+| [T-113](T-113-core-quiz-quizscoring.md) | core/quiz: QuizScoring | E1 | `core/quiz` | S | T-103 |
+| [T-114](T-114-tr-04-eredmenyszamitas-tesztek.md) | TR-04: eredményszámítás tesztek | E1 | `core/quiz` | M | T-113 |
+| [T-115](T-115-core-data-a-kanonikus-sema-beolvasasa.md) | core/data: a kanonikus séma beolvasása | E1 | `core/data` | M | T-105 |
+| [T-116](T-116-core-data-room-sema.md) | core/data: Room séma | E1 | `core/data` | L | T-103 |
+| [T-117](T-117-core-data-contentimporter.md) | core/data: ContentImporter | E1 | `core/data` | L | T-115, T-116 |
+| [T-118](T-118-tr-05-tartalomfrissites-tesztek.md) | TR-05: tartalomfrissítés tesztek | E1 | `core/data` | L | T-117 |
+| [T-201](T-201-core-data-techniquerepository.md) | core/data: TechniqueRepository | E2 | `core/data` | M | T-117 |
+| [T-202](T-202-core-data-kereses.md) | core/data: keresés | E2 | `core/data` | M | T-201 |
+| [T-203](T-203-di-hilt-modulok.md) | di: Hilt modulok | E2 | `di` | M | T-201 |
+| [T-204](T-204-core-ui-techniqueillustration.md) | core/ui: TechniqueIllustration | E2 | `core/ui` | M | T-102 |
+| [T-205](T-205-core-ui-jelolok-es-allapotkomponensek.md) | core/ui: jelölők és állapotkomponensek | E2 | `core/ui` | M | — |
+| [T-206](T-206-navigation-navhost-es-bottom-navigation.md) | navigation: NavHost és bottom navigation | E2 | `navigation` | M | T-205 |
+| [T-207](T-207-feature-library-lista-viewmodel.md) | feature/library: lista ViewModel | E2 | `feature/library` | L | T-202, T-203 |
+| [T-208](T-208-feature-library-lista-ui.md) | feature/library: lista UI | E2 | `feature/library` | L | T-207, T-204 |
+| [T-209](T-209-feature-library-reszletezo-kepernyo.md) | feature/library: részletező képernyő | E2 | `feature/library` | L | T-207 |
+| [T-210](T-210-feature-library-ures-es-hibaallapotok.md) | feature/library: üres és hibaállapotok | E2 | `feature/library` | M | T-208 |
+| [T-211](T-211-feature-library-viewmodel-tesztek.md) | feature/library: ViewModel tesztek | E2 | `feature/library` | M | T-207 |
+| [T-301](T-301-core-data-progressrepository-tanulasi-resz.md) | core/data: ProgressRepository – tanulási rész | E3 | `core/data` | M | T-116 |
+| [T-302](T-302-feature-learn-tanulas-beallitasa.md) | feature/learn: tanulás beállítása | E3 | `feature/learn` | M | T-203, T-206 |
+| [T-303](T-303-feature-learn-kartyaallapot.md) | feature/learn: kártyaállapot | E3 | `feature/learn` | M | T-302 |
+| [T-304](T-304-feature-learn-kartya-ui.md) | feature/learn: kártya UI | E3 | `feature/learn` | L | T-303, T-204 |
+| [T-305](T-305-feature-learn-feliratos-kep-elrejtese-felfedesig.md) | feature/learn: feliratos kép elrejtése felfedésig | E3 | `feature/learn` | S | T-304 |
+| [T-306](T-306-feature-learn-onertekeles.md) | feature/learn: önértékelés | E3 | `feature/learn` | M | T-301, T-304 |
+| [T-307](T-307-feature-learn-zarokepernyo.md) | feature/learn: záróképernyő | E3 | `feature/learn` | S | T-304 |
+| [T-308](T-308-feature-learn-viewmodel-tesztek.md) | feature/learn: ViewModel tesztek | E3 | `feature/learn` | M | T-306 |
+| [T-401](T-401-core-data-progressrepository-kvizresz.md) | core/data: ProgressRepository – kvízrész | E4 | `core/data` | M | T-116 |
+| [T-402](T-402-core-data-kvizjeloltek-lekerdezese.md) | core/data: kvízjelöltek lekérdezése | E4 | `core/data` | M | T-201 |
+| [T-403](T-403-feature-quiz-beallito-viewmodel.md) | feature/quiz: beállító ViewModel | E4 | `feature/quiz` | L | T-111, T-402 |
+| [T-404](T-404-feature-quiz-beallito-ui.md) | feature/quiz: beállító UI | E4 | `feature/quiz` | L | T-403 |
+| [T-405](T-405-feature-quiz-quizrunstate.md) | feature/quiz: QuizRunState | E4 | `feature/quiz` | M | T-403 |
+| [T-406](T-406-feature-quiz-egyszeri-valasz-kikenyszeritese.md) | feature/quiz: egyszeri válasz kikényszerítése | E4 | `feature/quiz` | M | T-405, T-401 |
+| [T-407](T-407-feature-quiz-a-es-b-kerdes-ui.md) | feature/quiz: (A) és (B) kérdés UI | E4 | `feature/quiz` | M | T-405 |
+| [T-408](T-408-feature-quiz-c-es-d-kerdes-ui.md) | feature/quiz: (C) és (D) kérdés UI | E4 | `feature/quiz` | L | T-407, T-204 |
+| [T-409](T-409-feature-quiz-valasz-visszajelzes.md) | feature/quiz: válasz-visszajelzés | E4 | `feature/quiz` | M | T-407 |
+| [T-410](T-410-feature-quiz-elorehaladas-es-megszakitas.md) | feature/quiz: előrehaladás és megszakítás | E4 | `feature/quiz` | M | T-405 |
+| [T-411](T-411-feature-quiz-eredmenykepernyo.md) | feature/quiz: eredményképernyő | E4 | `feature/quiz` | L | T-113, T-410 |
+| [T-412](T-412-feature-quiz-hibak-ujragyakorlasa.md) | feature/quiz: hibák újragyakorlása | E4 | `feature/quiz` | M | T-411 |
+| [T-413](T-413-feature-quiz-akadalymentesseg.md) | feature/quiz: akadálymentesség | E4 | `feature/quiz` | M | T-408, T-409 |
+| [T-414](T-414-feature-quiz-viewmodel-tesztek.md) | feature/quiz: ViewModel tesztek | E4 | `feature/quiz` | L | T-412 |
+| [T-415](T-415-feature-quiz-lektoralatlan-tartalom-jelzese.md) | feature/quiz: lektorálatlan tartalom jelzése | E4 | `feature/quiz` | S | T-404, T-411 |
+| [T-501](T-501-core-data-aggregalt-statisztika-lekerdezesek.md) | core/data: aggregált statisztika lekérdezések | E5 | `core/data` | L | T-401 |
+| [T-502](T-502-core-data-elorehaladas-torlese.md) | core/data: előrehaladás törlése | E5 | `core/data` | S | T-401 |
+| [T-503](T-503-feature-progress-attekinto-kepernyo.md) | feature/progress: áttekintő képernyő | E5 | `feature/progress` | L | T-501, T-206 |
+| [T-504](T-504-feature-progress-gyakorlast-igenylo-lista.md) | feature/progress: gyakorlást igénylő lista | E5 | `feature/progress` | M | T-503 |
+| [T-505](T-505-feature-progress-onertekelesi-blokk.md) | feature/progress: önértékelési blokk | E5 | `feature/progress` | S | T-503 |
+| [T-506](T-506-feature-progress-technika-reszletezo.md) | feature/progress: technika-részletező | E5 | `feature/progress` | M | T-503 |
+| [T-507](T-507-feature-progress-beallitasok.md) | feature/progress: beállítások | E5 | `feature/progress` | M | T-502, T-503 |
+| [T-508](T-508-feature-progress-fejlesztoi-diagnosztika.md) | feature/progress: fejlesztői diagnosztika | E5 | `feature/progress` | M | T-117, T-507 |
+| [T-509](T-509-feature-progress-viewmodel-tesztek.md) | feature/progress: ViewModel tesztek | E5 | `feature/progress` | M | T-507 |
+| [T-601](T-601-a-tudastar-bemasolasa-az-assets-ala.md) | A tudástár bemásolása az assets alá | E6 | `app` | S | T-117 |
+| [T-602](T-602-tr-07-retegszabaly-ellenorzes-automatizalva.md) | TR-07: rétegszabály-ellenőrzés automatizálva | E6 | `core/quiz` | M | T-110 |
+| [T-603](T-603-tr-08-manifest-permission-teszt.md) | TR-08: manifest permission teszt | E6 | `app` | S | — |
+| [T-604](T-604-akadalymentessegi-atfesules.md) | Akadálymentességi átfésülés | E6 | minden feature | L | T-413, T-503 |
+| [T-605](T-605-nagy-betumeret-es-forgatas-ellenorzese.md) | Nagy betűméret és forgatás ellenőrzése | E6 | minden feature | M | T-604 |
+| [T-606](T-606-tr-06-avd-es-ui-tesztek.md) | TR-06: AVD és UI tesztek | E6 | `app` | L | T-412, T-503 |
+| [T-607](T-607-lint-es-kodformazas.md) | Lint és kódformázás | E6 | gyökér | M | — |
+| [T-608](T-608-docs-knowledge-base-md-kiadott-valtozata.md) | docs/KNOWLEDGE_BASE.md kiadott változata | E6 | `docs` | M | T-117 |
+| [T-609](T-609-docs-quiz-rules-md-kiadott-valtozata.md) | docs/QUIZ_RULES.md kiadott változata | E6 | `docs` | M | T-112 |
+| [T-610](T-610-atadas-readme-tesztjelentes-apk-elfogadasi-krite.md) | Átadás: README, tesztjelentés, APK, elfogadási kritériumok | E6 | `docs` | M | T-606 |
+
+## Kapcsolódó
+
+- [`../BACKLOG.md`](../BACKLOG.md) – epikek, user story-k elfogadási kritériumokkal, a globális DoR/DoD és a mérföldkövek
+- [`../IMPLEMENTATION_PLAN.md`](../IMPLEMENTATION_PLAN.md) – fázisok és a projekt tényleges állása
+- [`../done/`](../done/) – az elkészült feladatok

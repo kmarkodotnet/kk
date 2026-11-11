@@ -27,8 +27,20 @@
 | `IMPLEMENTATION_PLAN.md` | *milyen sorrendben*, és **hol tartunk most** |
 
 A tényleges állapotot (kipipálás) az `IMPLEMENTATION_PLAN.md` vezeti – ez a fájl a
-munkadarabok katalógusa, nem állapotnyilvántartás. A `/kyo-next` parancs a tervből veszi a
-soron következő lépést, és onnan hivatkozik ide a task részleteiért.
+munkadarabok **katalógusa és áttekintése**, nem állapotnyilvántartás.
+
+**Minden dev task külön fájlban is megvan**, teendőkkel, „Kész, ha" listával és
+task-specifikus Definition of Done-nal:
+
+| Mappa | Mit tartalmaz |
+|---|---|
+| [`backlog/`](backlog/) | a **nyitott** feladatok, egy fájl = egy task ([index](backlog/README.md)) |
+| [`done/`](done/) | az **elkészült** feladatok, lezáró szakasszal (futtatott parancsok, commit) |
+
+A **`/dev`** parancs kiveszi a `backlog/`-ból a soron következő feladatot (növekvő
+azonosító szerint, csak teljesült függőséggel), lefejleszti, futtatja a teszteket, és
+sikeres Definition of Done esetén átmozgatja a `done/` mappába. A `/kyo-next` a
+fázisszintű lépésekhez marad.
 
 ---
 

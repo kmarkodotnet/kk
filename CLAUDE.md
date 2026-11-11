@@ -11,9 +11,11 @@ Ha bármi ütközik, a mesterprompt győz. A terveket a `docs/` könyvtár tarta
 2. `docs/REQUIREMENTS.md` – követelményspecifikáció (FR/NFR azonosítókkal).
 3. `docs/FUNCTIONAL_SPEC.md` – funkcionális specifikáció (képernyők, folyamatok, állapotok).
 4. `docs/ARCHITECTURE.md` – architektúra és modulterv.
-5. `docs/IMPLEMENTATION_PLAN.md` – fázisok, aktuális állás, következő lépés.
-6. `docs/ENVIRONMENT.md` – a build környezet tényleges állapota, blokkolók.
-7. `docs/adr/` – architekturális döntések (ADR-NNN).
+5. `docs/BACKLOG.md` – epikek, user story-k, a globális DoR/DoD és a mérföldkövek.
+6. `docs/backlog/` – a nyitott fejlesztési feladatok, egy fájl = egy task; `docs/done/` – az elkészültek.
+7. `docs/IMPLEMENTATION_PLAN.md` – fázisok, aktuális állás, következő lépés.
+8. `docs/ENVIRONMENT.md` – a build környezet tényleges állapota, blokkolók.
+9. `docs/adr/` – architekturális döntések (ADR-NNN).
 
 ## Vasszabályok
 - **Nyelv:** minden felhasználói szöveg és dokumentáció magyar. A kód, azonosítók, commit
@@ -41,8 +43,12 @@ Ha bármi ütközik, a mesterprompt győz. A terveket a `docs/` könyvtár tarta
 - Commit konvenció: `feat|fix|test|docs|chore(scope): rövid angol leírás`.
 
 ## Parancsok
-`/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`, `/kyo-validate-kb`,
-`/kyo-doc-sync`. Részletek: `.claude/commands/`.
+**`/dev`** – a fő fejlesztési hurok: kiveszi a `docs/backlog/` következő feladatát,
+lefejleszti, teszteli, és sikeres Definition of Done esetén átmozgatja a `docs/done/`
+mappába. Egy hívás = egy feladat.
+
+Továbbá: `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`,
+`/kyo-validate-kb`, `/kyo-doc-sync`. Részletek: `.claude/commands/`.
 
 ## Skillek
 `kyokushin-content`, `kyo-knowledge-base`, `kyo-quiz-engine`, `kyo-android-module`,

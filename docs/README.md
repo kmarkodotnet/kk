@@ -5,7 +5,9 @@
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Követelményspecifikáció: FR, NFR, CR, DR, TR, AC azonosítókkal, nyitott kérdésekkel | v1.0 – jóváhagyásra vár |
 | [FUNCTIONAL_SPEC.md](FUNCTIONAL_SPEC.md) | Funkcionális specifikáció: képernyők, állapotok, folyamatok, UI szövegek, hibakezelés | v1.0 – jóváhagyásra vár |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architektúraterv: modultérkép, rétegszabályok, domain modell, Room séma, DI, tesztarchitektúra, ADR index | v1.0 – jóváhagyásra vár |
-| [BACKLOG.md](BACKLOG.md) | 6 epik, 21 user story elfogadási kritériumokkal, 71 dev task függőségekkel és Definition of Done-nal | v1.0 |
+| [BACKLOG.md](BACKLOG.md) | 6 epik, 21 user story elfogadási kritériumokkal, 71 dev task áttekintése, globális DoR/DoD, mérföldkövek | v1.0 |
+| [backlog/](backlog/) | **A nyitott fejlesztési feladatok, egy fájl = egy task** | 71 feladat |
+| [done/](done/) | Az elkészült feladatok, lezáró szakasszal (futtatott parancsok, commit) | üres |
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Fázisok, tényleges állás, blokkolók, következő lépések | élő dokumentum |
 | [ENVIRONMENT.md](ENVIRONMENT.md) | A build környezet tényleges állapota és a blokkolók (B-01…B-04) | élő dokumentum |
 | [TEST_REPORT.md](TEST_REPORT.md) | **Csak tényleges** build- és tesztfuttatások naplója | append-only |
@@ -25,7 +27,7 @@ A napi fejlesztést vezérlő, gépi olvasásra szánt szabályok a Claude körn
 | `../.claude/skills/kyo-quiz-engine/` | kvízmotor szerződése, invariánsai, distraktorszabályai |
 | `../.claude/skills/kyo-android-module/` | modulhatárok, Compose/Room/Hilt konvenciók, akadálymentesség |
 | `../.claude/skills/kyo-build-env/` | környezet felmérése, telepítés, hiteles jelentés |
-| `../.claude/commands/` | `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`, `/kyo-validate-kb`, `/kyo-doc-sync` |
+| `../.claude/commands/` | **`/dev`** (a következő feladat végigvitele backlog → done), `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`, `/kyo-validate-kb`, `/kyo-doc-sync` |
 | `../.claude/agents/kyo-spec-auditor.md` | csak-olvasó auditor a spec-megfelelés ellenőrzéséhez |
 
 Ha a specifikáció és egy skill eltér, a hierarchia:
