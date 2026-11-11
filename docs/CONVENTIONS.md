@@ -80,11 +80,17 @@ Ez a lap nem helyettesíti őket, hanem a *gyakorlati* tudást gyűjti.
 
 ## 7. Build környezet
 
-```powershell
-$env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot"
-.\gradlew.bat testDebugUnitTest
-.\gradlew.bat assembleDebug
+**Bash-ből** (ez a megbízható út; a PowerShell egyes session-ökben le van tiltva):
+
+```bash
+export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"
+./gradlew.bat testDebugUnitTest
+./gradlew.bat assembleDebug
 ```
+
+A `.bat` kiterjesztés Git Bash alatt is kell – a `./gradlew` (kiterjesztés nélkül) Windowson
+nem a megfelelő indítót hívja. PowerShellben ugyanez `$env:JAVA_HOME=...` + `.\gradlew.bat`,
+**ha** a PowerShell elérhető.
 
 | | |
 |---|---|
