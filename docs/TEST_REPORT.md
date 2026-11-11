@@ -1715,7 +1715,7 @@ hanem az `IllustrationLabel` szándéktípust, és a `QuizOption` ágon a techni
 | `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL in 2s` – `app/build/outputs/apk/debug/app-debug.apk` (20 296 639 byte) |
 
 Környezet: `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
-Windows PowerShell, Gradle wrapper 9.9.1.
+Windows PowerShell, Gradle wrapper 9.9.1. Commit: `e73ac8e`.
 
 Modulonkénti bontás a `build/test-results` XML-ekből: `core/quiz` 227, `core/data` 99,
 `core/model` 35, **`core/ui` 28**, `app` 4 – összesen 393, hiba és hibás befejezés 0.
