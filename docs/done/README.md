@@ -10,4 +10,8 @@ parancsok futottak milyen eredménnyel, és melyik commit tartalmazza.
 Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 [`../backlog/`](../backlog/) mappában van.
 
-> Jelenleg üres – a fejlesztés most indul.
+## Elkészült feladatok
+
+| Task | Cím | Epik | Modul | Dátum |
+|---|---|---|---|---|
+| [T-101](T-101-core-model-azonositok-es-enumok.md) | core/model: azonosítók és enumok | E1 | `core/model` | 2026-11-11 |

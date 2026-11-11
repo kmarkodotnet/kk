@@ -49,3 +49,34 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | `fc9514e` |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew testDebugUnitTest` | 0 | 13 teszt, 0 hiba (`:core:model:test`), `BUILD SUCCESSFUL` |
+| `./gradlew assembleDebug` | 0 | `BUILD SUCCESSFUL`, `app/build/outputs/apk/debug/app-debug.apk` (19 599 736 bájt) |
+
+**Megjegyzés:**
+
+1. **Privát konstruktor + `of()` gyár.** A „nincs publikus konstruktor-megkerülés" pontot
+   úgy teljesítettük, hogy a négy value class konstruktora privát, és a példányt a
+   `TechniqueId.of("…")` gyár adja, amely trimmel és elutasítja az üres azonosítót.
+   **A következő taskok ezért `TechniqueId("x")` helyett `TechniqueId.of("x")`-et írjanak.**
+2. **`testDebugUnitTest` alias a Kotlin JVM modulban.** A `:core:model` nem AGP-modul, így
+   nem volt `testDebugUnitTest` taskja: a globális DoD parancsa kihagyta volna a tesztjeit.
+   A `core/model/build.gradle.kts` most regisztrál egy azonos nevű gyűjtőtaskot a `test`-re.
+   **A `:core:quiz` ugyanezt igényli majd, amint tesztet kap (T-104–T-106).**
+3. **Tesztnév-azonosítók.** A task „Teszt" mezője üres, TR-kód nem tartozik hozzá, ezért a
+   tesztnevek a fejlécben hivatkozott követelményekre mutatnak (DR-01, DR-03, DR-04), az
+   enumok esetében FR-10, FR-12, CR-01 és CR-02-re.
+4. **Nincs új task-javaslat** – menet közben nem találtunk javítandó hibát.
