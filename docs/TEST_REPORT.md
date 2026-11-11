@@ -1445,3 +1445,64 @@ delegálnak a közös fixture-re. A tartalom hiteles Kyokushin terminológia
 | `./gradlew ktlintCheck` | **NEM FUTOTT** – `Task 'ktlintCheck' not found in root project 'KyokushinKarateTrainer'`, exit 1: a ktlint konfigurációja még nincs beállítva (T-607). |
 | `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
 | A TR-05 az **éles** csomagolt assetsen | **NEM FUTOTT** – az `app/src/main/assets/knowledge/` feltöltése a T-601 feladata; a tesztek szintetikus, de hiteles terminológiájú kiadásokon futnak. |
+
+---
+
+## T-201 – `core/data`: `TechniqueRepository` (2026-11-11)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:testDebugUnitTest` | 0 | a modul tesztjei zöldek (90 teszt) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | **352 teszt, 0 hiba, 0 kihagyott** (12 új) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL, `app/build/outputs/apk/debug/app-debug.apk` (18,9 MB) |
+
+JAVA_HOME: `C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Amit a 12 új teszt mér (`RoomTechniqueRepositoryTest`, Robolectric + in-memory Room)
+
+| Teszt | Mit rögzít |
+|---|---|
+| `observeCategories_followsContentSortOrderNotAlphabet_DR02` | a kategóriák a `sortOrder` szerint jönnek, nem ábécében – a fixtúra szándékosan fordított sorrendben szúrja be őket |
+| `observeTechniques_excludesRetiredTechniques_DR07` | a visszavont technika **nincs** a listában |
+| `getQuizCandidates_excludesRetiredTechniques_DR07` | a visszavont technika **nincs** a kvízjelöltek között |
+| `getTechnique_resolvesRetiredTechniqueSoProgressKeepsReference_DR07` | a visszavont technika **feloldható** (a Haladás képernyőnek kell), az ismeretlen azonosító viszont `null` |
+| `observeTechniques_matchesRomajiHungarianAndAliasCaseAndAccentInsensitively_FR03` | „DACHI" → `Heisoku Dachi`; „zart labu" → „Zárt lábú állás"; „ZUKI" → alias-találat a tárolt normalizált alakon; csak whitespace keresés = nincs szűrés |
+| `observeTechniques_emptyCategoryFilterMeansEveryCategory_FR02` | üres kategóriahalmaz = minden kategória, nem „semmi" |
+| `observeTechniques_attachesAliasesWithoutPerRecordQuery_FR03` | az aliasok egyetlen lekérdezésből kerülnek a technikára (NFR-10) |
+| `getQuizCandidates_dropsSynonymMembersOutsideTheCandidateSet_CR07` | a szűrés után megcsonkult szinonimacsoport tagjai kiesnek, az egyeleműre fogyott csoport is – különben a `QuizCandidateSet` konstruktora dobna (V006) |
+| `getQuizCandidates_honoursCategoryFilterAndKeepsIllustrationGates_FR11` | kategóriaszűrés, és a `quizUsable = false` kapu változatlanul megy át (CR-02) |
+| `observeContentState_reportsNotImportedBeforeTheFirstImport_FR32` | import előtt `ContentState.NotImported`, `hasContent = false`, bizalmi szint a szigorúbb olvasat |
+| `observeContentState_reportsCurrentTableContentNotTheLastImportBalance_FR31` | elutasított frissítés után `datasetRejected = true` és `acceptedCount = 0` **mellett** `activeTechniqueCount = 1` és `hasContent = true` – a tartalomtáblák a korábbi kiadásé |
+| `techniqueRepository_publicApiExposesNoRoomOrDatabaseTypes_NFR03` | reflexióval: a `TechniqueRepository` egyetlen metódusának sem a visszatérési, sem a paramétertípusa (generikus típusargumentumokkal együtt) nem Room entitás / DAO / DTO (TR-07, ADR-001 L4) |
+
+### Egy bukott futás és a javítása
+
+Az első futás 6 `Flow`-s tesztje elhasalt: `IllegalStateException: Detected use of
+different schedulers`. Ok: a `UnconfinedTestDispatcher()` paraméter nélkül **saját**
+`TestCoroutineScheduler`-t hoz létre, és a `combine` + `flowOn` láncon a Room megfigyelt
+lekérdezése két különböző ütemezővel találkozott. Javítás a **tesztben**, a termelési kód
+változtatása nélkül: a dispatcher a `runTest` `testScheduler`-ét kapja meg, közös
+`repositoryTest { … }` gyárfüggvényből. Pontszerű, `withContext`-es metódusnál ez a hiba
+nem derül ki – ezért érdemes a `Flow`-s ágakat mindig külön teszttel is lefedni.
+
+### Rétegszabály, NFR-07, felhasználói szöveg
+
+- A publikus API (`TechniqueRepository`, `ContentState`) kizárólag `core/model` és
+  `core/quiz` típusokat használ; a megvalósítás és minden DAO `internal`. A reflexiós
+  teszt ezt gépileg is állítja (TR-07).
+- NFR-07: nincs `Clock`, `Instant.now()`, `System.currentTimeMillis()` és `Random` hívás
+  a repositoryban; a dispatcher injektált, a tesztben teszt-dispatcher.
+- Felhasználói szöveg nem keletkezett (a kategórianév tartalmi adat, nem `strings.xml` –
+  ADR-011), UI nem érintett.
+- A Room séma **nem változott**: csak új `@Query` metódusok kerültek a DAO-kba, migráció
+  nem kellett, a `core/data/schemas/1.json` érintetlen.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A repository viselkedését Robolectric + in-memory Room méri, `@Config(sdk = [34])`. |
+| `./gradlew ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
+| A keresés `LIKE`-os, SQL-oldali ága | **NINCS MÉG** – a T-202 tárgya; a mért viselkedés a beolvasott soron futó, de szerződés szerinti szűrés. |
+| A `QuizCandidateSet.illustrationDigests` feltöltése | **NINCS MÉG** – nincs ujjlenyomat-oszlop a sémában, a T-402 tárgya. Üres térképre nincs teszt, mert nincs mit mérni. |

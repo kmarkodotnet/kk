@@ -93,7 +93,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ✅ **kész** – T-116: `KyokushinDatabase` (`version = 1`, `exportSchema = true`), 5 tartalom- és 3 felhasználói tábla, 8 `internal` DAO (minden művelet `suspend` vagy `Flow`), `KyokushinTypeConverters` (`Instant` ↔ epoch milli, enum ↔ **név**, azonosító value classok az `of()` gyárukon át). A felhasználói táblák `techniqueId`-jén **nincs** idegen kulcs a tartalomra (ADR-004) |
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
 | 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ✅ **kész** – T-117: publikus `ContentImporter` + `ImportResult`, `internal RoomContentImporter` (verziókapu a tárolt `dataset_version`-re, validáció, **upsert egyetlen tranzakcióban**, a csomagból kimaradt technika `retired = true` – fizikai törlés nincs), `content_state` összegzés, `lastValidationReport()` a diagnosztikához, injektált `Clock` és `@IoDispatcher`. Tartalom oldali entitás ↔ domain mapperek. 16 új teszt |
-| 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | ⬜ |
+| 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | 🔄 **részben** – T-201: publikus `TechniqueRepository` + `ContentState` domain modell (`NotImported` / `Imported`), `internal RoomTechniqueRepository` (`@Inject`, `@IoDispatcher`). A `retired` szűrés **SQL-ben**, a listán és a kvízjelölteknél (ADR-004); a `getTechnique` a dokumentált kivétel, mert a Haladás képernyőnek a visszavont technikát is fel kell oldania (DR-07). Aliasok egyetlen lekérdezésből (nincs N+1), szinonimacsoportok a `synonym_group`-ból a szűrés utáni készletre vágva (CR-07). 12 új teszt, köztük egy reflexiós, ami a publikus API-t Room típusokra vizsgálja (TR-07). Hátra: `ProgressRepository` (T-301, T-401), aggregált statisztika (T-501) |
 | 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ✅ **kész** – T-118: `ContentUpdateProgressTest` 10 `TR05` jelölésű teszt in-memory Roomon (v1 → előrehaladás → v2 → v3): a `quiz_attempt`/`study_review` sorok és a belőlük levezetett statisztika **bitre azonos** a frissítés előttivel; átnevezésnél az `id` marad és az előrehaladás az új névre oldódik fel (DR-06); a kimaradt és a tartalom által visszavont technika próbálkozásai feloldhatók maradnak (ADR-004); ugyanaz a verzió kétszer nem duplikál (FR-30); az elutasított frissítés sem a tartalomhoz, sem az előrehaladáshoz nem nyúl |
 
 ## Fázis 4 – Tudástár UI
@@ -165,17 +165,22 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-201** – `core/data`: `TechniqueRepository` implementáció (`retired = false` szűrés,
-   keresés); az entitás → domain mapper a T-117 óta megvan, a `ContentState` domain
-   modellje még nem.
-2. **T-203** – `di`: Hilt modulok. A `RoomContentImporter` `@Inject` konstruktorral kész,
-   de a kötései (`KyokushinDatabase`, `KnowledgeContentReader`, `Clock`,
-   `@IoDispatcher`, `@Binds ContentImporter`) még nincsenek megírva – és mivel az
-   adatbázis és a beolvasó `internal`, ezeknek a kötéseknek a `core/data`-ban kell élniük,
-   nem a `di` modulban.
-3. **T-202** – `core/data`: keresés (normalizált romaji, magyar név és aliasok felett).
-   (**A T-118 kész:** a TR-05 garancia – a tudástárfrissítés nem viszi el az
-   előrehaladást – mérve van, 340 zöld teszttel.)
+1. **T-202** – `core/data`: keresés. A szerződés és a viselkedés a T-201 óta megvan
+   (ékezet- és kisbetű-érzéketlen részszó-egyezés romajira, magyar névre és aliasra), de a
+   szűrés a **beolvasott soron** fut, nem `LIKE`-kal. A T-202 dolga: előre normalizált
+   `search_romaji` / `search_hungarian` oszlopok + migráció (a séma `version` emelése
+   explicit `Migration`-t és ADR-t kíván – DR-08), `LIKE '%…%'`, és az egyező alias
+   megjelölése a találatban.
+2. **T-203** – `di`: Hilt modulok. A `RoomContentImporter` és a `RoomTechniqueRepository`
+   `@Inject` konstruktorral kész, de a kötéseik (`KyokushinDatabase`,
+   `KnowledgeContentReader`, `Clock`, `@IoDispatcher`, `@Binds ContentImporter`,
+   `@Binds TechniqueRepository`) még nincsenek megírva – és mivel az adatbázis és a
+   beolvasó `internal`, ezeknek a kötéseknek a `core/data`-ban kell élniük, nem a `di`
+   modulban.
+3. **T-204** – `core/ui`: `TechniqueIllustration`. (**A T-201 kész:** a tudástár olvasási
+   szerződése megvan, 352 zöld teszttel; a `getQuizCandidates`
+   `illustrationDigests` térképe viszont még üres – a képujjlenyomatokhoz nincs
+   sémaoszlop, a feltöltés a T-402 dolga.)
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
@@ -501,3 +506,38 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   szintjén igazolódott.
   **340 zöld teszt** (10 új, mind Robolectricen + in-memory Roomon), `testDebugUnitTest`
   és `assembleDebug` exit 0. Következő: T-201, a `TechniqueRepository`.
+- 2026-11-11 – **T-201 kész** (Fázis 3.7 első darabja): a **tudástár olvasási szerződése**
+  a feature modulok felé. Új, publikus `TechniqueRepository` a
+  `core.data.repository` csomagban – `observeCategories()`,
+  `observeTechniques(query, categories)`, `getTechnique(id)`,
+  `getQuizCandidates(categories)`, `observeContentState()` –, mellé az addig nem létező
+  `ContentState` domain modell `NotImported` / `Imported` ágakkal (az első indítás nem
+  hibaállapot, és nem is öt `null` egy data classban). A megvalósítás
+  `internal RoomTechniqueRepository`, `@Inject` konstruktorral és injektált
+  `@IoDispatcher`-rel; a kötés a T-203 dolga, és a `core/data`-ban kell élnie, mert a
+  `KyokushinDatabase` is `internal`.
+  A feladat lényege a `retired` szűrés helye (ADR-004, DR-07): a listán és a
+  kvízjelölteknél **SQL-ben** szűr (`WHERE retired = 0`), nem Kotlin oldali `filter`-rel,
+  így egy jövőbeli nyers DAO-hívás sem tudja kikerülni. A `getTechnique` a **dokumentált
+  kivétel**: a Haladás képernyőnek éppen a visszavont technikát is fel kell oldania, hogy
+  kiírhassa, „már nem része a tananyagnak, de a korábbi eredményeid megmaradtak"
+  (FUNCTIONAL_SPEC 6.2) – a `null` ezért csak ismeretlen azonosítót jelent.
+  Három további döntés: az aliasok **egyetlen** `technique_alias` beolvasásból,
+  memóriában csoportosítva kerülnek a technikákra (nincs N+1, NFR-10); a
+  `synonym_group` csoportjai a szűrés **utáni** készletre vágva jönnek vissza, és a
+  kétnél kevesebb tagúra fogyottak kiesnek (különben a `QuizCandidateSet` konstruktora
+  joggal dobna – V006, CR-07); a `ContentState.activeTechniqueCount` a `technique` tábla
+  aktuális tartalma, nem a legutóbbi import `acceptedCount` mérlege, mert egy elutasított
+  frissítés után a kettő eltér (FR-31).
+  Új DAO-lekérdezések (séma **nem** változott, migráció nem kell): kategóriaszűrt aktív
+  lista, pontszerű aktív lekérdezések a kvízjelöltekhez, `observeActiveCount()`, és az
+  összes alias egy kérdésben.
+  Szándékos hiányok, a következő feladatokra hagyva: a keresés `LIKE`-ra és előre
+  normalizált oszlopokra költöztetése + az egyező alias megjelölése a **T-202**; a
+  `QuizCandidateSet.illustrationDigests` feltöltése a **T-402**, mert a képek tartalmi
+  ujjlenyomatához nincs sémaoszlop – becsült ujjlenyomatot pedig nem gyártunk.
+  12 új teszt (Robolectric + in-memory Room), köztük egy **reflexiós**, amely a
+  `TechniqueRepository` minden metódusának generikus visszatérési és paramétertípusát
+  átvizsgálja Room entitás / DAO / DTO szivárgásra (TR-07, ADR-001 L4).
+  **352 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0. Következő: T-202, a
+  keresés SQL-be költöztetése.

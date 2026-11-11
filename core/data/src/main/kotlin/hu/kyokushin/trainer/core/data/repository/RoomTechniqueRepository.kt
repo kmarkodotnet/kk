@@ -1,0 +1,188 @@
+package hu.kyokushin.trainer.core.data.repository
+
+import hu.kyokushin.trainer.core.data.db.KyokushinDatabase
+import hu.kyokushin.trainer.core.data.db.TechniqueAliasEntity
+import hu.kyokushin.trainer.core.data.db.TechniqueEntity
+import hu.kyokushin.trainer.core.data.db.toCategory
+import hu.kyokushin.trainer.core.data.db.toContentState
+import hu.kyokushin.trainer.core.data.db.toTechnique
+import hu.kyokushin.trainer.core.data.di.IoDispatcher
+import hu.kyokushin.trainer.core.model.Category
+import hu.kyokushin.trainer.core.model.CategoryId
+import hu.kyokushin.trainer.core.model.Technique
+import hu.kyokushin.trainer.core.model.TechniqueId
+import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
+import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+
+/**
+ * A [TechniqueRepository] egyetlen megvalósítása Room felett (ARCHITECTURE 5.1, NFR-03).
+ *
+ * `internal`, és a Hilt köti be (`@Binds`, T-203). A kötésnek a `core/data`-ban kell
+ * élnie, mert a konstruktor paramétere, a [KyokushinDatabase] is `internal` – a `di`
+ * modul nem látja a típust, amit injektálnia kellene.
+ *
+ * ## Négy szabály, amit ez az osztály betart
+ *
+ * 1. **A `retired` szűrés itt van, nem a hívónál** (ADR-004, DR-07). A listánál és a
+ *    kvízjelölteknél **SQL-ben**, nem Kotlin oldali `filter`-rel: így egy jövőbeli, nyers
+ *    DAO-hívás sem tudja véletlenül kikerülni. A [getTechnique] a dokumentált kivétel.
+ * 2. **Egyetlen Room típus sem szivárog ki.** A metódusok domain modellt adnak vissza, a
+ *    leképezés a `ContentEntityMappers` (T-117) – nincs második mapper-implementáció.
+ * 3. **Nincs N+1 lekérdezés** (NFR-10). Az aliasok egyetlen `technique_alias`
+ *    beolvasásból, memóriában csoportosítva kerülnek a technikákra, nem technikánkénti
+ *    külön kérdéssel.
+ * 4. **Nincs közvetlen szálkezelés és nincs blokkolás** (NFR-01, NFR-07). A `suspend`
+ *    metódusok `withContext(ioDispatcher)`-rel, a `Flow`-k `flowOn(ioDispatcher)`-rel
+ *    futnak; a dispatcher injektált, hogy a teszt virtuális órája vezérelhesse.
+ *
+ * ## Mi tartozik a következő feladatokhoz
+ *
+ * - A keresés **SQL-be költözése** az előre normalizált oszlopokra és az egyező alias
+ *   megjelölése a T-202 tárgya. Itt a szerződés szerinti viselkedés már teljes
+ *   (ékezet- és kisbetű-érzéketlen részszó-egyezés romajira, magyar névre és aliasra), de
+ *   a szűrés a beolvasott soron fut, nem `LIKE`-kal: a tudástár néhány száz rekordja
+ *   mellett ez mérhetően nem számít, viszont nem is tűnik el a szerződésből, amikor a
+ *   T-202 lecseréli.
+ * - Az [QuizCandidateSet.illustrationDigests] feltöltése a T-402 tárgya: a képek tartalmi
+ *   ujjlenyomatához **nincs oszlop** a sémában, tehát a mező itt üres. Üres térkép
+ *   mellett a `JP_TO_IMAGE` típus nem tud vizuálisan azonos képpárt kizárni – ezt a
+ *   hiányt a T-402 pótolja, nem egy itt kitalált, becsült ujjlenyomat.
+ *
+ * @property database az adatbázis; a DAO-k rajta keresztül érhetők el.
+ * @property ioDispatcher a háttér-I/O dispatcher; a kötést a `di` modul adja (T-203).
+ */
+internal class RoomTechniqueRepository @Inject constructor(
+    private val database: KyokushinDatabase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : TechniqueRepository {
+
+    override fun observeCategories(): Flow<List<Category>> =
+        database.categoryDao()
+            .observeAll()
+            .map { rows -> rows.map { it.toCategory() } }
+            .flowOn(ioDispatcher)
+
+    override fun observeTechniques(
+        query: String,
+        categories: Set<CategoryId>,
+    ): Flow<List<Technique>> {
+        // A normalizálás a `core/quiz` NameNormalizer-éé: ugyanaz az alak, amit a validátor
+        // V006 szinonimavizsgálata és a tárolt `aliasNormalized` oszlop használ (FR-03).
+        // Két külön szabály azt jelentené, hogy a keresés olyan egyezést talál, amit a
+        // szinonimakizárás nem tart azonosnak.
+        val normalizedQuery = NameNormalizer.normalize(query)
+        return combine(
+            activeTechniques(categories),
+            database.techniqueAliasDao().observeAll(),
+        ) { rows, aliasRows ->
+            val aliasesById = aliasRows.groupBy { it.techniqueId }
+            rows.mapNotNull { row ->
+                val aliases = aliasesById[row.id].orEmpty()
+                if (!row.matches(normalizedQuery, aliases)) {
+                    null
+                } else {
+                    row.toTechnique(aliases.map(TechniqueAliasEntity::alias))
+                }
+            }
+        }.flowOn(ioDispatcher)
+    }
+
+    override suspend fun getTechnique(id: TechniqueId): Technique? = withContext(ioDispatcher) {
+        // Itt szándékosan `getById`, nem az aktívakra szűrő lekérdezés: a Haladás
+        // képernyőnek a visszavont technikát is fel kell tudnia oldani (DR-07,
+        // FUNCTIONAL_SPEC 6.2). A `null` jelentése „ilyen azonosító nincs", nem
+        // „kikerült a tananyagból".
+        val row = database.techniqueDao().getById(id) ?: return@withContext null
+        val aliases = database.techniqueAliasDao().getForTechnique(id)
+        row.toTechnique(aliases.map(TechniqueAliasEntity::alias))
+    }
+
+    override suspend fun getQuizCandidates(categories: Set<CategoryId>): QuizCandidateSet =
+        withContext(ioDispatcher) {
+            val rows = if (categories.isEmpty()) {
+                database.techniqueDao().getActive()
+            } else {
+                database.techniqueDao().getActiveInCategories(categories.toList())
+            }
+            val aliasesById = database.techniqueAliasDao().getAll().groupBy { it.techniqueId }
+            val techniques = rows.map { row ->
+                row.toTechnique(aliasesById[row.id].orEmpty().map(TechniqueAliasEntity::alias))
+            }
+            QuizCandidateSet(
+                techniques = techniques,
+                synonymGroups = synonymGroups(techniques.mapTo(HashSet()) { it.id }),
+                // Nincs ujjlenyomat-oszlop a sémában – a feltöltés a T-402 dolga.
+                illustrationDigests = emptyMap(),
+            )
+        }
+
+    override fun observeContentState(): Flow<ContentState> =
+        combine(
+            database.contentStateDao().observe(),
+            database.techniqueDao().observeActiveCount(),
+        ) { state, activeCount -> state.toContentState(activeCount) }
+            .flowOn(ioDispatcher)
+
+    /**
+     * Az aktív technikák lekérdezése a kategóriaszűrő két ágán.
+     *
+     * Üres halmaz jelentése **minden kategória**, nem „semmi" – ezért külön lekérdezés,
+     * nem egy `IN ()` üres listával (az egyetlen sort sem adna vissza).
+     */
+    private fun activeTechniques(categories: Set<CategoryId>): Flow<List<TechniqueEntity>> =
+        if (categories.isEmpty()) {
+            database.techniqueDao().observeActive()
+        } else {
+            database.techniqueDao().observeActiveInCategories(categories.toList())
+        }
+
+    /**
+     * A `synonym_group` tagságok visszaolvasása a [QuizCandidateSet] alakjára (V006, CR-07).
+     *
+     * A szűrés után a csoportok **megcsonkulhatnak**: egy visszavont vagy kategóriaszűrőn
+     * kiesett tag nem lehet a készlet része, és a [QuizCandidateSet] konstruktora joggal
+     * dobna egy ismeretlen azonosítóra hivatkozó csoportra. Ezért a nem ismert tagok
+     * kiesnek, és a kétnél kevesebb tagúra fogyott csoport is – egy egyelemű „csoport"
+     * nem zár ki semmit.
+     */
+    private suspend fun synonymGroups(knownIds: Set<TechniqueId>): List<Set<TechniqueId>> =
+        database.synonymGroupDao()
+            .getAll()
+            .groupBy { it.groupId }
+            .toSortedMap()
+            .values
+            .map { members ->
+                members.asSequence()
+                    .map { it.techniqueId }
+                    .filterTo(LinkedHashSet()) { it in knownIds }
+            }
+            .filter { it.size >= 2 }
+
+    /**
+     * Illeszkedik-e a sor a normalizált keresőszövegre (FR-03).
+     *
+     * Négy helyen keres: a hiteles `romaji` alakon, annak diakritikus jelek nélküli
+     * `romajiAscii` változatán, a magyar jelentésen és az aliasokon. Az aliasnál a tárolt
+     * [TechniqueAliasEntity.aliasNormalized] oszlop a kulcs – azt az import állította elő
+     * ugyanazzal a normalizálóval, tehát itt nem kell újraszámolni.
+     *
+     * Üres keresőszöveg mindenre illeszkedik: a szűrő kikapcsolt állapota nem „semmi".
+     */
+    private fun TechniqueEntity.matches(
+        normalizedQuery: String,
+        aliases: List<TechniqueAliasEntity>,
+    ): Boolean {
+        if (normalizedQuery.isEmpty()) return true
+        return NameNormalizer.normalize(romaji).contains(normalizedQuery) ||
+            NameNormalizer.normalize(romajiAscii).contains(normalizedQuery) ||
+            NameNormalizer.normalize(hungarian).contains(normalizedQuery) ||
+            aliases.any { it.aliasNormalized.contains(normalizedQuery) }
+    }
+}

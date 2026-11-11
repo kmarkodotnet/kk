@@ -1,5 +1,6 @@
 package hu.kyokushin.trainer.core.data.db
 
+import hu.kyokushin.trainer.core.data.repository.ContentState
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.IllustrationRef
@@ -118,6 +119,35 @@ internal fun Technique.toAliasEntities(): List<TechniqueAliasEntity> = aliases.m
         aliasNormalized = NameNormalizer.normalize(alias),
     )
 }
+
+/**
+ * A `content_state` egysoros tábla → [ContentState] domain olvasat (T-201).
+ *
+ * A `null` vevő a tábla üressége: még egyetlen import sem futott, és ez az első indítás
+ * rendes állapota, nem hiba ([ContentState.NotImported]).
+ *
+ * Az aktív technikaszám **paraméter**, nem a sorból olvasott érték: a `content_state`
+ * `acceptedCount` mezője a legutóbbi import mérlege, a UI-nak viszont az kell, mi van
+ * *most* a `technique` táblában. Egy elutasított frissítés után a kettő eltér (FR-31).
+ */
+internal fun ContentStateEntity?.toContentState(activeTechniqueCount: Int): ContentState =
+    if (this == null) {
+        ContentState.NotImported
+    } else {
+        ContentState.Imported(
+            schemaVersion = schemaVersion,
+            contentVersion = contentVersion,
+            // A bizalmi szint változatlanul megy át: kódból soha nem emeljük (CR-02).
+            datasetTrust = datasetTrust,
+            importedAt = importedAt,
+            acceptedCount = acceptedCount,
+            rejectedCount = rejectedCount,
+            blockingIssueCount = blockingIssueCount,
+            warningIssueCount = warningIssueCount,
+            datasetRejected = datasetRejected,
+            activeTechniqueCount = activeTechniqueCount,
+        )
+    }
 
 /** Entitás → domain a kategórián. */
 internal fun CategoryEntity.toCategory(): Category = Category(

@@ -3,6 +3,7 @@ package hu.kyokushin.trainer.core.data.db
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
+import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import kotlinx.coroutines.flow.Flow
 
@@ -53,6 +54,30 @@ internal interface TechniqueDao {
     @Query("SELECT * FROM technique WHERE retired = 0 ORDER BY romajiAscii ASC")
     fun observeActive(): Flow<List<TechniqueEntity>>
 
+    /**
+     * Az aktív technikák egy kategóriahalmazon belül (FR-02, T-201).
+     *
+     * A kategóriaszűrés **SQL-ben** van, nem a repositoryban Kotlin oldalon: a szűrő a
+     * `technique.categoryId` indexére esik, és így a lekérdezés nem olvassa be a teljes
+     * táblát. Üres halmazra ez a lekérdezés nem hívható (az `IN ()` egyetlen sort sem
+     * adna) – a „minden kategória" esetet a hívó az [observeActive]-val fedi le.
+     */
+    @Query(
+        "SELECT * FROM technique WHERE retired = 0 AND categoryId IN (:categories) " +
+            "ORDER BY romajiAscii ASC",
+    )
+    fun observeActiveInCategories(categories: List<CategoryId>): Flow<List<TechniqueEntity>>
+
+    /** Pontszerű változat a kvízjelöltekhez: nem kell rá megfigyelés (T-201, T-402). */
+    @Query("SELECT * FROM technique WHERE retired = 0 ORDER BY romajiAscii ASC")
+    suspend fun getActive(): List<TechniqueEntity>
+
+    @Query(
+        "SELECT * FROM technique WHERE retired = 0 AND categoryId IN (:categories) " +
+            "ORDER BY romajiAscii ASC",
+    )
+    suspend fun getActiveInCategories(categories: List<CategoryId>): List<TechniqueEntity>
+
     /** Minden sor, a visszavontakkal együtt – a Haladás képernyőnek és az importnak kell. */
     @Query("SELECT * FROM technique ORDER BY romajiAscii ASC")
     suspend fun getAll(): List<TechniqueEntity>
@@ -72,6 +97,17 @@ internal interface TechniqueDao {
 
     @Query("SELECT COUNT(*) FROM technique")
     suspend fun count(): Int
+
+    /**
+     * Az aktív technikák száma, megfigyelhetően.
+     *
+     * A tartalomállapot (`ContentState`, T-201) ebből tudja megmondani, hogy van-e
+     * egyáltalán megjeleníthető tartalom – a `content_state` tábla `acceptedCount`
+     * összegzése erre nem elég, mert az a **legutóbbi import** mérlege, nem a tábla
+     * aktuális tartalma (egy elutasított frissítés után a kettő eltér).
+     */
+    @Query("SELECT COUNT(*) FROM technique WHERE retired = 0")
+    fun observeActiveCount(): Flow<Int>
 }
 
 @Dao
@@ -90,6 +126,21 @@ internal interface TechniqueAliasDao {
 
     @Query("SELECT * FROM technique_alias WHERE techniqueId = :techniqueId ORDER BY alias ASC")
     suspend fun getForTechnique(techniqueId: TechniqueId): List<TechniqueAliasEntity>
+
+    /**
+     * **Minden** alias egyetlen lekérdezésben, technikaazonosító szerint csoportosítható
+     * sorrendben (NFR-10).
+     *
+     * A lista és a kvízjelöltek összeállítása technikánkénti [getForTechnique] hívással
+     * N+1 lekérdezés lenne – 161 rekordnál 162 kérdés az adatbázishoz, minden
+     * újrarendereléskor. Az aliastábla a teljes tudástárra néhány száz sor, ezért a
+     * teljes beolvasás és a memóriabeli csoportosítás a kisebb költség.
+     */
+    @Query("SELECT * FROM technique_alias ORDER BY techniqueId ASC, alias ASC")
+    fun observeAll(): Flow<List<TechniqueAliasEntity>>
+
+    @Query("SELECT * FROM technique_alias ORDER BY techniqueId ASC, alias ASC")
+    suspend fun getAll(): List<TechniqueAliasEntity>
 
     @Query("SELECT COUNT(*) FROM technique_alias")
     suspend fun count(): Int
