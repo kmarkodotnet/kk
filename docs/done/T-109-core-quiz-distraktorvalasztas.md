@@ -50,3 +50,40 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | (lásd a következő `docs(backlog)` commit) |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – 181 teszt, 0 hiba (core/model 35 + core/quiz 146; `DistractorSelectorTest` 20) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:**
+
+- A `DistractorSelector` a `QuizCandidateFilter.optionPool`-ra épül, nem duplikálja a
+  jogosultsági kaput. Belépési pontok a T-110-hez:
+  `acceptableDistractors(request, type, correct)` (rendezett jelöltlista, prioritás szerint),
+  `selectDistractors(...)` (három distraktor vagy `null`),
+  `selectOptionIds(...)` (négy opció kanonikus sorrendben, a helyes elöl),
+  `buildableCorrectAnswers(request, type)` (a kérdéssorrend ismétlésmentes alapja).
+- A `QuizCandidateFilter.buildableQuestionCount` **már nem felső korlát**: a
+  `buildableCorrectAnswers` tényleges kimenetét számolja, és a `skipReason` is ebből
+  következik. Aki a számot hívja, pontos értéket kap (a T-111 `dryRun` erre épülhet).
+- A CR-07 kizárás **páronként** érvényes: két szinonim rekord egy kérdésbe sem kerül, nem
+  csak a helyes válasz mellé nem. Ez szigorúbb, mint a kvízmotor-skill 4. invariánsa.
+- A kiválasztás szándékosan **konzervatív** (első elfogadható jelölt, nem maximális
+  párosítás): nem tranzitív, egymást keresztező szinonimacsoportoknál elvileg kimaradhat
+  egy elvben összeállítható kérdés. FR-22 szerint ez a jó irány, és a `canBuildQuestion`
+  ugyanazt a függvényt kérdezi, így a számolt és a tényleges kérdésszám nem válik el.
+- A `Shortfall` tényleges előállítása **nem** készült el ebben a körben: a `QuizPlan`
+  összeállítása (kérdéssorrend, opciókeverés, shortfall) a T-110 tárgya – a `QuizGenerator`
+  egyelőre csak interfész, implementáció nélkül.

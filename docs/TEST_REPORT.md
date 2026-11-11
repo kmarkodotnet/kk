@@ -601,3 +601,99 @@ típusonkénti jelöltszám és a kihagyott típusok `SkipReason`-ja (FR-13, FR-
 | TR-02 teljes készlet | **NEM FUTOTT** – a distraktorválasztás (T-109) és a seedelt keverés (T-110) még nincs meg; a tesztek a T-112-ben. |
 | TR-03 teljes készlet | **RÉSZBEN** – a kategóriaszűrés és a kérdéstípus-jogosultság lefedve (fenti 23 teszt); a generált kérdéseken át vezetett végponti TR-03 ellenőrzés a T-112-ben. |
 | TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+---
+
+## 2026-11-11 – T-109: distraktorválasztás (core/quiz)
+
+**Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper 8.13,
+`JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **181 teszt, 0 hiba** (core/model 35 + core/quiz 146) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 683 417 bájt) |
+
+A tesztszámok a `core/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`, `failures`
+és `errors` attribútumainak összegei, nem becslés; a `DistractorSelectorTest`
+önmagában 20 teszt, 0 hiba.
+
+### Ami elkészült
+
+`DistractorSelector` (`core/quiz/.../generator/DistractorSelector.kt`): a három téves válasz
+kiválasztása (FR-14, FR-22, CR-07).
+
+- **Prioritás:** (1) azonos kategória, (2) feltöltés más kategóriából, (3) a kérdés **nem
+  jön létre** – `selectDistractors` ilyenkor `null`. Nincs háromopciós kérdés, nincs
+  generált opció, nincs szinonim kisegítő opció.
+- **Kizárási szűrő:** a típus opciókészlete (ADR-010 kapu) ÉS nem a helyes ÉS nem a helyes
+  szinonimája (V006) ÉS nem egy már kiválasztott distraktor szinonimája ÉS (D)
+  `JP_TO_IMAGE` esetén nem vizuálisan azonos kép (SHA-256 ujjlenyomat).
+- **Kölcsönös szinonimakizárás:** a CR-07 betű szerinti olvasata („szinonim rekordok nem
+  lehetnek egymás distraktorai") itt **páronként** érvényes: két szinonim rekord egy
+  kérdésbe sem kerül, nem csak a helyes mellé nem. Ez szigorúbb, mint a kvízmotor-skill
+  4. invariánsa, és a szigorúbb irány a biztonságos (FR-22).
+- **A `buildableQuestionCount` nem becslés többé:** a T-108-ban felső korlát volt (a
+  szinonimakizárás nem szerepelt benne); most a
+  `DistractorSelector.buildableCorrectAnswers` tényleges kimenetét számolja, ezért a
+  `skipReason` is a tényleges összeállíthatóságból következik.
+- **Determinizmus rendezett bejárással:** a jelöltek a rendezett `optionPool`-ból jönnek,
+  azonos kategória elöl; a kiválasztás az első három elfogadható jelölt. RNG-t ez a lépés
+  nem használ – a seedelt keverés a T-110 tárgya, és az `acceptableDistractors` rendezett
+  listájára épülhet a kizárási szabályok újrafogalmazása nélkül.
+
+### Új tesztek (TR-02 részlegesen, FR-14, CR-07)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `selectDistractors_enoughCandidates_yieldsThreeDistinctWrongAnswers_FR14` | pontosan három, páronként különböző téves válasz |
+| `selectOptionIds_buildsExactlyFourOptionsWithOneCorrect_FR14` | négy opció, pontosan egy helyes; a `QuizQuestion` konstruktora elfogadja |
+| `selectDistractors_everyOptionIsAnExistingTechniqueRecord_FR14` | a motor nem gyárt opciót |
+| `selectDistractors_fewerThanThreeAcceptable_buildsNoQuestion_FR14_TR02` | nincs háromopciós kérdés: inkább semmi |
+| `selectDistractors_prefersSameCategoryWhenThreeAreAvailable_FR14` | a kategórián belüli distraktor az elsődleges |
+| `selectDistractors_fewerThanThreeInCategory_fillsFromOtherCategories_FR14` | feltöltés más kategóriából, a saját kategória elöl |
+| `selectDistractors_synonymOfCorrectAnswer_isNeverADistractor_CR07` | a helyes szinonimája soha nem distraktor |
+| `selectDistractors_twoSynonymousCandidates_neverShareOneQuestion_CR07` | két szinonim jelölt nem kerül egy kérdésbe |
+| `selectDistractors_synonymShortageIsNotRescuedBySynonym_FR22_CR07` | szinonimával nem „segít ki" a motor |
+| `buildableQuestionCount_synonymExclusionNarrowsTheUpperBound_CR07` | a T-108 felső korlátja a V006 kizárás után ténylegessé válik |
+| `buildableQuestionCount_enoughRecordsBesideASynonymPair_staysExact_CR07` | elég rekordnál a szinonimapár nem csökkenti a kérdésszámot |
+| `skipReason_everyCorrectAnswerBlockedBySynonyms_isCandidateShortage_FR22` | a kihagyás dokumentált okot kap |
+| `selectDistractors_jpToImage_neverRepeatsAVisuallyIdenticalIllustration_TR02` | (D)-nél nincs két azonos ujjlenyomatú kép az opciók között |
+| `selectDistractors_jpToImage_imageIdenticalToTheCorrectOne_isExcluded_TR02` | a helyessel vizuálisan azonos kép kiesik |
+| `selectDistractors_jpToImage_tooFewDistinctImages_buildsNoQuestion_FR14` | kevés különböző kép → nincs kérdés, `NOT_ENOUGH_IMAGES` |
+| `selectDistractors_jpToImage_missingDigestDoesNotProveIdentity_FR14` | hiányzó ujjlenyomat nem bizonyít egyezést |
+| `selectDistractors_imageToJp_distractorsAreNamesSoNoImageIsRequired_FR14` | (C)-nél a distraktornak nem kell kép |
+| `selectDistractors_isDeterministicAndIndependentOfInputOrder_NFR07` | kétszer hívva ugyanaz, bemeneti sorrendtől független |
+| `acceptableDistractors_areOrderedSameCategoryFirstThenById_NFR07` | rendezett bejárás: azonos kategória elöl, azon belül azonosító szerint |
+| `buildableCorrectAnswers_areOrderedById_forStableQuestionSelection_NFR07` | a helyes jelöltek rendezett listája a nem ismétlés alapja |
+
+### Rétegszabály és eltérés a tervtől
+
+- A `core/quiz` főkódja továbbra is csak a `core:model`-re és a
+  `kotlinx-serialization-json`-ra függ; `android`/`androidx`/`room` import nincs, tényleges
+  `Random.Default`, `System.currentTimeMillis()` vagy `Instant.now()` hívás sincs
+  (ADR-001 L1, NFR-07) – a találatok kizárólag KDoc-szövegek.
+- **Eltérés:** a task „Helyes technika nem ismétlődik, amíg van fel nem használt jelölt;
+  különben `shortfall`" pontja ebben a körben a `buildableCorrectAnswers` rendezett,
+  ismétlésmentes listájaként készült el. A `Shortfall` tényleges előállítása a `QuizPlan`
+  összeállításához tartozik, az pedig a T-110 (a `QuizGenerator` implementációja még nem
+  létezik, csak az interfész).
+- **Konzervatív kiválasztás:** a bejárás az első elfogadható jelöltet veszi, nem keres
+  maximális párosítást. Egymást keresztező (nem tranzitív) szinonimacsoportoknál így
+  elvileg kimaradhat egy elvben összeállítható kérdés. Ez tudatos: FR-22 szerint a
+  kevesebb, de helyes kérdés a jó irány, és mivel a `canBuildQuestion` ugyanazt a
+  függvényt kérdezi, a számolt és a tényleges kérdésszám nem tud elválni (T-111).
+- Felhasználói szöveg nem keletkezett: a motor szövegfüggetlen, a magyar üzenetek a UI
+  `strings.xml`-jében élnek (FR-22, T-404).
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-109 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-02 teljes készlet | **RÉSZBEN** – a distraktorválasztás invariánsai lefedve (fenti 20 teszt); a seed-determinizmus a teljes terven (T-110) és a végponti TR-02 készlet (T-112) még hátravan. |
+| TR-03 teljes készlet | **RÉSZBEN** – a T-108 óta változatlan; a generált kérdéseken át vezetett ellenőrzés a T-112-ben. |
+| TR-04…TR-08 | **NEM FUTOTT** – a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |

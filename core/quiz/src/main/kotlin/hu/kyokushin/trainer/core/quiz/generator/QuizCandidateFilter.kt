@@ -10,8 +10,10 @@ import hu.kyokushin.trainer.core.quiz.validation.QuizEligibility
  *
  * Ez a lépés a generálás első fele: a kategóriaszűrő és az ADR-010 jogosultsági kapu
  * alkalmazása, a típusonkénti jelöltszám kiszámítása, és ebből a kihagyott típusok
- * [SkipReason]-ja. A distraktorválasztás (T-109), a seedelt keverés (T-110) és a
- * készenléti összegzés (T-111) erre épül, de nem ennek a része.
+ * [SkipReason]-ja. A helyes válaszhoz **relatív** döntések – a distraktorválasztás és a
+ * szinonimakizárás – a [DistractorSelector]-ban élnek (T-109); a típusonkénti kérdésszám
+ * azt kérdezi meg, hogy ne becslés legyen. A seedelt keverés (T-110) és a készenléti
+ * összegzés (T-111) erre a kettőre épül.
  *
  * **Egyetlen jogosultsági formula.** A kvízképességet itt nem fogalmazzuk meg újra:
  * minden döntés a [QuizEligibility] kapun megy át (ADR-010). A validátor V007/V008
@@ -85,22 +87,19 @@ object QuizCandidateFilter {
         }
 
     /**
-     * Hány teljes értékű, négyopciós kérdés állítható össze az adott típusból – felső
-     * korlát, a szinonimakizárás (CR-07, T-109) még szűkítheti.
+     * Hány teljes értékű, négyopciós kérdés állítható össze az adott típusból.
      *
-     * Nulla, ha az opciókészlet kisebb, mint [QuizQuestion.OPTION_COUNT]: négy
-     * különböző opció nélkül a kérdés nem jön létre, három opciós kérdés nincs (FR-14).
-     * Egyébként annyi, ahány helyes jelölt van – a motor ugyanazt a helyes technikát nem
-     * ismétli egy kvízen belül.
+     * Annyi, ahány helyes jelölt mellé **tényleg** kijön három elfogadható distraktor
+     * ([DistractorSelector.buildableCorrectAnswers]) – a motor ugyanazt a helyes technikát
+     * nem ismétli egy kvízen belül, ezért a helyes jelöltek száma a felső korlát.
      *
-     * A (D) `JP_TO_IMAGE` típusnál az opciókészletet a **vizuálisan különböző** képek
-     * száma korlátozza: két azonos ujjlenyomatú kép egyszerre nem jelenhet meg az opciók
-     * között, ezért nem is számít külön opciónak (FR-13 „egyedi, validált illusztráció").
+     * Ez a szám a T-109 óta nem becslés: a V006 szinonimakizárás (CR-07) és a (D)
+     * `JP_TO_IMAGE` képazonossági szabálya is beszámít. Négy különböző, egymást ki nem
+     * záró opció nélkül a kérdés nem jön létre – három opciós kérdés nincs (FR-14).
      */
     fun buildableQuestionCount(request: QuizRequest, questionType: QuestionType): Int {
         if (questionType !in request.enabledTypes) return 0
-        if (distinctOptionCount(request, questionType) < QuizQuestion.OPTION_COUNT) return 0
-        return correctAnswerPool(request, questionType).size
+        return DistractorSelector.buildableCorrectAnswers(request, questionType).size
     }
 
     /** Típusonkénti jelöltszám minden kérdéstípusra – a [skipReasons] és a `dryRun` bemenete. */
@@ -130,14 +129,13 @@ object QuizCandidateFilter {
     /** Egyetlen típus kihagyási oka, vagy `null`, ha a típusból áll össze kérdés. */
     fun skipReason(request: QuizRequest, questionType: QuestionType): SkipReason? {
         if (questionType !in request.enabledTypes) return SkipReason.TYPE_DISABLED
-        val correctCount = correctAnswerPool(request, questionType).size
-        val optionCount = distinctOptionCount(request, questionType)
-        if (correctCount > 0 && optionCount >= QuizQuestion.OPTION_COUNT) return null
+        if (buildableQuestionCount(request, questionType) > 0) return null
         val imageSideMissing = when (questionType) {
             // (C): a kérdés képe a helyes válaszé – ha nincs kvízképes kép, az képhiány.
-            QuestionType.IMAGE_TO_JP -> correctCount == 0
-            // (D): mind a négy opció képe kell, vizuálisan különbözőek.
-            QuestionType.JP_TO_IMAGE -> true
+            QuestionType.IMAGE_TO_JP -> correctAnswerPool(request, questionType).isEmpty()
+            // (D): mind a négy opciónak vizuálisan különböző képe kell.
+            QuestionType.JP_TO_IMAGE ->
+                distinctOptionCount(request, questionType) < QuizQuestion.OPTION_COUNT
             QuestionType.JP_TO_HU, QuestionType.HU_TO_JP -> false
         }
         return if (imageSideMissing) SkipReason.NOT_ENOUGH_IMAGES else SkipReason.NOT_ENOUGH_CANDIDATES

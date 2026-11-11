@@ -74,7 +74,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
 | 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), a V010 a `core/data` importrétegé (T-115) |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ✅ **kész** – T-106: `KnowledgeValidationRuleTableTest` 31 nevesített, parametrizált eset a V001…V010 kódokra + `KnowledgeValidationRuleCoverageTest` (gépi lefedettségi őr), `KnowledgeValidatorGuaranteesTest` (nem dob kivételt / nem emel státuszt), `RealKnowledgeBaseValidationTest` (a valós 161 rekord, 0 BLOKKOLÓ hiba). **105 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0 |
-| 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | 🟡 **részben** – T-107 (szerződés) és T-108 (jelöltszűrés) kész: a szerződés mellett a `QuizCandidateFilter` – kategóriaszűrő, az ADR-010 `QuizEligibility` kapu típusonkénti alkalmazása, típusonkénti jelöltszám és `SkipReason`. **161 zöld teszt.** Hátra: distraktorválasztás (T-109), seedelt keverés (T-110), `dryRun` (T-111) |
+| 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | 🟡 **részben** – T-107 (szerződés), T-108 (jelöltszűrés) és T-109 (distraktorválasztás) kész: a szerződés, a `QuizCandidateFilter` (kategóriaszűrő, ADR-010 kapu, `SkipReason`) és a `DistractorSelector` – három elfogadható distraktor kategóriaprioritással, V006 szinonimakizárással (CR-07) és (D) képazonossági szabállyal; a kérdésszám innentől tényleges, nem felső korlát. **181 zöld teszt.** Hátra: seedelt keverés (T-110), `dryRun` (T-111) |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ⬜ |
 | 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ⬜ |
 | 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | ⬜ |
@@ -165,12 +165,14 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-109** – distraktorválasztás: a `QuizCandidateFilter` opciókészletéből három
-   elfogadható distraktor a kategórián belül, V006 szinonimakizárással (CR-07), és (D)
-   típusnál vizuálisan nem azonos képekkel. (**A T-108 lezárva:** a kategóriaszűrő, a
-   jogosultsági kapu típusonkénti alkalmazása és a `SkipReason` megállapítása áll.)
-2. **T-110…T-112** – seedelt determinizmus, `dryRun` +
-   **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja, ahol eldől, hogy a termék helyes-e.
+1. **T-110** – seedelt determinizmus: a `QuizPlan` összeállítása a
+   `DistractorSelector.buildableCorrectAnswers` rendezett listájából, Fisher–Yates keverés
+   kizárólag a seedelt RNG-ből, a kérdéssorrend és az opciósorrend is a seedből. Itt
+   keletkezik a tényleges `Shortfall` is. (**A T-109 lezárva:** a három elfogadható
+   distraktor kiválasztása, a V006 kizárás és a (D) képazonossági szabály áll, rendezett,
+   RNG-mentes bejárással.)
+2. **T-111…T-112** – `dryRun` készenléti összegzés + **TR-02, TR-03 tesztek**: az **M1
+   mérföldkő** magja, ahol eldől, hogy a termék helyes-e.
 3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
    kvíz, dupla válasz (a T-103 `QuizAttempt`-jére épül).
 
@@ -295,3 +297,16 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   össze, **7** kvízképes képpel. **161 zöld teszt** (core/model 35 + core/quiz 126),
   `testDebugUnitTest` és `assembleDebug` exit 0. A TR-02/TR-03 teljes készlet továbbra is
   a T-112 tárgya, mert a distraktorválasztás (T-109) és a keverés (T-110) még hiányzik.
+- 2026-11-11 – **T-109 kész** (Fázis 2.4 harmadik darabja): a **distraktorválasztás** –
+  `DistractorSelector` a `core/quiz` `generator` csomagjában. Prioritás: (1) azonos
+  kategória, (2) feltöltés más kategóriából, (3) a kérdés **nem jön létre**; nincs
+  háromopciós kérdés, nincs generált opció, nincs szinonim kisegítő opció (FR-14, FR-22).
+  A V006 szinonimakizárás **páronként** érvényes (CR-07): sem a helyes mellé, sem két
+  distraktor közé nem kerül két szinonim rekord. A (D) `JP_TO_IMAGE` opciói között nincs
+  két vizuálisan azonos illusztráció (SHA-256 ujjlenyomat); a hiányzó ujjlenyomat nem
+  bizonyít egyezést. A `QuizCandidateFilter.buildableQuestionCount` ezzel **felső korlátból
+  tényleges kérdésszámmá** vált, és a `skipReason` is ebből következik. A kiválasztás
+  rendezett bejárású és RNG-mentes, hogy a T-110 seedelt keverése erre épülhessen.
+  **181 zöld teszt** (core/model 35 + core/quiz 146), `testDebugUnitTest` és
+  `assembleDebug` exit 0. A `Shortfall` tényleges előállítása és a teljes TR-02 készlet
+  a T-110/T-112 tárgya, mert a `QuizGenerator` implementációja még nem létezik.
