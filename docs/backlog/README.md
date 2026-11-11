@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-102](T-102-core-model-technique-category-illustrationref.md) | core/model: Technique, Category, IllustrationRef | E1 | `core/model` | S | T-101 |
 | [T-103](T-103-core-model-felhasznaloi-adatmodellek.md) | core/model: felhasználói adatmodellek | E1 | `core/model` | S | T-101 |
 | [T-104](T-104-core-quiz-a-validator-szerzodese.md) | core/quiz: a validátor szerződése | E1 | `core/quiz` | M | T-102 |
 | [T-105](T-105-core-quiz-a-validator-implementacioja.md) | core/quiz: a validátor implementációja | E1 | `core/quiz` | L | T-104 |

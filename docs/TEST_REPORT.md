@@ -151,3 +151,37 @@ taskra mutat. A `:core:quiz` ugyanezt fogja igényelni, amint tesztet kap (T-106
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor; a T-101 nem is tartalmaz instrumentált tesztet. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (a T-607 task tárgya). |
 | TR-01…TR-08 | **NEM FUTOTT** – ezek a tesztkövetelmények a validátorhoz, a generátorhoz, a scoringhoz és a UI-hoz tartoznak; a T-101 nem fed le TR-kódot (a task „Teszt" mezője üres). |
+
+---
+
+## T-102 · `core/model` tartalmi domain modell (2026-11-11)
+
+### Tényleges futtatás
+
+Környezet: Windows 11, PowerShell, `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:model:test` | **0** | `BUILD SUCCESSFUL in 4s` – a modul tesztjei újrafordultak és lefutottak. |
+| `.\gradlew.bat testDebugUnitTest` | **0** | `BUILD SUCCESSFUL in 2s`, 180 actionable task; `:core:model:testDebugUnitTest` lefedve (az előző futtatás után `UP-TO-DATE`). **Összesen 24 teszt, 0 hiba, 0 kihagyott.** A többi modul `testDebugUnitTest` taskja továbbra is `NO-SOURCE`. |
+| `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL in 1s`, 274 actionable task; `app/build/outputs/apk/debug/app-debug.apk` – 19 605 909 bájt. |
+
+Tesztosztályok és -számok a JUnit XML-ből (`core/model/build/test-results/test/`):
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `hu.kyokushin.trainer.core.model.ContentModelTest` | 11 | 0 |
+| `hu.kyokushin.trainer.core.model.DomainEnumsTest` | 6 | 0 |
+| `hu.kyokushin.trainer.core.model.IdentifiersTest` | 7 | 0 |
+
+Lefedett követelmények a tesztnevekben: DR-01 (technikarekord mezői, immutabilitás),
+DR-02 (kategória), FR-13 / CR-05 (kép-alapú kvízkapu egyetlen típusvizsgálattal),
+CR-01 (konzervatív alapállapot), ADR-002, ADR-003, ADR-010.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor; a T-102 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-01…TR-08 | **NEM FUTOTT** – a T-102 „Teszt" mezője üres, TR-kód nem tartozik hozzá; ezek a validátorhoz, generátorhoz, scoringhoz és a UI-hoz kötődnek. |

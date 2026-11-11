@@ -50,3 +50,40 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | `PENDING` |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew testDebugUnitTest` | 0 | 24 teszt, 0 hiba (`:core:model:test`), `BUILD SUCCESSFUL` |
+| `./gradlew assembleDebug` | 0 | `BUILD SUCCESSFUL`, `app/build/outputs/apk/debug/app-debug.apk` (19 605 909 bájt) |
+
+**Megjegyzés:**
+
+1. **`IllustrationRef.Asset` két új mezője.** Az ADR-003 szövegében az `Asset` még csak
+   `ref` + `fileName`; a task (és a T-108, T-305) az ADR-011 kiegészítése szerint
+   `quizUsable` és `hideableOnStudyCard` kaput is kér. A kód a taskot követi, tehát az
+   `Asset` négymezős. **Javasolt új task: az ADR-003 szövegének utólagos frissítése**,
+   hogy a döntés és a kód ne térjen el (dokumentációs drift).
+2. **`quizEligible` és `verified` nincs a `Technique`-ben** (ADR-010): a jogosultság
+   származtatott érték, a kvízmotor számolja a `status`, `quizExcluded`, `retired`, a
+   kérdéstípus mezőkövetelményei és a `DatasetTrust` alapján. Erre reflexiós teszt is van.
+3. **Kép-alapú kvízkapu.** A C/D típus egyetlen vizsgálata:
+   `illustration is IllustrationRef.Asset && illustration.quizUsable`. A feliratos
+   (`quizUsable = false`) kép hiteles tananyag, de kvízből kizárt – a T-108 erre épít.
+4. **Modellszintű `require()`-ek.** A kötelező mezők blank ellenőrzése a konstruktorban
+   van (DR-01, V009), tehát érvénytelen rekord nem tud domain objektummá válni. A
+   validátor (T-105) emiatt **mapper előtt** utasítsa el a hibás rekordot, ne kivételre
+   számítson.
+5. **`Technique` névhasználat.** A `romaji` a diakritikus, hiteles forma, a `romajiAscii`
+   a kereséshez/szinonimavizsgálathoz (V006) tárolt normalizált alak – a normalizálás az
+   import felelőssége, nem a lekérdezésé.
