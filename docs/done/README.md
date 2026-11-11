@@ -20,3 +20,4 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-104](T-104-core-quiz-a-validator-szerzodese.md) | core/quiz: a validátor szerződése | E1 | `core/quiz` | 2026-11-11 |
 | [T-105](T-105-core-quiz-a-validator-implementacioja.md) | core/quiz: a validátor implementációja | E1 | `core/quiz` | 2026-11-11 |
 | [T-106](T-106-tr-01-validator-tesztek.md) | TR-01: validátor tesztek | E1 | `core/quiz` | 2026-11-11 |
+| [T-107](T-107-core-quiz-a-generator-szerzodese.md) | core/quiz: a generátor szerződése | E1 | `core/quiz` | 2026-11-11 |

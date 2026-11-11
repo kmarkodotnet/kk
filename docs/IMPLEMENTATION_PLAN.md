@@ -74,7 +74,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
 | 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), a V010 a `core/data` importrétegé (T-115) |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ✅ **kész** – T-106: `KnowledgeValidationRuleTableTest` 31 nevesített, parametrizált eset a V001…V010 kódokra + `KnowledgeValidationRuleCoverageTest` (gépi lefedettségi őr), `KnowledgeValidatorGuaranteesTest` (nem dob kivételt / nem emel státuszt), `RealKnowledgeBaseValidationTest` (a valós 161 rekord, 0 BLOKKOLÓ hiba). **105 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0 |
-| 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | ⬜ |
+| 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | 🟡 **részben** – T-107 (szerződés) kész: `QuizGenerator` interfész, `QuizRequest`/`QuizCandidateSet`, `QuizQuestion` (csak azonosítók, ADR-006, szerializálható), `QuizPlan`/`SkipReason`/`Shortfall`/`ShortfallReason`, `QuizReadiness`. **135 zöld teszt.** A tényleges algoritmus: T-108…T-110 |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ⬜ |
 | 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ⬜ |
 | 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | ⬜ |
@@ -165,10 +165,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-107** – a kvízgenerátor **szerződése** (`QuizGenerator`, kérdés- és
-   opciómodellek). (**A T-106 lezárva:** a TR-01 táblázat zöld, a valós 161 rekordos
-   tudástár állandó tesztként fut, `accepted = 161`, `rejected = 0`, 0 BLOKKOLÓ hiba.)
-2. **T-108…T-112** – jelöltszűrés, distraktorválasztás, seedelt determinizmus +
+1. **T-108** – jelöltszűrés és jogosultsági kapuk: a `QuizEligibility` formula
+   alkalmazása a T-107 `QuizRequest`-jére, kategóriaszűrő, típusonkénti jelöltszám a
+   `SkipReason` megállapításához. (**A T-107 lezárva:** a generátor szerződése áll,
+   a `QuizQuestion` csak azonosítókat tárol és szerializálható.)
+2. **T-109…T-112** – distraktorválasztás, seedelt determinizmus +
    **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja, ahol eldől, hogy a termék helyes-e.
 3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
    kvíz, dupla válasz (a T-103 `QuizAttempt`-jére épül).
@@ -267,3 +268,16 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   *Adathiba (változatlanul nyitott):* a `KY-0020` rekord `japanese_romaji_ascii` értéke a
   forrás CSV-ben és JSON-ban is `"Kirotsuke"` a `"Ki o tsuke"` helyett – forrásadat-hiba,
   nem validátor-hiba; az appot nem érinti (a validátor újraszámolja az ASCII alakot).
+- 2026-11-11 – **T-107 kész** (Fázis 2.4 első darabja): a kvízgenerátor **szerződése** a
+  `core/quiz` `generator` csomagjában – `QuizGenerator` interfész (`generate` + `dryRun`),
+  `QuizRequest` (önhordó bemenet: jelöltkészlet, engedélyezett típusok, kategóriaszűrő,
+  kérdésszám, seed, `DatasetTrust`), `QuizCandidateSet` (technikák + V006
+  szinonimacsoportok + illusztráció-ujjlenyomatok), `QuizQuestion` (ADR-006: **csak**
+  azonosítók, négyopciós invariáns a konstruktorban), `QuizPlan`, `SkipReason`,
+  `Shortfall`, `ShortfallReason`, `QuizReadiness`. A terv `@Serializable`, mert a T-405 a
+  `SavedStateHandle`-be menti (ADR-007); a value class azonosítók a `core/quiz`-ban élő,
+  `of(...)` gyáron átmenő sztring-szerializátorokat kapták, így a `core/model` maradt
+  szerializációmentes és a privát konstruktor invariánsa a visszafejtésre is érvényes.
+  **135 zöld teszt** (core/model 35 + core/quiz 100), `testDebugUnitTest` és
+  `assembleDebug` exit 0. A tényleges generálási algoritmus a T-108…T-110 tárgya, ezért a
+  **TR-02 még nem zöld**.

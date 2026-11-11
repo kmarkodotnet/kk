@@ -2,6 +2,12 @@
 // SZABÁLY (ADR-001): csak a core:model-re függ. Nincs Android, nincs Room, nincs core:data.
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    // A kvízterv (`QuizPlan`, `QuizQuestion`, `Shortfall`) a `SavedStateHandle`-be kerül
+    // (ADR-007, T-405), ezért `@Serializable`. A `core/model` ettől érintetlen marad: a
+    // domain azonosítók szerializálása a kvízmodul saját `KSerializer`-jeivel történik,
+    // amelyek a privát konstruktor helyett a `TechniqueId.of(...)` gyáron mennek át – így
+    // a visszafejtés sem tudja megkerülni a domain invariánst.
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -10,6 +16,10 @@ kotlin {
 
 dependencies {
     implementation(project(":core:model"))
+    // A generátor kimeneti típusai `@Serializable`-ek (ADR-006 következménye): a mentett
+    // kvízállapot csak azonosítókat cipel, nem tartalmat. Fájlt és JSON-formátumot a
+    // `main` forráskészlet továbbra sem ismer – csak az annotációt és a `KSerializer`-t.
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)

@@ -431,3 +431,87 @@ futtatja. A T-105-ben ideiglenes, utána törölt próba helyére ez a négy tes
 
 **TR-01: zöld.** Ez a projekt első olyan tesztfuttatása, amelyben a validátor teljes
 szabálytáblázata és a valódi, 161 rekordos tudástár is szerepel.
+
+---
+
+## 2026-11-11 – T-107: a kvízgenerátor szerződése (core/quiz)
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:quiz:testDebugUnitTest` | 1 | 100 teszt, **1 bukott** – `quizQuestion_declaresIdentifierFieldsOnly_ADR006` (a reflexiós mezőlista a `companion`, a `$childSerializers` és az `OPTION_COUNT` **statikus** mezőket is látta) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | `BUILD SUCCESSFUL`, **135 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 100) |
+| `.\gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` |
+
+A bukott futás **a teszt elvárása volt hibás**, nem a kód: a példányállapot vizsgálatához
+a statikus mezőket ki kell szűrni. A szűrés után a teszt ugyanazt az állítást fogalmazza
+meg, csak helyesen. A kód nem változott miatta.
+
+### Amit ez a kör lefedett
+
+A T-107 **szerződés**, nem algoritmus: a generátor be- és kimeneti típusai, invariánsokkal.
+A tényleges generálás a T-108…T-110 tárgya, ezért a TR-02 **még nem zöld** – a szerkezeti
+garanciák azonban már tesztelt formában rögzítettek.
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `quizQuestion_rejectsFewerThanFourOptions_FR14` | 3 opciós kérdés nem jöhet létre |
+| `quizQuestion_rejectsMoreThanFourOptions_FR14` | 5 opciós kérdés sem |
+| `quizQuestion_rejectsRepeatedOption_FR14` | ismétlődő opció tilos |
+| `quizQuestion_rejectsCorrectAnswerMissingFromOptions_FR14` | a helyes válasz nem hagyható ki az opciókból |
+| `quizQuestion_hasExactlyOneCorrectOptionAndThreeDistractors_FR14` | 4 opció, 1 helyes, 3 distraktor |
+| `quizQuestion_declaresIdentifierFieldsOnly_ADR006` | a kérdés példánymezői pontosan `id`, `type`, `correctTechniqueId`, `optionTechniqueIds` – szöveg- vagy képmező felvétele bukást okoz |
+| `serializedQuestion_leaksNoDisplayTextOrImageName_ADR006` | a szerializált kérdésben nincs romaji, magyar név, képfájlnév vagy képhivatkozás |
+| `quizQuestion_survivesSerializationRoundTripWithOptionOrder_FR19` | a `SavedStateHandle`-körbefordulás az opciósorrendet is megőrzi |
+| `corruptSavedState_cannotBypassQuestionInvariants_FR14` | sérült mentett állapotból nem áll elő 2 opciós kérdés és nem jut be üres azonosító |
+| `answerEvaluation_comparesIdentifiersNotText_DR03` | két azonos magyar jelentésű technika esetén az azonosító-összehasonlítás nem ad hamis találatot |
+| `quizQuestion_identityIsItsIdNotItsContent_ADR005` | a kérdést az azonosítója azonosítja |
+| `emptyPlan_isValidAndCannotStart_FR22` | nulla kérdés érvényes, megindokolt kimenet; nem kivétel |
+| `plan_rejectsDuplicateQuestionIds_ADR005` | egy terven belül a kérdésazonosítók egyediek |
+| `plan_withAllRequestedQuestions_hasNoShortfall_FR22` | teljes terv esetén `shortfall = null` |
+| `shortfall_existsOnlyWhenFewerQuestionsThanRequested_FR22` | a `Shortfall` nem fogalmazható meg hiány nélkül |
+| `plan_survivesSerializationRoundTrip_FR19` | a teljes terv (kérdések + kihagyási okok + shortfall) körbefordul |
+| `readiness_shortfallAgreesWithExpectedCount_FR22` | a készenléti összegzés nem hallgathatja el és nem mondhatja másnak a hiányt |
+| `readiness_withoutAnyQuestion_cannotStart_FR22` | nulla várható kérdés → nem indítható |
+| `request_emptyCategoryFilterMeansAllCategories_FR11` | üres kategóriaszűrő = minden kategória |
+| `request_rejectsNonPositiveQuestionCount_FR13` | nulla kért kérdésszám értelmetlen bemenet |
+| `request_acceptsNoEnabledType_FR22` | üres típushalmaz érvényes bemenet, nem hiba |
+| `candidateSet_exposesMutualSynonymExclusion_CR07` | a szinonimakapcsolat kétirányú és lekérdezhető |
+| `candidateSet_rejectsSynonymGroupOutsideTheSet_CR07` | a csoport nem hivatkozhat készleten kívüli technikára |
+| `candidateSet_rejectsSingleMemberSynonymGroup_CR07` | egytagú szinonimacsoport értelmetlen |
+| `candidateSet_rejectsDuplicateTechnique` | egy technika egyszer szerepel a jelöltkészletben |
+| `candidateSet_exposesVisualIdentityOfIllustrations_TR02` | a vizuálisan azonos kép felismerhető (ujjlenyomat-egyezés) |
+| `generator_returnsExplainedPlanInsteadOfThrowing_FR22` | az interfész kivétel nélkül teljesíthető elégtelen adatra |
+| `dryRunPromise_matchesGeneratedQuestionCount_FR13` | a `dryRun` ígérete és a `generate` kérdésszáma egyezik |
+| `dryRunAndGenerate_reportTheSameSkipReasons_FR22` | a két ág ugyanazt az indoklást adja |
+| `sameRequestTwice_producesEqualPlans_NFR07` | a kérés önhordó, ezért a kétszeri hívás összehasonlítható |
+
+### Rétegszabály és eltérés a tervtől
+
+- A `core/quiz` főkódja továbbra is csak a `core:model`-re és (újonnan) a
+  `kotlinx-serialization-json`-ra függ; nincs `android`/`androidx`/`room` import, és a
+  modulban egyetlen tényleges `Instant.now()`, `System.currentTimeMillis()` vagy
+  `Random.Default` **hívás** sincs – ezek csak dokumentációs kommentekben szerepelnek
+  (ADR-001 L1, NFR-07).
+- **Eltérés:** a `core/quiz` **főkódja** megkapta a `kotlin-serialization` fordítói
+  plugint és a `kotlinx-serialization-json` függőséget (verzió a version catalogból). Erre
+  a T-107 „Kész, ha" pontja kényszerít: a `QuizQuestion` szerializálható kell legyen, mert
+  a T-405 a `SavedStateHandle`-be menti. A T-106 jegyzete szerint addig csak a teszt
+  forráskészlet látott szerializációt – ez most tudatosan változott.
+- A `core/model` **érintetlen**: a `TechniqueId`/`QuestionId` value classok privát
+  konstruktora megmaradt, és a szerializálásuk a `core/quiz`-ban élő
+  `TechniqueIdSerializer`/`QuestionIdSerializer` sztring-szerializátorokon keresztül megy,
+  amelyek a `of(...)` gyárat hívják. Így a visszafejtés sem tudja megkerülni a domain
+  invariánst – erre külön teszt van.
+- Felhasználói szöveg nem keletkezett: a `SkipReason` és a `ShortfallReason` enum, a magyar
+  üzenet és a javaslat a UI-ban, `strings.xml`-ből készül (FR-22, T-404).
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-107 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-02 teljes készlet | **NEM FUTOTT** – a generálási invariánsok (pontosan egy helyes, három különböző téves, nincs szinonima a tévesek között, seed-determinizmus, graceful fallback) tényleges algoritmust igényelnek: T-108…T-110, a tesztek T-112. |
+| TR-03…TR-08 | **NEM FUTOTT** – a jelöltszűréshez (TR-03), a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
