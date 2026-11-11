@@ -17,7 +17,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | Fázis | Taskok | Mérföldkő |
 |---|---|---|
-| 2 – domain modell és kvízmotor | T-101…T-114 | **M1** – a mag igazoltan helyes |
+| 2 – domain modell és kvízmotor | T-101…T-114 | **M1** – a mag igazoltan helyes ✅ **elérve** (T-114, 2026-11-11) |
 | 3 – tudástár, import, Room | T-115…T-118, T-201…T-203, T-301, T-401, T-402, T-501, T-502, T-601 | **M2** – a tartalom bent van |
 | 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app |
 | 5 – Tanulás | T-302…T-308 | **M4** – tanulható app |
@@ -77,8 +77,8 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07, NFR-07 | ✅ **kész** – T-107 (szerződés), T-108 (jelöltszűrés), T-109 (distraktorválasztás), T-110 (seedelt determinizmus) és T-111 (`dryRun` készenléti összegzés): a `QuizCandidateFilter`, a `DistractorSelector` és a `DefaultQuizGenerator` – Fisher–Yates keverés kizárólag a seedelt RNG-ből, kérdés- és opciósorrend a seedből, ismétlésmentes helyes válaszok, tényleges `Shortfall`, és kérdésépítés nélküli `dryRun`, amely a `generate`-tel közös slotlistából számol |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ✅ **kész** – T-112: a nyolc kvízmotor-invariáns egy 21 kérés × 7 seed mátrixon és a valódi 161 rekordos tartalmon; kategóriaszűrés, feliratos/placeholder/hiányzó kép, shortfall-okprioritás, `dryRun` ↔ `generate` egyezés a közös `questionSlots` ponton. **236 zöld teszt** |
 | 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ✅ **kész** – T-113: `core.quiz.scoring.QuizScoring.score(attempts): Score` tiszta függvényként, `Score(answered, correct, ratio: Double?)`; 0 megválaszolt kérdés → `ratio == null` (nem `0.0`), a `Score` init blokkja ezt az invariánst típusszinten is kikényszeríti. Egy kérdés egyszer számít: a `(sessionId, questionId)` páron dedup, a legkorábbi `answeredAt` nyer (FR-18). A helyességet nem számolja újra, a `QuizAttempt.correct`-et összegzi (DR-09) |
-| 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | 🟡 **részben** – T-113 alaptesztek (`QuizScoringTest`, 9 eset: nulla válasz, 0%, 100%, félbehagyott, dupla válasz, több munkamenet, sorrendfüggetlenség, `Score` invariánsok). A teljes TR-04 készlet a T-114 tárgya |
-| 2.8 | Ellenőrzés: `./gradlew testDebugUnitTest` | NFR-12 | ⬜ |
+| 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | ✅ **kész** – T-113 alaptesztek (`QuizScoringTest`, 9 eset) + T-114 teljes TR-04 mátrix (`QuizScoringTr04Test`, 17 eset): nulla válasz → „nincs adat" (szemben a 0%-kal), 100%, 0%, félbehagyott 10-ből 4 (a meg nem válaszolt **nem** hibás – a félbehagyott és a végig elhibázott menet aránya nem eshet egybe), arány és nem százalék, dupla válasz a lista szintjén is ellenőrizve (`answered == a (sessionId, questionId) párok száma`), késői „javítás" nem írja felül az első választ, sorrendtől független dedup, azonos időbélyegnél determinisztikus döntés, vegyes kérdéstípusok egy menetben és a típusonkénti bontás összegzése. **262 zöld teszt** |
+| 2.8 | Ellenőrzés: `./gradlew testDebugUnitTest` | NFR-12 | ✅ **kész** – T-114: `testDebugUnitTest` exit 0 (262 teszt, 0 hiba), `assembleDebug` exit 0 |
 
 > Ez a fázis a termék helyességének magja, és **Android SDK nélkül is fordítható/tesztelhető**
 > lenne, amint a JDK rendelkezésre áll.
@@ -165,13 +165,12 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-114** – **TR-04 tesztek**: a teljes eredményszámítási készlet (0%, 100%, félbehagyott,
-   dupla válasz, nulla válasz) a már meglévő `QuizScoring`-ra. Ez a task zárja a Fázis 2-t és
-   vele az **M1** mérföldkövet. (**A T-113 lezárva:** `QuizScoring` + `Score` nullable
-   aránnyal, 9 alapteszttel; a `score` szerződése – dedup a `(sessionId, questionId)` páron,
-   a `correct` mező összegzése – a T-114 kiindulópontja.)
-2. **T-115…T-117** – `core/data`: a kanonikus séma beolvasása, a Room séma és a
-   `ContentImporter` (a tartalomfrissítés előrehaladás-megőrzésével).
+1. **T-115** – `core/data`: a kanonikus séma beolvasása (`manifest.json` + `techniques.json`
+   DTO-k, `schemaVersion`/`contentVersion` kezelés, V010 az importrétegben). (**A Fázis 2 és
+   vele az M1 mérföldkő lezárva:** T-114 után a kvízmotor helyességi magja – validátor,
+   generátor, eredményszámítás – 262 zöld teszttel igazolt; `assembleDebug` exit 0.)
+2. **T-116…T-117** – `core/data`: a Room séma és a `ContentImporter` (a tartalomfrissítés
+   előrehaladás-megőrzésével).
 3. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése.
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
@@ -376,3 +375,22 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   helyességet nem számolja újra, a `QuizAttempt.correct` mezőt összegzi (DR-09). **245 zöld
   teszt** (core/model 35 + core/quiz 210; 9 új a `QuizScoringTest`-ben), `testDebugUnitTest`
   és `assembleDebug` exit 0. Hátra az M1-hez: a T-114 teljes TR-04 készlet.
+- 2026-11-11 – Fázis 2.7–2.8 kész: **T-114 TR-04 eredményszámítás tesztek – ezzel a Fázis 2
+  és az M1 mérföldkő (a termék helyességének magja) lezárva**. A T-113 kilenc alapteszte
+  mellé a `QuizScoringTr04Test` 17 új esete a teljes TR-04 mátrixot fedi: 0 megválaszolt
+  kérdés → „nincs adat" (`ratio == null`), és ez a 0%-tól (`0.0`) *mérhetően* különbözik;
+  100% és 0% határeset 10 válaszon; félbehagyott kvíz (10-ből 4 megválaszolva, 3 helyes →
+  0.75), és egy párba állított eset, amely bizonyítja, hogy a meg nem válaszolt kérdés nem
+  hibás válasz – ugyanaz a 4 válasz félbehagyva jobb arányt ad, mint a maradék 6 hibásként
+  végigvitt menet (0.75 > 0.3), miközben a helyes válaszok száma azonos; a `ratio` arány és
+  nem százalék (1/4 → `0.25`); dupla válasz a **lista szintjén is ellenőrizve** – minden
+  dedupot érintő eset állítja, hogy `score.answered` megegyezik a `(sessionId, questionId)`
+  párok számával és legfeljebb a rekordok száma, külön esettel a késői „javításra" (az első,
+  hibás válasz marad érvényes), a listában sorrendben megelőző duplikátumra, az azonos
+  időbélyeg determinisztikus feloldására és a mind a 6 kérdésre duplázott, 12 rekordos
+  menetre; vegyes kérdéstípusok egy munkamenetben (mind a négy típus egy egységet ér), a
+  típusonkénti bontás visszaadja az összesítést (FR-24 előkészítés), a válasz nélküli típus
+  bontása pedig „nincs adat", nem 0%. A `QuizScoring` **nem igényelt módosítást**: a T-113
+  szerződése első futásra elbírta a teljes mátrixot. **262 zöld teszt** (core/model 35 +
+  core/quiz 227; 17 új), `testDebugUnitTest` és `assembleDebug` exit 0. Következő: T-115,
+  a `core/data` kanonikus sémabeolvasás (Fázis 3, M2).

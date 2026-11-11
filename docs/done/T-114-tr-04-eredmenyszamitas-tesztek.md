@@ -47,3 +47,30 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | _lásd alább_ |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew testDebugUnitTest` | 0 | BUILD SUCCESSFUL – 262 teszt, 0 hiba (ebből a `QuizScoringTr04Test` 17 új eset) |
+| `./gradlew assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:** A TR-04 készlet külön fájlba került
+(`core/quiz/src/test/kotlin/hu/kyokushin/trainer/core/quiz/scoring/QuizScoringTr04Test.kt`),
+a T-113 kilenc alaptesztje érintetlen – a `QuizScoringTest` a szerződést, a `QuizScoringTr04Test`
+a TR-04 mátrixát fedi. A „dupla válasz a lista szintjén is ellenőrizve" pont úgy valósult meg,
+hogy minden dedupot érintő eset egy közös `assertAnsweredMatchesDistinctQuestions` segítővel
+is állítja: `score.answered == attempts.map { sessionId to questionId }.toSet().size`, és
+`answered <= attempts.size`. A `QuizScoring` **nem igényelt módosítást**: minden TR-04 eset
+első futásra zöld volt – a T-113 szerződése elbírta a teljes mátrixot. Új task-javaslat nem
+keletkezett. A százalékformázás és a „nincs adat" magyar szöveg továbbra is a T-411 tárgya;
+a `ratio` arány (0.0–1.0), nem százalék.

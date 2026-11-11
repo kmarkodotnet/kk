@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-114](T-114-tr-04-eredmenyszamitas-tesztek.md) | TR-04: eredményszámítás tesztek | E1 | `core/quiz` | M | T-113 |
 | [T-115](T-115-core-data-a-kanonikus-sema-beolvasasa.md) | core/data: a kanonikus séma beolvasása | E1 | `core/data` | M | T-105 |
 | [T-116](T-116-core-data-room-sema.md) | core/data: Room séma | E1 | `core/data` | L | T-103 |
 | [T-117](T-117-core-data-contentimporter.md) | core/data: ContentImporter | E1 | `core/data` | L | T-115, T-116 |

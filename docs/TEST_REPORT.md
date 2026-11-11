@@ -1061,3 +1061,73 @@ UI dolga (T-411), a `null` arány csak a jelzés.
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
 | TR-04 teljes készlet | **RÉSZBEN** – a fenti 9 alapteszt a szerződést fedi; a teljes TR-04 készlet (bővebb határesetek, valódi tartalom, aggregált statisztika) a T-114 tárgya. |
 | TR-05…TR-08 | **NEM FUTOTT** – a tartalomfrissítés (TR-05) a T-115…T-118, a UI (TR-06…TR-08) a 2. mérföldkő tárgya. |
+
+---
+
+## 2026-11-11 – T-114: TR-04 eredményszámítás tesztek (core/quiz) – **M1 lezárva**
+
+**Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper,
+`JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **262 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 227) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 688 289 bájt) |
+
+A tesztszámok a `core/*/build/test-results/test/TEST-*.xml` JUnit XML-ek `tests`,
+`failures`, `errors` és `skipped` attribútumainak összegei, nem becslés (22 XML fájl).
+Az új `QuizScoringTr04Test` önmagában **17 teszt, 0 hiba**; a T-113 `QuizScoringTest`-je
+változatlanul 9 teszt.
+
+### Ami elkészült
+
+Egyetlen új fájl, kizárólag teszt – a `QuizScoring` **nem igényelt módosítást**, minden
+TR-04 eset első futásra zöld volt:
+`core/quiz/src/test/kotlin/hu/kyokushin/trainer/core/quiz/scoring/QuizScoringTr04Test.kt`.
+
+### A TR-04 mátrix esetei (17)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `score_zeroAnsweredQuestions_isMissingDataNotZeroPercent_TR04` | 0 válasz → `ratio == null`, és ez *mérhetően* más, mint a 0% (`0.0`) |
+| `score_quizStartedButNoQuestionAnsweredYet_isMissingData_TR04` | elindított, de meg nem válaszolt kvíz → `Score(0, 0, null)` |
+| `score_allTenAnswersCorrect_isFullRatio_TR04` | 100% határeset 10 válaszon |
+| `score_allTenAnswersWrong_isZeroRatio_TR04` | 0% határeset – valós adat, nem `null` |
+| `score_abandonedQuizOfTen_countsOnlyTheFourAnswered_TR04` | 10-ből 4 megválaszolva, 3 helyes → `0.75` (US-03/2) |
+| `score_unansweredQuestionsAreNotCountedAsWrong_TR04` | a félbehagyott menet (`0.75`) nem eshet egybe a maradék 6-ot hibásként végigvivő menettel (`0.3`), miközben a helyes válaszok száma azonos |
+| `score_abandonedQuizWithOnlyCorrectAnswers_isStillFullRatio_TR04` | a félbehagyás nem von le: 3/3 → `1.0` |
+| `score_ratioIsFractionNotPercentage_TR04` | 1/4 → `0.25`, nem `25.0` – a formázás a UI dolga |
+| `score_doubleTapOnSameQuestion_doesNotDoubleTheResult_TR04` | 2 rekord, 1 kérdés → számláló és nevező is 1 (FR-18) |
+| `score_laterCorrectionDoesNotOverrideFirstAnswer_TR04` | a késői „javítás" nem javítja fel az arányt: az első, hibás válasz marad érvényes |
+| `score_duplicatesInArbitraryOrder_keepTheEarliestAnswer_TR04` | a duplikátum a párja előtt is állhat a listában – az `answeredAt` dönt |
+| `score_duplicatesWithIdenticalTimestamp_areDeterministic_TR04` | azonos időbélyegnél determinisztikus feloldás, egy kérdés akkor is egyszer számít |
+| `score_everyQuestionDuplicatedOnceAcrossWholeSession_TR04` | mind a 6 kérdés duplázva: 12 rekord → 6 megválaszolt kérdés |
+| `score_mixedQuestionTypesInOneSession_everyTypeCountsOnce_TR04` | mind a négy kérdéstípus egy egységet ér, a típus nem súlyoz |
+| `score_perQuestionTypeBreakdownSumsBackToTheWholeSession_TR04` | a típusonkénti bontás összege visszaadja az összesítést (FR-24 előkészítés) |
+| `score_typeWithNoAnsweredQuestion_isMissingDataNotZeroPercent_TR04` | a válasz nélküli típus bontása „nincs adat", nem 0% |
+| `score_mixedTypesWithDuplicatesAcrossSessions_aggregatesForProgressScreen_TR04` | több menet aggregálása vegyes típusokkal, a dedup kulcsa a `(sessionId, questionId)` pár (FR-21) |
+
+**A „dupla válasz a lista szintjén is ellenőrizve" pont** egy közös segítővel valósult meg
+(`assertAnsweredMatchesDistinctQuestions`), amelyet minden dedupot érintő eset meghív:
+`score.answered == attempts.map { sessionId to questionId }.toSet().size`,
+`score.answered <= attempts.size`, és `score.correct <= score.answered`.
+
+### Rétegszabály és NFR-07
+
+Tiszta JVM teszt a `core/quiz` modulban: nincs `android`/`androidx`/`room` import (ADR-001
+L1, TR-07). Az időbélyegek fix `Instant.parse(...)`-ból származnak – a teszt sem hívja az
+órát, és nincs véletlenhívás (NFR-07). Felhasználói szöveg nem keletkezett: a „nincs adat"
+magyar szöveg és a százalékformázás a T-411 (eredményképernyő) tárgya.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-114 tisztán JVM unit teszt. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-05…TR-08 | **NEM FUTOTT** – a tartalomfrissítés (TR-05) a T-115…T-118, a rétegszabály- és manifest-ellenőrzés (TR-07, TR-08) a T-602/T-603, a UI tesztek (TR-06) a T-606 tárgya. |
+
+**Mérföldkő:** a TR-01 (validátor), TR-02/TR-03 (generátor) és TR-04 (eredményszámítás)
+készlet együtt zöld → a Fázis 2 és az **M1 mérföldkő** (a termék helyességének magja) lezárva.
