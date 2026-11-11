@@ -10,9 +10,11 @@ import org.junit.Test
 /**
  * A V001…V009 szabályok végrehajtásának tesztjei (TR-01, DR-05, FR-31, CR-02, CR-07).
  *
- * A TR-01 teljes, szabályonkénti táblázatos készlete a T-106 tárgya; itt minden szabály
- * legalább egy, a hatását bizonyító esettel szerepel, és a „soha nem dob kivételt"
- * garancia a legdurvább bemeneten is.
+ * Itt minden szabály legalább egy, a hatását bizonyító **egyedi** esettel szerepel. A
+ * TR-01 szabályonkénti, nevesített táblázata a [KnowledgeValidationRuleTableTest]-ben él,
+ * a szerződési garanciák (nem dob kivételt, nem emel státuszt) a
+ * [KnowledgeValidatorGuaranteesTest]-ben, a valódi 161 rekordos tudástár pedig a
+ * [RealKnowledgeBaseValidationTest]-ben. A közös bemenetépítők: `ValidationFixtures.kt`.
  */
 class DefaultKnowledgeValidatorTest {
 
@@ -481,44 +483,4 @@ class DefaultKnowledgeValidatorTest {
 
         assertThat(validator.validate(input)).isEqualTo(validator.validate(input))
     }
-
-    // ----------------------------------------------------------------------------
-    // Segédek
-    // ----------------------------------------------------------------------------
-
-    private fun manifest(
-        schemaVersion: String? = "1.0.0",
-        contentVersion: String? = "0.1.0",
-        datasetKind: String? = "draft_review_required",
-        illustrations: List<IllustrationInput> = emptyList(),
-    ) = ManifestInput(
-        schemaVersion = schemaVersion,
-        contentVersion = contentVersion,
-        datasetKind = datasetKind,
-        categories = listOf(
-            CategoryInput(id = "etiquette", nameHu = "Etikett és köszönések", sortOrder = 1),
-            CategoryInput(id = "geri", nameHu = "Rúgások", sortOrder = 2),
-        ),
-        illustrations = illustrations,
-    )
-
-    private fun validEntry(
-        id: String = "KY-0001",
-        categoryId: String? = "geri",
-        romaji: String? = "Mae geri",
-        hungarian: String? = "Előre rúgás",
-        aliases: List<String?> = emptyList(),
-        illustration: String? = null,
-        verified: Boolean? = null,
-        quizEligible: Boolean? = null,
-    ) = TechniqueInput(
-        id = id,
-        categoryId = categoryId,
-        romaji = romaji,
-        hungarian = hungarian,
-        aliases = aliases,
-        illustration = illustration,
-        verified = verified,
-        quizEligible = quizEligible,
-    )
 }

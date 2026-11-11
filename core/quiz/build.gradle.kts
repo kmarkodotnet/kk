@@ -13,6 +13,18 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)
+    // CSAK TESZT: a TR-01 készlet a `knowledgebase_transfer/` valódi 161 rekordján is
+    // lefut, és ahhoz JSON-t kell olvasni. A `main` forráskészlet továbbra sem lát
+    // szerializációt – a validátor bemenete `KnowledgeInput`, nem fájl (ADR-001).
+    testImplementation(libs.kotlinx.serialization.json)
+}
+
+tasks.withType<Test>().configureEach {
+    // A valódi tartalom a repó gyökerében él (`knowledgebase_transfer/`), a teszt JVM
+    // munkakönyvtára viszont a modul könyvtára. Az útvonalat ezért rendszertulajdonságként
+    // adjuk át, nem relatív `../..` hivatkozással – az csendben elromlana, ha a modul
+    // máshová kerül. (A tartalmat a T-601 másolja az `app` assetsbe.)
+    systemProperty("kyo.repoRoot", rootDir.absolutePath)
 }
 
 // A globális Definition of Done a `./gradlew testDebugUnitTest` parancsot írja elő.

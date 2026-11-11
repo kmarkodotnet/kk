@@ -19,3 +19,4 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-103](T-103-core-model-felhasznaloi-adatmodellek.md) | core/model: felhasználói adatmodellek | E1 | `core/model` | 2026-11-11 |
 | [T-104](T-104-core-quiz-a-validator-szerzodese.md) | core/quiz: a validátor szerződése | E1 | `core/quiz` | 2026-11-11 |
 | [T-105](T-105-core-quiz-a-validator-implementacioja.md) | core/quiz: a validátor implementációja | E1 | `core/quiz` | 2026-11-11 |
+| [T-106](T-106-tr-01-validator-tesztek.md) | TR-01: validátor tesztek | E1 | `core/quiz` | 2026-11-11 |

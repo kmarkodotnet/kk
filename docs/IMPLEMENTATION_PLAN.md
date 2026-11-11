@@ -72,8 +72,8 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
-| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), 30 zöld teszt a modulban; a V010 a `core/data` importrétegé (T-115), a TR-01 teljes táblázata a T-106 |
-| 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ⬜ |
+| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), a V010 a `core/data` importrétegé (T-115) |
+| 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ✅ **kész** – T-106: `KnowledgeValidationRuleTableTest` 31 nevesített, parametrizált eset a V001…V010 kódokra + `KnowledgeValidationRuleCoverageTest` (gépi lefedettségi őr), `KnowledgeValidatorGuaranteesTest` (nem dob kivételt / nem emel státuszt), `RealKnowledgeBaseValidationTest` (a valós 161 rekord, 0 BLOKKOLÓ hiba). **105 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0 |
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | ⬜ |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ⬜ |
 | 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ⬜ |
@@ -165,11 +165,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-106** – a **TR-01 tesztek** szabályonkénti, táblázatos készlete. (**A T-105
-   lezárva:** a `DefaultKnowledgeValidator` végrehajtja a V001…V009 szabályokat, a valós
-   161 rekordos tudástáron `accepted = 161`, `rejected = 0`, nulla észrevétel.)
-2. **T-107…T-112** – kvízgenerátor + **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja,
-   ahol eldől, hogy a termék helyes-e.
+1. **T-107** – a kvízgenerátor **szerződése** (`QuizGenerator`, kérdés- és
+   opciómodellek). (**A T-106 lezárva:** a TR-01 táblázat zöld, a valós 161 rekordos
+   tudástár állandó tesztként fut, `accepted = 161`, `rejected = 0`, 0 BLOKKOLÓ hiba.)
+2. **T-108…T-112** – jelöltszűrés, distraktorválasztás, seedelt determinizmus +
+   **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja, ahol eldől, hogy a termék helyes-e.
 3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
    kvíz, dupla válasz (a T-103 `QuizAttempt`-jére épül).
 
@@ -243,3 +243,27 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   *Adathiba (javasolt új task):* a konverter `japanese_romaji_ascii` értéke a `KY-0020`
   rekordon `"Kirotsuke"` a `"Ki o tsuke"` helyett; az appot nem érinti (a validátor
   újraszámolja), de a `knowledgebase_transfer/tools/convert.py` kimenetét javítani kell.
+- 2026-11-11 – **T-106 kész (Fázis 2.3 kész): a TR-01 szabálytáblázat zöld.** Négy új
+  tesztosztály a `core/quiz`-ben: `KnowledgeValidationRuleTableTest` (parametrizált,
+  **31 nevesített eset**, mindegyik a lefedett V-kóddal kezdődő névvel – a V010 tagadó
+  esettel, mert azt a kódot a `core/data` importréteg állítja elő, nem a validátor),
+  `KnowledgeValidationRuleCoverageTest` (gépi őr: új `IssueCode` eset nélkül **bukó**
+  tesztet ad), `KnowledgeValidatorGuaranteesTest` (a két szerződési garancia: 8 romlási
+  alak egyike sem dob kivételt; `reviewed` manifest és `verified = true` mellett sem emel
+  státuszt), `RealKnowledgeBaseValidationTest` (a `knowledgebase_transfer/` **valódi 161
+  rekordja állandó tesztként**: `accepted = 161`, `rejected = 0`, **0 BLOKKOLÓ hiba**,
+  10 `Asset`, 7 kvízben használható kép, 0 szinonimacsoport). A közös bemenetépítők a
+  `ValidationFixtures.kt`-be kerültek, így a táblázat és az egyedi esetek bitre ugyanazt
+  az alapállapotot látják.
+  `.\gradlew.bat testDebugUnitTest` **exit 0** – **105 teszt, 0 hiba** (a `:core:model:test`
+  és a `:core:quiz:test` már nem `NO-SOURCE`); `.\gradlew.bat assembleDebug` **exit 0**
+  (`app-debug.apk`, 19 655 673 bájt).
+  *Eltérés a tervtől:* a `core/quiz` **teszt** forráskészlete új, csak teszt hatókörű
+  függőséget kapott (`libs.kotlinx.serialization.json`, tiszta JVM), mert a valós
+  tartalmon futó TR-01 teszt JSON-t olvas. A `main` forráskészlet továbbra sem lát
+  szerializációt (ADR-001 L1 sértetlen), a tartalomimport helye változatlanul a T-115.
+  A `knowledgebase_transfer/` útvonalát a `kyo.repoRoot` rendszertulajdonság adja át
+  (`core/quiz/build.gradle.kts`), nem relatív `../..` hivatkozás.
+  *Adathiba (változatlanul nyitott):* a `KY-0020` rekord `japanese_romaji_ascii` értéke a
+  forrás CSV-ben és JSON-ban is `"Kirotsuke"` a `"Ki o tsuke"` helyett – forrásadat-hiba,
+  nem validátor-hiba; az appot nem érinti (a validátor újraszámolja az ASCII alakot).

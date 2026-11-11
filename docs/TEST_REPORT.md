@@ -330,3 +330,104 @@ Rétegszabály-ellenőrzés: a `core/quiz` Kotlin JVM modul; `grep` szerint a f�
 | `V010` szabály | **NEM TESZTELHETŐ ITT** – a kódot nem a validátor állítja elő, hanem a `core/data` importréteg a deszerializálás meghiúsulásakor (T-115). |
 | TR-01 teljes szabálytáblázat | **RÉSZBEN FUTOTT** – minden szabály (V001…V009) legalább egy, a hatását bizonyító esettel szerepel, de a szabályonkénti, táblázatos (parametrizált) készlet a T-106 tárgya. |
 | TR-02…TR-08 | **NEM FUTOTT** – a generátorhoz (TR-02, TR-03), a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+---
+
+## 2026-11-11 – T-106: TR-01 validátor tesztek (táblázatos készlet + valós tartalom)
+
+**Környezet:** `JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
+Gradle wrapper, Windows PowerShell.
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | **0** | `BUILD SUCCESSFUL` – **105 teszt, 0 hiba, 0 kihagyva** |
+| `.\gradlew.bat cleanTest testDebugUnitTest` | **0** | `BUILD SUCCESSFUL` – ugyanaz a 105 teszt újrafuttatva |
+| `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk`, 19 655 673 bájt |
+
+A `:core:model:test` és a `:core:quiz:test` task **már nem `NO-SOURCE`**; a többi modul
+teszttaskja továbbra is `NO-SOURCE` (nincs bennük még teszt).
+
+Tesztosztályok és -számok a JUnit XML-ből:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…core.quiz.validation.KnowledgeValidationRuleTableTest` | **31** | 0 |
+| `…core.quiz.validation.DefaultKnowledgeValidatorTest` | 25 | 0 |
+| `…core.quiz.validation.KnowledgeValidatorContractTest` | 5 | 0 |
+| `…core.quiz.validation.KnowledgeValidatorGuaranteesTest` | **4** | 0 |
+| `…core.quiz.validation.RealKnowledgeBaseValidationTest` | **4** | 0 |
+| `…core.quiz.validation.KnowledgeValidationRuleCoverageTest` | **1** | 0 |
+| `…core.model.ContentModelTest` | 11 | 0 |
+| `…core.model.UserDataModelTest` | 11 | 0 |
+| `…core.model.IdentifiersTest` | 7 | 0 |
+| `…core.model.DomainEnumsTest` | 6 | 0 |
+| **Összesen** | **105** | **0** |
+
+(A T-105 utáni 65-ről +40: 31 táblázatos eset, 1 lefedettségi őr, 4 garanciateszt,
+4 valós tartalom teszt.)
+
+### A TR-01 szabálytáblázat (parametrizált, esetnevekkel)
+
+`KnowledgeValidationRuleTableTest.validate_ruleTableCase_matchesTheRuleTable_TR01[<eset>]` –
+minden eset neve a lefedett V-kóddal kezdődik, és a
+`KnowledgeValidationRuleCoverageTest.ruleCoverage_everyIssueCodeHasANamedCase_TR01` teszt
+gépileg kikényszeríti, hogy egyetlen `IssueCode` se maradhasson eset nélkül:
+
+| Kód | Esetek |
+|---|---|
+| `V001` | `missingSchemaVersion`, `unsupportedMajorVersion`, `nonNumericMajorVersion`, `supportedMajorWithHigherMinor_isAccepted` |
+| `V002` | `blankId`, `missingCategoryId`, `blankRomaji`, `blankHungarian`, `missingContentVersion_rejectsEveryRecord`, `everyMandatoryFieldMissing_reportsAllOfThemAtOnce` |
+| `V003` | `duplicateId_rejectsTheLaterRecordOnly`, `duplicateIdDifferingOnlyInWhitespace` |
+| `V004` | `unknownCategoryId`, `manifestWithoutUsableCategories`, `knownCategoryId_producesNoIssue` |
+| `V005` | `danglingIllustrationRef` (BLOKKOLÓ + `INCOMPLETE`), `illustrationFileMissingFromBundle` (FIGYELM.), `registryEntryWithoutLicense`, `intentionalPlaceholderWithNullFile` (nincs észrevétel), `licensedFilePresentInBundle_becomesAsset` |
+| `V006` | `namesEqualAfterNormalization`, `aliasCollidingWithAnotherRecordsName`, `distinctNames_produceNoGroup` |
+| `V007` | `quizEligibleRequestedOnIncompleteRecord_isDowngraded`, `quizEligibleNotRequested_producesNoDowngradeIssue` |
+| `V008` | `quizEligibleRequestedWithLabelledImage_downgradesImageTypes` |
+| `V009` | `blankAndNullAliases`, `aliasEqualToOwnName`, `duplicateAliases_keepOnlyTheFirstOccurrence`, `distinctNonCollidingAlias_isKeptWithoutIssue` |
+| `V010` | `isNeverProducedByTheValidator` – **tagadó eset**: rögzíti, hogy a kódot a `core/data` importréteg állítja elő (T-115), nem ez a réteg |
+
+### A két szerződési garancia (külön osztály)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `validate_everyMalformedInputShape_reportsInsteadOfThrowing_TR01` | 8 romlási alak (üres manifest, csupa `null`, csak whitespace, `v1.0.0` olvashatatlan sémaverzió, hiányzó tartalomverzió, duplikált id + ismeretlen kategória, lógó képhivatkozás, csak kombináló jelekből álló romaji) – egyik sem dob kivételt, és minden rekordról számot ad a jelentés |
+| `validate_contentWithoutVerifiedFlag_neverBecomesVerified_TR01_CR02` | `reviewed` manifest + hibátlan, kvízjogosultságot kérő rekord mellett is `AWAITING_REVIEW` marad |
+| `validate_incompleteRecord_isNeverRaisedBackToVerified_TR01_CR02` | `verified = true` + lógó képhivatkozás → `INCOMPLETE`, `Placeholder`, nulla kvízképes típus |
+| `validate_unknownDatasetKind_neverRaisesTrust_TR01_CR02` | 6 ismeretlen/hiányzó `editorial_status` → mindig `PRACTICE_ON_UNREVIEWED` |
+
+### A valós tartalom – állandó tesztként (nem kézi próba)
+
+`RealKnowledgeBaseValidationTest` a `knowledgebase_transfer/manifest.json` +
+`entries.json` tényleges tartalmát olvassa be (az útvonal a `kyo.repoRoot` rendszer-
+tulajdonságból jön, amit a `core/quiz/build.gradle.kts` állít be), és a validátort azon
+futtatja. A T-105-ben ideiglenes, utána törölt próba helyére ez a négy teszt lépett:
+
+| Teszt | Elvárás | Tény |
+|---|---|---|
+| `validate_realKnowledgeBase_hasNoBlockingIssue_TR01` | 0 BLOKKOLÓ hiba, `datasetRejected = false`, `rejected` üres | **teljesül** |
+| `validate_realKnowledgeBase_acceptsEveryRecord_TR01` | `accepted = 161`, `schemaVersion = 1.0.0`, `datasetVersion = 0.1.0`, `datasetTrust = PRACTICE_ON_UNREVIEWED`, minden rekord `AWAITING_REVIEW` | **teljesül** |
+| `validate_realKnowledgeBase_resolvesEveryIllustrationToAnAsset_TR01` | 10 `Asset`, 0 `Placeholder`, és pontosan a `KY-0045`, `KY-0050`, `KY-0052` nem kvízben használható | **teljesül** |
+| `validate_realKnowledgeBase_findsNoSynonymCollision_TR01_CR07` | 0 V006 észrevétel, 0 szinonimacsoport (a manifest `synonym_groups` listája is üres) | **teljesül** |
+
+### Rétegszabály és eltérés a tervtől
+
+- A `core/quiz` **főkódja** változatlanul csak a `core:model`-re függ; nincs benne
+  `android`/`androidx`/`room` import, sem `Instant.now()`, `System.currentTimeMillis()`
+  vagy `Random.Default` (ADR-001 L1, NFR-07).
+- **Eltérés:** a `core/quiz` **teszt** forráskészlete új, csak teszt hatókörű függőséget
+  kapott: `libs.kotlinx.serialization.json` (tiszta JVM, verzió a version catalogból). A
+  valós tartalmon futó TR-01 teszt nélküle nem tudná beolvasni a JSON-t. A `main`
+  forráskészlet továbbra sem lát szerializációt – a validátor bemenete `KnowledgeInput`,
+  nem fájl. A tartalomimport igazi helye változatlanul a `core/data` (T-115).
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-106 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| `V010` szabály működése | **NEM TESZTELHETŐ ITT** – a kódot a `core/data` importréteg állítja elő a deszerializálás meghiúsulásakor (T-115). A T-106 csak azt rögzíti tesztben, hogy a validátor **soha nem** állítja elő. |
+| TR-02…TR-08 | **NEM FUTOTT** – a generátorhoz (TR-02, TR-03), a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
+
+**TR-01: zöld.** Ez a projekt első olyan tesztfuttatása, amelyben a validátor teljes
+szabálytáblázata és a valódi, 161 rekordos tudástár is szerepel.
