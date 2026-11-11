@@ -5,6 +5,7 @@
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Követelményspecifikáció: FR, NFR, CR, DR, TR, AC azonosítókkal, nyitott kérdésekkel | v1.0 – jóváhagyásra vár |
 | [FUNCTIONAL_SPEC.md](FUNCTIONAL_SPEC.md) | Funkcionális specifikáció: képernyők, állapotok, folyamatok, UI szövegek, hibakezelés | v1.0 – jóváhagyásra vár |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architektúraterv: modultérkép, rétegszabályok, domain modell, Room séma, DI, tesztarchitektúra, ADR index | v1.0 – jóváhagyásra vár |
+| [BACKLOG.md](BACKLOG.md) | 6 epik, 21 user story elfogadási kritériumokkal, 71 dev task függőségekkel és Definition of Done-nal | v1.0 |
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Fázisok, tényleges állás, blokkolók, következő lépések | élő dokumentum |
 | [ENVIRONMENT.md](ENVIRONMENT.md) | A build környezet tényleges állapota és a blokkolók (B-01…B-04) | élő dokumentum |
 | [TEST_REPORT.md](TEST_REPORT.md) | **Csak tényleges** build- és tesztfuttatások naplója | append-only |

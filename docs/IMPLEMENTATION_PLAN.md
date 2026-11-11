@@ -9,6 +9,22 @@
 Ez a dokumentum az **egyetlen** hely, ahol a projekt tényleges állása követhető.
 A `/kyo-next` parancs innen veszi a következő lépést, és ide írja vissza az eredményt.
 
+A **munkadarabok részletei** (user story-k elfogadási kritériumokkal, dev taskok
+függőségekkel, méretbecsléssel és Definition of Done-nal) a [`BACKLOG.md`](BACKLOG.md)-ben
+vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
+
+**Fázis ↔ task megfeleltetés:**
+
+| Fázis | Taskok | Mérföldkő |
+|---|---|---|
+| 2 – domain modell és kvízmotor | T-101…T-114 | **M1** – a mag igazoltan helyes |
+| 3 – tudástár, import, Room | T-115…T-118, T-201…T-203, T-301, T-401, T-402, T-501, T-502, T-601 | **M2** – a tartalom bent van |
+| 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app |
+| 5 – Tanulás | T-302…T-308 | **M4** – tanulható app |
+| 6 – Kvíz UI | T-403…T-415 | **M5** – kvízelhető app |
+| 7 – Haladás és beállítások | T-503…T-509 | **M6** – mérhető app |
+| 8 – minőség és átadás | T-602…T-610 | **M7** – átadható app |
+
 ---
 
 ## Fázis 0 – Környezet és tervek
@@ -149,13 +165,16 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **Dokumentumfrissítés** – a `REQUIREMENTS.md`, `FUNCTIONAL_SPEC.md` és
-   `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
-   (mezőnevek, `quizEligible` kapu, lektorálatlan jelölés, aktív kvíztípusok).
-2. **Fázis 2** – `core/model` + `core/quiz`: validátor, kvízgenerátor, scoring,
-   és a TR-01…TR-04 unit tesztek → `./gradlew testDebugUnitTest` **tényleges** zöld
-   eredménnyel (most még `NO-SOURCE`).
-3. **Fázis 3** – a kanonikus séma importja a 161 rekordra, Room, repository-k, TR-05.
+1. **T-101…T-103** – `core/model`: value class ID-k, enumok, `Technique`, `Category`,
+   `IllustrationRef`, felhasználói adatmodellek. Ez a legkisebb önálló, tesztelhető darab.
+2. **T-104…T-106** – `core/quiz` validátor + **TR-01 tesztek**: itt lesz az első valódi,
+   zöld tesztfuttatás (most még `NO-SOURCE`).
+3. **T-107…T-112** – kvízgenerátor + **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja,
+   ahol eldől, hogy a termék helyes-e.
+
+Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
+`ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
+(mezőnevek, `quizEligible` kapu, lektorálatlan jelölés, aktív kvíztípusok).
 
 ## Változásnapló
 
@@ -170,3 +189,7 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 - 2026-11-11 – Megérkezett a tényleges tudástár (161 rekord). ADR-010 (kvíz lektorálatlan
   tartalmon, végig jelölve) és ADR-011 (a kapott séma a kanonikus formátum) elfogadva;
   ezek felülírják a demó adatkészlet tervét és a séma-mezőneveket.
+- 2026-11-11 – Tudástár konvertálva: `knowledgebase_transfer/` (161 rekord, 9 kategória,
+  10 illusztráció, 0 blokkoló hiba). Három kép névfelirattal → `quiz_usable: false`.
+- 2026-11-11 – **`BACKLOG.md` elkészült:** 6 epik, 21 user story elfogadási kritériumokkal,
+  71 dev task függőségekkel, méretbecsléssel, 7 szállítási mérföldkővel (M1…M7).
