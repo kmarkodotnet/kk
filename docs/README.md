@@ -5,9 +5,10 @@
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Követelményspecifikáció: FR, NFR, CR, DR, TR, AC azonosítókkal, nyitott kérdésekkel | v1.0 – jóváhagyásra vár |
 | [FUNCTIONAL_SPEC.md](FUNCTIONAL_SPEC.md) | Funkcionális specifikáció: képernyők, állapotok, folyamatok, UI szövegek, hibakezelés | v1.0 – jóváhagyásra vár |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architektúraterv: modultérkép, rétegszabályok, domain modell, Room séma, DI, tesztarchitektúra, ADR index | v1.0 – jóváhagyásra vár |
+| [CONVENTIONS.md](CONVENTIONS.md) | **Felhalmozott gyakorlati tudás**: domain-, adatbázis-, teszt- és Compose-konvenciók, ismert fordítási csapdák, nyitott ügyek | élő dokumentum |
 | [BACKLOG.md](BACKLOG.md) | 6 epik, 21 user story elfogadási kritériumokkal, 71 dev task áttekintése, globális DoR/DoD, mérföldkövek | v1.0 |
-| [backlog/](backlog/) | **A nyitott fejlesztési feladatok, egy fájl = egy task** | 71 feladat |
-| [done/](done/) | Az elkészült feladatok, lezáró szakasszal (futtatott parancsok, commit) | üres |
+| [backlog/](backlog/) | **A nyitott fejlesztési feladatok, egy fájl = egy task**; [GROUPS.md](backlog/GROUPS.md): mely feladatok mennek egy menetben | 47 nyitott |
+| [done/](done/) | Az elkészült feladatok, lezáró szakasszal (futtatott parancsok, commit) | 24 kész |
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Fázisok, tényleges állás, blokkolók, következő lépések | élő dokumentum |
 | [ENVIRONMENT.md](ENVIRONMENT.md) | A build környezet tényleges állapota és a blokkolók (B-01…B-04) | élő dokumentum |
 | [TEST_REPORT.md](TEST_REPORT.md) | **Csak tényleges** build- és tesztfuttatások naplója | append-only |

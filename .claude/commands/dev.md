@@ -6,9 +6,12 @@ allowed-tools: Bash, PowerShell, Read, Write, Edit, Grep, Glob, Skill
 Egy fejlesztési feladat végigvitele a `docs/backlog/` mappából a `docs/done/` mappába.
 
 **Argumentum (opcionális):** `$ARGUMENTS` – ha konkrét task-azonosító (pl. `T-105`), azt a
-feladatot vedd elő a kiválasztási szabály helyett. Egyébként hagyd üresen.
+feladatot vedd elő a kiválasztási szabály helyett. **Több azonosító is megadható**
+(pl. `T-301 T-401 T-402 T-502`): ilyenkor a megadott sorrendben mindet végigviszed egy
+menetben – ezt a `docs/backlog/GROUPS.md` csoportjainál használjuk, ahol a kontextus közös.
+Egyébként hagyd üresen.
 
-**Egy hívás = egy feladat.** Ne fuss előre a következőre, még ha gyorsan is ment.
+**Egy hívás = egy feladat (vagy egy csoport).** Ne fuss előre azon túl, amit kaptál.
 
 ---
 
@@ -30,6 +33,9 @@ Egyébként determinista szabály:
 
 ## 2. A feladat beolvasása és a kontextus
 
+0. **Olvasd be a `docs/CONVENTIONS.md`-t.** Ez a felhalmozott gyakorlati tudás: domain- és
+   modulkonvenciók, adatbázis-szabályok, teszt- és Compose-konvenciók, és a már ismert
+   fordítási csapdák. Ennek átfutása percek alatt megspórol egy órányi újrafelfedezést.
 1. Olvasd be a kiválasztott task-fájlt **teljes egészében**: Cél, Teendők, Kész ha,
    Figyelj rá, Definition of Done.
 2. Olvasd be a hivatkozott követelményeket a `docs/REQUIREMENTS.md`-ből (a fejléc
@@ -109,12 +115,15 @@ Csak akkor, ha minden DoD pont teljesül:
    felfedezett probléma, javasolt új task – vagy „nincs">
    ```
 
-2. Mozgasd a fájlt: `git mv docs/backlog/<fájl> docs/done/<fájl>`
-   (a `git mv` megőrzi az előzményt).
-3. Frissítsd a `docs/backlog/README.md` feladattáblázatát: vedd ki az elkészült sort.
-4. Frissítsd a `docs/IMPLEMENTATION_PLAN.md` megfelelő fázissorát és a változásnaplót.
-5. Írd be a `docs/TEST_REPORT.md`-be a tényleges futtatásokat.
-6. Commitolj:
+2. **Ha új konvenciót vagy buktatót fedeztél fel** – olyat, amibe a következő fejlesztő is
+   belefutna –, írd hozzá a `docs/CONVENTIONS.md` megfelelő szakaszához. Ez a lap attól ér
+   valamit, hogy nő: egy most elvesztett fél óra utólag egy bekezdés.
+3. Mozgasd a fájlt: `git mv docs/backlog/<fájl> docs/done/<fájl>`
+   (a `git mv` megőrzi az előzményt). **Csoport esetén mindegyik tagot.**
+4. Frissítsd a `docs/backlog/README.md` feladattáblázatát: vedd ki az elkészült sort(okat).
+5. Frissítsd a `docs/IMPLEMENTATION_PLAN.md` megfelelő fázissorát és a változásnaplót.
+6. Írd be a `docs/TEST_REPORT.md`-be a tényleges futtatásokat.
+7. Commitolj:
    ```
    feat(<modul>): <rövid angol leírás> [T-nnn]
    ```

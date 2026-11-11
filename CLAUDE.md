@@ -11,11 +11,13 @@ Ha bármi ütközik, a mesterprompt győz. A terveket a `docs/` könyvtár tarta
 2. `docs/REQUIREMENTS.md` – követelményspecifikáció (FR/NFR azonosítókkal).
 3. `docs/FUNCTIONAL_SPEC.md` – funkcionális specifikáció (képernyők, folyamatok, állapotok).
 4. `docs/ARCHITECTURE.md` – architektúra és modulterv.
-5. `docs/BACKLOG.md` – epikek, user story-k, a globális DoR/DoD és a mérföldkövek.
-6. `docs/backlog/` – a nyitott fejlesztési feladatok, egy fájl = egy task; `docs/done/` – az elkészültek.
-7. `docs/IMPLEMENTATION_PLAN.md` – fázisok, aktuális állás, következő lépés.
-8. `docs/ENVIRONMENT.md` – a build környezet tényleges állapota, blokkolók.
-9. `docs/adr/` – architekturális döntések (ADR-NNN).
+5. `docs/CONVENTIONS.md` – **felhalmozott gyakorlati tudás**: konvenciók, ismert csapdák,
+   nyitott ügyek. Minden feladat előtt olvasd el; ha újat tanulsz, írd hozzá.
+6. `docs/BACKLOG.md` – epikek, user story-k, a globális DoR/DoD és a mérföldkövek.
+7. `docs/backlog/` – a nyitott feladatok (+ `GROUPS.md`); `docs/done/` – az elkészültek.
+8. `docs/IMPLEMENTATION_PLAN.md` – fázisok, aktuális állás, következő lépés.
+9. `docs/ENVIRONMENT.md` – a build környezet tényleges állapota, blokkolók.
+10. `docs/adr/` – architekturális döntések (ADR-NNN).
 
 ## Vasszabályok
 - **Nyelv:** minden felhasználói szöveg és dokumentáció magyar. A kód, azonosítók, commit
@@ -50,7 +52,9 @@ mappába. Egy hívás = egy feladat.
 **`/devall`** – ugyanez sorozatban: feladatonként **egy** subagentet indít, megvárja,
 ellenőrzi az eredményt, majd indítja a következőt. Egyszerre mindig **pontosan egy**
 subagent fut. Hiba, holtpont vagy eltérő jelentés esetén megáll, nem próbálkozik újra.
-Korlátozható: `/devall 3`.
+Korlátozható: `/devall 3`. A `docs/backlog/GROUPS.md` szerint egy menetben viszi azokat a
+feladatokat, amelyek ugyanazon a fájlkészleten dolgoznak, és olcsóbb modellt választ a
+kis, nem helyesség-kritikus feladatokhoz.
 
 Továbbá: `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-test`,
 `/kyo-validate-kb`, `/kyo-doc-sync`. Részletek: `.claude/commands/`.

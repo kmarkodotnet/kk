@@ -34,7 +34,7 @@ Futtasd le, és csak akkor kezdd el a hurkot, ha mind rendben:
 
 Ismételd, amíg valamelyik megállási feltétel be nem lép.
 
-### 1.1 A következő feladat meghatározása
+### 1.1 A következő feladat (vagy csoport) meghatározása
 
 Olvasd ki a `docs/backlog/` `T-*.md` fájljait növekvő azonosító szerint, és a fejlécük
 `| Függ |` mezőjéből a függőségeket. A soron következő az **első olyan, amelynek minden
@@ -43,13 +43,39 @@ függősége már a `docs/done/` mappában van**.
 - Ha nincs ilyen → **megállás: `DEADLOCK`**. Írd ki, melyik feladat melyik hiányzó
   függőségre vár.
 
-Jegyezd fel a feladat azonosítóját és fájlnevét – ezt fogod ellenőrizni a subagent után.
+**Ezután nézd meg a [`docs/backlog/GROUPS.md`](../../docs/backlog/GROUPS.md) fájlt.**
+Ha a kiválasztott feladat egy csoport **első** tagja, és a csoport **minden** tagjának
+minden külső függősége teljesül, akkor **az egész csoportot** add át egy subagentnek,
+a GROUPS.md-ben megadott sorrendben. Ezek a feladatok ugyanazon a fájlkészleten dolgoznak,
+ezért egy menetben alig kerülnek többe, mint egy.
+
+Ha a csoport bármelyik tagjának függősége hiányzik, a csoport **nem** indul: akkor csak az
+egyedi feladat megy.
+
+Jegyezd fel az érintett feladatok azonosítóját és fájlnevét – ezeket fogod ellenőrizni.
+
+### 1.1b Modellválasztás
+
+Nem minden feladat igényel ugyanakkora gondolkodást. Az `Agent` eszköz `model` paraméterével
+válassz:
+
+| Modell | Mikor |
+|---|---|
+| `sonnet` | **`S` méretű, nem helyesség-kritikus** feladat: egyszerű UI-szakasz, egy törlő metódus, egy manifest-teszt, egy konfigurációs lépés. |
+| (alapértelmezett) | **Minden más.** Különösen: kvízhelyesség, állapotgép, adatbázis-séma és migráció, akadálymentesség, tartalmi integritás, architektúra. |
+
+**Csoport esetén a legigényesebb tag dönt:** ha bármelyik tag helyesség-kritikus, az egész
+csoport az alapértelmezett modellen megy.
+
+Ha kétséged van, válaszd az alapértelmezettet. Egy elrontott kvízszabály drágább, mint a
+megspórolt tokenek.
 
 ### 1.2 Egyetlen subagent indítása
 
 Indíts **pontosan egy** subagentet az `Agent` eszközzel:
 - `subagent_type`: `general-purpose`
-- `description`: `dev <task-id>`
+- `model`: az 1.1b szerint (`sonnet` vagy elhagyva)
+- `description`: `dev <task-id>` (csoportnál `dev <első>…<utolsó>`)
 - `prompt`: lásd lent
 
 **Soha ne indíts másodikat, amíg az első fut.** Nem indítasz több feladatra egyszerre,
@@ -59,19 +85,25 @@ A subagentnek adott prompt:
 
 ```
 Te egy fejlesztő subagent vagy a Kyokushin Karate Trainer projektben
-(F:\Claude\kyo). Pontosan EGY fejlesztési feladatot kell végigvinned.
+(F:\Claude\kyo). Pontosan azt a feladatot (vagy feladatcsoportot) kell
+végigvinned, amit itt megkaptál – se többet, se kevesebbet.
 
 1. Olvasd be a CLAUDE.md fájlt – ez tartalmazza a projekt vasszabályait.
-2. Hajtsd végre a `dev` skillt (Skill eszköz, skill: "dev") a(z) <TASK-ID>
+2. Olvasd be a docs/CONVENTIONS.md fájlt – ez a felhalmozott gyakorlati tudás
+   (domain-, adatbázis-, teszt- és Compose-konvenciók, ismert fordítási csapdák).
+   Ne fedezd fel újra, ami már le van írva benne.
+3. Hajtsd végre a `dev` skillt (Skill eszköz, skill: "dev") a(z) <TASK-ID>
    feladatra: args: "<TASK-ID>". A skill leírja a teljes menetet.
-3. Ne indíts további subagentet. Magad végezd el a munkát.
-4. Ne kezdj bele másik feladatba, még ha ez gyorsan elkészült is.
+   (Csoportnál az args az összes azonosító, szóközzel elválasztva, a megadott sorrendben.)
+4. Ne indíts további subagentet. Magad végezd el a munkát.
+5. Ne kezdj bele olyan feladatba, amit nem kaptál.
+6. Ha új konvenciót vagy buktatót fedezel fel, írd hozzá a docs/CONVENTIONS.md-hez.
 
 Kötelező zárójelentés – pontosan ezekkel a mezőkkel, a végén:
 
-TASK: <task-id>
-ALLAPOT: KESZ | BUKOTT | BLOKKOLT
-ATMOZGATVA: igen | nem        (a fájl a docs/done/ mappában van-e)
+TASK: <task-id> (csoportnál mindegyik, vesszővel)
+ALLAPOT: KESZ | BUKOTT | BLOKKOLT   (csoportnál csak akkor KESZ, ha MIND az)
+ATMOZGATVA: igen | nem        (minden érintett fájl a docs/done/ mappában van-e)
 COMMIT: <rövid hash vagy "nincs">
 TESZT: <pontos parancs> -> exit <kód>, <teszt/hiba szám vagy "NO-SOURCE">
 BUILD: <pontos parancs> -> exit <kód>
@@ -83,7 +115,10 @@ nélkül. Ha a Definition of Done bármelyik pontja nem teljesül, a feladat
 MARAD a docs/backlog mappában, és az ALLAPOT nem KESZ.
 ```
 
-A `<TASK-ID>` helyére az 1.1-ben meghatározott azonosító kerül.
+A `<TASK-ID>` helyére az 1.1-ben meghatározott azonosító kerül – csoportnál az összes,
+szóközzel elválasztva, a GROUPS.md sorrendjében. Add át azt is, hogy ez egy csoport,
+és hogy **mindegyik** tag Definition of Done-jának teljesülnie kell, különben egyik sem
+mozdul.
 
 ### 1.3 Várakozás
 
@@ -104,9 +139,9 @@ git log --oneline -1          # tényleg van commit?
 git status --short            # maradt-e szemét a munkafában?
 ```
 
-- **Ha a fájl átkerült és van commit** → a feladat kész. Írj egy egysoros összefoglalót
+- **Ha minden érintett fájl átkerült és van commit** → a feladat (csoport) kész. Írj egy egysoros összefoglalót
   (task-azonosító, cím, teszt- és builderedmény), majd folytasd a hurkot.
-- **Ha a fájl a backlogban maradt** → a feladat nem készült el. **Megállás: `TASK_FAILED`.**
+- **Ha bármelyik fájl a backlogban maradt** → a feladat nem készült el. **Megállás: `TASK_FAILED`.**
 - **Ha a jelentés KESZ-t mond, de a fájl nem mozdult** (vagy fordítva) → **megállás:
   `INCONSISTENT`**. Ez komolyabb jel, mint egy bukott task: a jelentés nem egyezik a
   valósággal. Írd le pontosan, mit állított a subagent és mit találtál.
