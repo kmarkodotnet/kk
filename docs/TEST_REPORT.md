@@ -1636,3 +1636,69 @@ Windows PowerShell, Gradle wrapper 9.9.1.
 | `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
 | `@DefaultDispatcher` **tényleges használata** üzleti kódban | **NINCS MÉG HASZNÁLÓJA** – a qualifier és a kötése kész, az első fogyasztója az első ViewModel (T-207) lesz. A kötést a `HiltGraphTest` ennek ellenére feloldja, tehát nem „halott" kötés. |
 
+---
+
+## 2026-11-11 – T-204 · `core/ui`: `TechniqueIllustration` (az első Compose komponens)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | **0** | `BUILD SUCCESSFUL in 8s` – a `core/ui` modul **10 új tesztje** zöld (`:core:ui:testDebugUnitTest` ténylegesen lefutott, nem NO-SOURCE) |
+| `.\gradlew.bat test testDebugUnitTest --rerun-tasks` | **0** | `BUILD SUCCESSFUL in 32s` – a teljes készlet újrafúratva: **375 teszt, 0 hiba, 0 kihagyott** (a T-203 utáni 365-höz képest +10) |
+| `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL in 2s` – `app/build/outputs/apk/debug/app-debug.apk` (20 288 364 byte) |
+
+Környezet: `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
+Windows PowerShell, Gradle wrapper 9.9.1.
+
+Modulonkénti bontás a `build/test-results` XML-ekből: `core/quiz` 227, `core/data` 99,
+`core/model` 35, **`core/ui` 10**, `app` 4 – összesen 375, hiba és hibás befejezés 0.
+
+### Új tesztek (10)
+
+| Teszt | Mit igazol |
+|---|---|
+| `IllustrationContentDescriptionTest.assetDescription_inLibrary_namesTheTechnique_NFR04` | a Tudástárban a leírás **tartalmazza** a romajit és a magyar nevet (FUNCTIONAL_SPEC 9. ezt megköveteli) |
+| `IllustrationContentDescriptionTest.assetDescription_forQuizOption_omitsTechniqueName_NFR04` | **a T-204 lényegi pontja:** a kvízopció leírása sem a romajit, sem a magyar nevet nem mondja ki, csak a pozíciót |
+| `IllustrationContentDescriptionTest.placeholderDescription_forQuizOption_omitsTechniqueName_NFR04` | a helyőrző sem szivárogtat névet a kvízrácson |
+| `IllustrationContentDescriptionTest.placeholderDescription_inLibrary_statesTheMissingIllustration_NFR04` | a helyőrző leírása pontosan „Ehhez a technikához még nincs ábra” (FUNCTIONAL_SPEC 2.3) |
+| `IllustrationContentDescriptionTest.decorativeLabel_hasNoDescription_NFR04` | dekoratív képnél `contentDescription = null`, tehát a TalkBack átugorja |
+| `IllustrationContentDescriptionTest.quizOptionLabel_rejectsNonPositivePosition_NFR04` | a nem pozitív sorszám `require`-rel elbukik, nincs „0. válaszlehetőség” leírás |
+| `IllustrationSampleSizeTest.sampleSize_forPackagedIllustrations_downscalesLargeImages_NFR05` | a tényleges 1122×1402-es készlet `inSampleSize = 2`-vel jön be |
+| `IllustrationSampleSizeTest.sampleSize_imageWithinLimit_isNotDownscaled_NFR05` | a korláton belüli képet nem ritkítjuk |
+| `IllustrationSampleSizeTest.sampleSize_isSmallestPowerOfTwoKeepingLongestEdgeWithinLimit_NFR05` | hat méretre: a lépték a legkisebb kettőhatvány, amely belül tartja a hosszú élt – és nem ritkít túl |
+| `IllustrationSampleSizeTest.sampleSize_unknownBounds_fallsBackToFullResolution_NFR05` | ismeretlen méret (−1) vagy értelmetlen korlát esetén nincs ritkítás |
+
+### Miért unit teszt a NFR-04 bizonyítéka, és nem UI teszt?
+
+A leírásokat `@Composable`-mentes `IllustrationContentDescription` oldja fel egy
+`Resources` paraméterből, nem `stringResource` a komponens belsejében. Ezért a szabály
+**emulátor nélkül**, Robolectric alatt (`@Config(sdk = [34])`, `isIncludeAndroidResources
+= true`) a **tényleges** `core/ui/src/main/res/values/strings.xml` fölött mérhető: ha
+valaki a magyar szöveget átírja úgy, hogy a kvízopció leírásába technikanév-helyet tesz,
+a teszt elbukik. UI teszttel ez a B-03 blokkoló (nincs emulátor) mellett nem lenne
+mérhető.
+
+Második, fordítási idejű védelem: a komponens nem `contentDescription: String`-et kap,
+hanem az `IllustrationLabel` szándéktípust, és a `QuizOption` ágon a technika nevére
+**nincs paraméter** – a név kiszivárgása így nem programozói figyelmetlenség kérdése.
+
+### Menet közbeni hibák és megoldásuk (hitelesség kedvéért rögzítve)
+
+1. `:core:ui:compileDebugKotlin FAILED` – `Unclosed comment` a `Theme.kt`-ben,
+   és nyomában `Unresolved reference 'KyokushinTrainerTheme'`. Ok: **ugyanaz a
+   csapda, mint a T-203-ban** – a KDoc szövegében szereplő `` `feature/*` ``
+   beágyazott blokk-megjegyzést nyitott. Megoldás: a KDoc nem ír `/*` karakterpárt.
+2. `IllustrationContentDescriptionTest > classMethod FAILED` –
+   `UnsupportedOperationException at DefaultSdkProvider.java:174`. Ok: `@Config(manifest =
+   Config.NONE)` mellett a Robolectric 4.17 a `compileSdk = 37`-hez próbált SDK-képet
+   keresni. Megoldás: a projekt meglévő konvenciója, `@Config(sdk = [34])` – ez
+   egyszerre adja vissza az erőforrásokat is, amire a teszt épít.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt (`createAndroidComposeRule`) a komponensre | **NEM FUTOTT** – B-03. A `contentDescription` szabályt a fenti unit tesztek fedik; a tényleges TalkBack bejárás a T-604 és T-606 tárgya. |
+| `@Preview` **tényleges kirenderelése** (világos/sötét) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel, fejnélküli CLI-ből nem fut. Ami igazolt: a négy előnézet-függvény (nyolc `@Preview` bejegyzés) **lefordul** (`:core:ui:compileDebugKotlin` exit 0), és a párosítás világos + `UI_MODE_NIGHT_YES` kódban ellenőrizhető. |
+| A kép **tényleges** megjelenítése assetből | **MÉG NINCS ASSET** – a `knowledge/illustrations/` tartalmát a T-601 teszi az `app/src/main/assets` alá. Addig az `Asset` ág a „hiányzó fájl” → helyőrző tartalékon fut, ami a FUNCTIONAL_SPEC 10. szerinti elvárt viselkedés (nincs összeomlás). |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

@@ -20,6 +20,15 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            // Az akadálymentes leírások tesztje a TÉNYLEGES `strings.xml` fölött fut
+            // (NFR-04): ehhez a teszt JVM-nek látnia kell az Android erőforrásokat.
+            // Ugyanaz a konvenció, mint a `core/data`-ban és az `app`-ban.
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
@@ -37,7 +46,12 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.androidx.core.ktx)
+    // A képdekódolás `Dispatchers.IO`-n fut, nem a kompozícióban – explicit függőség,
+    // nem a Compose runtime tranzitív coroutines-ára támaszkodunk.
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }

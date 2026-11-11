@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import hu.kyokushin.trainer.ui.theme.KyokushinTrainerTheme
+import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 
 /**
  * Az alkalmazás egyetlen Activityje (NFR-01: egyetlen APK, egyetlen belépési pont).

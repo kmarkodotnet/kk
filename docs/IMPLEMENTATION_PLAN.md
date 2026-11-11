@@ -101,7 +101,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | ⬜ |
+| 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | 🟨 **részben** – T-204: `TechniqueIllustration` kész (mindhárom `IllustrationRef` eset, paraméterezhető `contentDescription`, 6+4 teszt). A jelölők és állapotkomponensek: T-205 |
 | 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | — | ⬜ |
 | 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | ⬜ |
 | 4.4 | Tudástár részletező | FR-04, FR-05 | ⬜ |
@@ -166,9 +166,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-204** – `core/ui`: `TechniqueIllustration`.
-2. **T-205** – `core/ui`: jelölők és állapotkomponensek.
-3. **T-206** – `navigation`: NavHost és alsó navigáció.
+1. **T-205** – `core/ui`: jelölők és állapotkomponensek.
+2. **T-206** – `navigation`: NavHost és alsó navigáció.
+3. **T-207** – `feature/library`: lista ViewModel.
 
 (**A T-203 kész:** a Hilt gráf teljes és felépül. Az első ViewModel (T-207) a
 `TechniqueRepository`-t, a `ContentImporter`-t, a `Clock`-ot, az RNG-t és a két
@@ -609,3 +609,30 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   (2.60.1) – nem új verzió.
   Következő: T-204, a `core/ui` `TechniqueIllustration` komponense.
 
+- 2026-11-11 – **T-204 kész** (Fázis 4.1 első fele). A `core/ui` első Compose
+  komponense: `TechniqueIllustration` az `IllustrationRef` **mindhárom** esetre –
+  `Asset` → a csomagolt kép, `Placeholder` → semleges helyőrző + „Ábra készül”,
+  `null` → **nincs képblokk** (ADR-003, CR-05, FUNCTIONAL_SPEC 2.3).
+  **A `contentDescription` nem string paraméter, hanem az `IllustrationLabel`
+  szándéktípus:** `Technique(romaji, hungarian)` a Tudástárban (a FUNCTIONAL_SPEC 9.
+  itt megköveteli a nevet), `QuizOption(position)` a kvíz (D) képrácsán – ezen az
+  ágon a technika nevére **nincs is paraméter**, tehát a név kiszivárgása nem
+  figyelmetlenség kérdése, hanem fordításilag lehetetlen (NFR-04). A leírásokat
+  `@Composable`-mentes `IllustrationContentDescription` oldja fel, ezért a NFR-04
+  szabály bizonyítéka unit teszt a **tényleges** `strings.xml` fölött (Robolectric,
+  `sdk = [34]`), nem emulátort igénylő UI teszt.
+  A kép assetből töltődik (`knowledge/illustrations/<fileName>`, T-601 teszi oda),
+  `Dispatchers.IO`-n, kétlépéses dekódolással: a jelenlegi 1122×1402-es képek
+  `inSampleSize = 2`-vel jönnek be. Hiányzó vagy olvashatatlan fájl → helyőrző,
+  nincs összeomlás (FUNCTIONAL_SPEC 10.). `awaitingReview = true` esetén szöveges
+  jelzés a kép alatt (US-08 4., CR-01) – a komponens ezt **nem** származtatja.
+  `@Preview` mindhárom esetre + a kvízopcióra, világos és sötét témában.
+  **Architektúraváltozás:** a téma (`KyokushinTrainerTheme`) átkerült az `app`-ból a
+  `core/ui`-ba (`hu.kyokushin.trainer.core.ui.theme`), mert a megosztott komponensek
+  `@Preview`-jai és a későbbi funkciómodulok is használják, `:app`-ra viszont senki
+  nem függhet visszafelé (ADR-001). Az `app` importát és az ARCHITECTURE.md
+  modultérképét is frissítette a task.
+  10 új teszt (összesen **375 zöld teszt**), `testDebugUnitTest` és `assembleDebug`
+  exit 0. Új katalógusbejegyzés nincs; a `core/ui` megkapta a már katalogizált
+  `robolectric`, `androidx-test-core` és `kotlinx-coroutines-core` függőséget.
+  Következő: T-205, a `core/ui` jelölői és állapotkomponensei.

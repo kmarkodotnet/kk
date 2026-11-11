@@ -30,11 +30,11 @@ Hilt DI, Room perzisztencia, Jetpack Compose UI.
 ## 2. Modultérkép
 
 ```
-app/                       Application, MainActivity, téma, manifest, assets
+app/                       Application, MainActivity, manifest, assets
 ├── core/model             tiszta Kotlin: domain modellek, value class ID-k, enumok
 ├── core/quiz              tiszta Kotlin: QuizGenerator, scoring, tudástár-validátor
 ├── core/data              Room, assets import, repository implementációk, mapperek
-├── core/ui                megosztott Compose komponensek (jelölők, üres állapotok, ábra)
+├── core/ui                megosztott Compose komponensek (jelölők, üres állapotok, ábra) + a téma
 ├── feature/library        Tudástár lista + részlet (Compose + ViewModel)
 ├── feature/learn          Tanulás beállítás + kártyák
 ├── feature/quiz           Kvíz konfiguráció + futás + eredmény
@@ -373,6 +373,9 @@ Miért ez a megoldás:
 - Megosztott komponensek a `core/ui`-ban: `TechniqueIllustration`, `VerificationBadge`,
   `EmptyState`, `DemoBanner`, `ProgressBarWithLabel`, `QuizOptionButton`.
 - `@Preview` minden nem triviális komponenshez: világos + sötét + hiányos adat.
+- A téma (`KyokushinTrainerTheme`, paletta) a **`core/ui`-ban** él, nem az `app`-ban:
+  a megosztott komponensek `@Preview`-jai és a funkciómodulok képernyői is használják,
+  a függőségi irány viszont az `app` felé mutat, visszafelé nem (ADR-001). Döntés: T-204.
 
 ---
 

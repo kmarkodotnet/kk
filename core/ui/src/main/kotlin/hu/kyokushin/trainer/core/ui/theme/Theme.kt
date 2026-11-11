@@ -1,4 +1,4 @@
-package hu.kyokushin.trainer.ui.theme
+package hu.kyokushin.trainer.core.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -12,6 +12,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 /**
+ * Az alkalmazás Material 3 témája.
+ *
+ * **Miért a `core/ui`-ban él, és nem az `app`-ban?** A témát a megosztott komponensek
+ * `@Preview`-jai és a funkciómodulok (`feature`) képernyői is használják, a
+ * függőségi irány viszont a funkciómoduloktól a `core/ui` felé mutat, és `:app`-ra
+ * senki nem függhet visszafelé (ADR-001).
+ * A `core/ui`-ban hagyva a paletta egyetlen helyen van, és a megosztott komponensek
+ * ugyanazzal a sémával rendelhetők elő, mint amivel futnak (T-204 döntése).
+ *
  * Visszafogott, funkcionális paletta (CR-08: nincs harcművészeti klisé).
  * A komponensek SOHA nem használnak hardcode-olt színt, csak téma-tokent
  * (lásd .claude/skills/kyo-android-module 3. pont).

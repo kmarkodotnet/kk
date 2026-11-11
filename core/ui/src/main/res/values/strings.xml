@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A megosztott Compose komponensek felhasználói szövegei.
+    Minden szöveg magyar és KIZÁRÓLAG itt él (NFR-02, FUNCTIONAL_SPEC 8.).
+-->
+<resources>
+
+    <!--
+        Illusztráció akadálymentes leírásai (FUNCTIONAL_SPEC 2.3, NFR-04).
+
+        A `illustration_a11y_quiz_option` szándékosan NEM tartalmaz technikanév-helyet:
+        a kvízopció leírása csak a pozíciót mondja ki, különben a TalkBack elárulná a
+        helyes választ.
+    -->
+    <string name="illustration_a11y_technique">%1$s – %2$s illusztrációja</string>
+    <string name="illustration_a11y_quiz_option">%1$d. válaszlehetőség illusztrációja</string>
+    <string name="illustration_a11y_placeholder">Ehhez a technikához még nincs ábra</string>
+
+    <!-- Helyőrző és állapotjelzés -->
+    <string name="illustration_placeholder_label">Ábra készül</string>
+    <string name="illustration_awaiting_review">A kép szakmai ellenőrzésre vár</string>
+
+</resources>
