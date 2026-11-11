@@ -31,11 +31,14 @@ data class KnowledgeInput(
 /**
  * A `manifest.json` nyers alakja.
  *
- * @property schemaVersion a séma szerkezeti verziója. `null`, ha hiányzik vagy nem
- *   egész szám – ez önmagában V001 (BLOKKOLÓ, a teljes betöltés elutasítva).
+ * @property schemaVersion a séma szerkezeti verziója **semver stringként**, a kanonikus
+ *   sémában szereplő nyers alakban (pl. `1.0.0`). ADR-011 szerint a `schema_version`
+ *   string, nem egész szám, és a támogatottság a **major** verzión dől el; `null`, ha
+ *   hiányzik – ez önmagában V001 (BLOKKOLÓ, a teljes betöltés elutasítva).
  * @property contentVersion a tartalomkiadás semver-szerű verziója (pl. `0.1.0-demo`).
- * @property datasetKind a tudástár szerkesztői állapota a tartalomban (`demo` /
- *   `production`). Nyers `String`, mert az ismeretlen értéket is jelenteni kell tudni;
+ * @property datasetKind a tudástár szerkesztői állapota a tartalomban – a kanonikus
+ *   sémában az `editorial_status` / `dataset_trust` érték (pl. `reviewed`,
+ *   `draft_review_required`). Nyers `String`, mert az ismeretlen értéket is jelenteni kell tudni;
  *   a [hu.kyokushin.trainer.core.model.DatasetTrust]-ra fordítás a validátor dolga, és
  *   bizalmi szintet soha nem *emel* (CR-02).
  * @property categories az egyetlen hiteles kategórialista (ADR-011). A V004 szabály
@@ -44,7 +47,7 @@ data class KnowledgeInput(
  *   a [KnowledgeInput.availableIllustrationFiles]-hoz hasonlítja a képhivatkozást.
  */
 data class ManifestInput(
-    val schemaVersion: Int? = null,
+    val schemaVersion: String? = null,
     val contentVersion: String? = null,
     val datasetKind: String? = null,
     val categories: List<CategoryInput> = emptyList(),

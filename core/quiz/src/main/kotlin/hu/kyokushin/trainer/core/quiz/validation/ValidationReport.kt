@@ -28,9 +28,9 @@ import hu.kyokushin.trainer.core.model.TechniqueId
  *   érték esetén a szigorúbb [DatasetTrust.PRACTICE_ON_UNREVIEWED] a helyes olvasat.
  * @property datasetVersion a manifest `contentVersion` értéke, vagy `null`, ha hiányzik.
  *   A tartalomfrissítés idempotenciája (FR-32) ezen az értéken dől el.
- * @property schemaVersion a manifestben talált `schemaVersion`, vagy `null`, ha hiányzott
- *   vagy nem volt egész szám. A V001 szabály elutasításakor is kitöltött, ha olvasható volt
- *   – a diagnosztikának meg kell tudnia mondani, *melyik* nem támogatott verziót kaptuk.
+ * @property schemaVersion a manifestben talált `schemaVersion` semver string, vagy `null`,
+ *   ha hiányzott. A V001 szabály elutasításakor is kitöltött, ha olvasható volt – a
+ *   diagnosztikának meg kell tudnia mondani, *melyik* nem támogatott verziót kaptuk.
  */
 data class ValidationReport(
     val accepted: List<Technique> = emptyList(),
@@ -39,7 +39,7 @@ data class ValidationReport(
     val synonymGroups: List<Set<TechniqueId>> = emptyList(),
     val datasetTrust: DatasetTrust = DatasetTrust.PRACTICE_ON_UNREVIEWED,
     val datasetVersion: String? = null,
-    val schemaVersion: Int? = null,
+    val schemaVersion: String? = null,
 ) {
 
     /**

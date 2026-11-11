@@ -264,3 +264,69 @@ vagy `Random.Default` hívás (ADR-001, NFR-07).
 | TR-01 teljes szabálytáblázat | **RÉSZBEN FUTOTT** – a T-104 csak a szerződést fedi (kivételmentesség, kódkészlet, jelentésmezők). A szabályonkénti (V001…V010) táblázatos tesztkészlet a T-106 tárgya, implementáció (T-105) nélkül nem futtatható. |
 | TR-02…TR-08 | **NEM FUTOTT** – ezek a generátorhoz (TR-02, TR-03), a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |
 
+
+---
+
+## 2026-11-11 – T-105: a tudástár-validátor implementációja (`core/quiz`)
+
+Környezet: `JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
+Windows PowerShell, Gradle wrapper (`.\gradlew.bat`).
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | **0** | `BUILD SUCCESSFUL`; 65 teszt, 0 hiba, 0 kihagyva |
+| `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL`; `app/build/outputs/apk/debug/app-debug.apk` – 19 655 673 bájt |
+
+Tesztosztályok és -számok a JUnit XML-ből:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `hu.kyokushin.trainer.core.quiz.validation.DefaultKnowledgeValidatorTest` | 25 | 0 |
+| `hu.kyokushin.trainer.core.quiz.validation.KnowledgeValidatorContractTest` | 5 | 0 |
+| `hu.kyokushin.trainer.core.model.ContentModelTest` | 11 | 0 |
+| `hu.kyokushin.trainer.core.model.UserDataModelTest` | 11 | 0 |
+| `hu.kyokushin.trainer.core.model.IdentifiersTest` | 7 | 0 |
+| `hu.kyokushin.trainer.core.model.DomainEnumsTest` | 6 | 0 |
+
+Lefedett követelmények a tesztnevekben: **TR-01** (V001 nem támogatott major / hiányzó
+sémaverzió → teljes elutasítás; V002 blank kötelező mező → rekordelvetés; V003 duplikált
+`id` → a *későbbi* rekord esik ki; V004 ismeretlen `categoryId` → rekordelvetés; V005
+hiányzó fájl, lógó `ref`, licenc nélküli és szándékos helyőrző kép; V009 üres/önütköző/
+duplikált alias), **CR-07** (V006 szinonimacsoportok normalizált névből, aliasra is),
+**CR-02** (a `verified = false`/hiányzó soha nem lesz `VERIFIED`; az ismeretlen
+`datasetKind` a szigorúbb `PRACTICE_ON_UNREVIEWED`-ot adja; a lógó képhivatkozás `VERIFIED`
+tartalmat is `INCOMPLETE`-re fokoz le), **ADR-010** (V007 hiányos rekord → nulla kvízképes
+típus; V008 nem kvízben használható kép → csak a szöveges típusok maradnak), **FR-31**
+(a legdurvább, mindenhol `null`/blank bemenet sem dob kivételt), **NFR-07** (ugyanaz a
+bemenet kétszer bitre azonos jelentést ad), **FR-03** (a `romajiAscii` származtatása).
+
+### Kézi próba a valós tudástáron (nem része a commitolt tesztkészletnek)
+
+A `knowledgebase_transfer/manifest.json` + `entries.json` (161 rekord, 9 kategória,
+10 illusztráció) tartalmából generált, **ideiglenes** teszttel lefuttatva, utána törölve:
+
+```
+accepted=161 rejected=0 trust=PRACTICE_ON_UNREVIEWED groups=0
+issues: (nincs)
+assets=10 quizUsableAssets=7
+asciiMismatch=1 [KY-0020:Ki o tsuke != Kirotsuke]   <- a konverter kimenete hibás, nem a validátor
+searchMismatch=0
+```
+
+A 7 kvízben használható kép megfelel a 10 illusztrációnak mínusz a 3 feliratos
+(`quiz_usable: false`) képnek.
+
+Rétegszabály-ellenőrzés: a `core/quiz` Kotlin JVM modul; `grep` szerint a főkódban nincs
+`android`/`androidx`/`room` import, sem `Instant.now()`, `System.currentTimeMillis()` vagy
+`Random.Default` hívás (ADR-001 L1, NFR-07). A `NameNormalizer` csak JDK API-t használ
+(`java.text.Normalizer`, `java.util.Locale.ROOT`), ami Androidon is elérhető.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-105 nem tartalmaz instrumentált tesztet. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| `V010` szabály | **NEM TESZTELHETŐ ITT** – a kódot nem a validátor állítja elő, hanem a `core/data` importréteg a deszerializálás meghiúsulásakor (T-115). |
+| TR-01 teljes szabálytáblázat | **RÉSZBEN FUTOTT** – minden szabály (V001…V009) legalább egy, a hatását bizonyító esettel szerepel, de a szabályonkénti, táblázatos (parametrizált) készlet a T-106 tárgya. |
+| TR-02…TR-08 | **NEM FUTOTT** – a generátorhoz (TR-02, TR-03), a scoringhoz (TR-04), a tartalomfrissítéshez (TR-05) és a UI-hoz (TR-06…TR-08) tartoznak. |

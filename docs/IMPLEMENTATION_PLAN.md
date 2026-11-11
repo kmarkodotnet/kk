@@ -72,7 +72,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 2.1 | `core/model`: value class ID-k, enumok, `Technique`, `Category`, `IllustrationRef`, felhasználói adatmodellek | DR-01…DR-04 | ✅ **kész** – T-101, T-102, T-103 (ID-k, enumok, `Technique`/`Category`/`IllustrationRef`, `QuizAttempt`/`StudyReview`/`QuizSession`); 35 zöld teszt |
-| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 kész: a szerződés (`KnowledgeValidator`, `KnowledgeInput`, `ValidationReport`, `RejectedRecord`, `ValidationIssue`, `IssueCode` V001…V010, `Severity`, `IssueScope`), 5 zöld szerződésteszt; a szabályok implementációja a T-105 |
+| 2.2 | `core/quiz` validátor: `KnowledgeValidator`, `ValidationReport`, V001…V010 | DR-05, FR-31 | 🟡 **részben** – T-104 (szerződés) és T-105 (implementáció) kész: `DefaultKnowledgeValidator` a V001…V009 szabályokkal, `NameNormalizer` (egy helyen definiált normalizálás, a T-202 keresés is ezt kapja), `QuizEligibility` (ADR-010 formula), 30 zöld teszt a modulban; a V010 a `core/data` importrétegé (T-115), a TR-01 teljes táblázata a T-106 |
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ⬜ |
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07 | ⬜ |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ⬜ |
@@ -165,9 +165,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-105…T-106** – a validátor szabály-implementációja + **TR-01 tesztek**. (**A T-104
-   lezárva:** a validátor szerződése és hibatípusai állnak, a `core/quiz` Android-mentes
-   marad, és a modul megkapta a `testDebugUnitTest` gyűjtőtaskot.)
+1. **T-106** – a **TR-01 tesztek** szabályonkénti, táblázatos készlete. (**A T-105
+   lezárva:** a `DefaultKnowledgeValidator` végrehajtja a V001…V009 szabályokat, a valós
+   161 rekordos tudástáron `accepted = 161`, `rejected = 0`, nulla észrevétel.)
 2. **T-107…T-112** – kvízgenerátor + **TR-02, TR-03 tesztek**: az **M1 mérföldkő** magja,
    ahol eldől, hogy a termék helyes-e.
 3. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
@@ -225,3 +225,21 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   `DatasetKind` és `contentVersion` néven szerepel, és `techniqueId: TechniqueId?`-t ír a
   `ValidationIssue`-ba – a megvalósult szerződés a task-fájlt követi; a szakasz átvezetése
   a dokumentációs körben (T-608 / `/kyo-doc-sync`) esedékes.
+- 2026-11-11 – **T-105 kész** (Fázis 2.2 részben; a V010 és a TR-01 táblázat kint marad):
+  `DefaultKnowledgeValidator` – V001 (semver **major**, nem támogatott → teljes elutasítás),
+  V002/V003/V004 (rekordelvetés minden indokkal együtt), V005 (`Asset` → `Placeholder`
+  lefokozás; a *lógó* hivatkozás ráadásul `INCOMPLETE` státuszt ad, a hiányzó fájl nem),
+  V006 (szinonimacsoportok a normalizált nevekből), V007/V008 (ADR-010 kapu, csak lefokozás),
+  V009 (üres, önütköző és duplikált alias eldobása). Új, újrahasznosítható építőkövek:
+  `NameNormalizer` (FR-03/V006 – a T-202 keresés is ezt hívja) és `QuizEligibility`
+  (ADR-010 formula – a T-108 jelöltszűrés is ezt hívja).
+  `.\gradlew.bat testDebugUnitTest` **exit 0** – 65 teszt, 0 hiba;
+  `.\gradlew.bat assembleDebug` **exit 0**.
+  *Szerződésmódosítás:* a `schemaVersion` típusa `Int?` → `String?` (ADR-011: a
+  `schema_version` semver string, és a V001 a major verzión dől el); a T-104 szerződésteszt
+  frissült.
+  *Drift:* a `kyo-knowledge-base` skill 2–4. pontja még `Int`-es `schemaVersion`-t és szigorú
+  V007-et ír – az ADR-010/ADR-011 ezt felülírta, az átvezetés a Fázis 3.3 (T-608) dolga.
+  *Adathiba (javasolt új task):* a konverter `japanese_romaji_ascii` értéke a `KY-0020`
+  rekordon `"Kirotsuke"` a `"Ki o tsuke"` helyett; az appot nem érinti (a validátor
+  újraszámolja), de a `knowledgebase_transfer/tools/convert.py` kimenetét javítani kell.

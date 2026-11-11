@@ -58,7 +58,7 @@ class KnowledgeValidatorContractTest {
     fun validator_invalidContent_reportsIssuesInsteadOfThrowing_TR01() {
         val validator = RejectEverythingValidator()
         val input = KnowledgeInput(
-            manifest = ManifestInput(schemaVersion = 99),
+            manifest = ManifestInput(schemaVersion = "99.0.0"),
             entries = listOf(TechniqueInput(id = "", romaji = null, hungarian = null)),
         )
 
@@ -72,7 +72,7 @@ class KnowledgeValidatorContractTest {
         assertThat(value.issuesOf(IssueCode.V002)).hasSize(1)
         assertThat(value.issuesOf(IssueCode.V001).single().severity).isEqualTo(Severity.BLOCKING)
         assertThat(value.datasetRejected).isTrue()
-        assertThat(value.schemaVersion).isEqualTo(99)
+        assertThat(value.schemaVersion).isEqualTo("99.0.0")
     }
 
     /**
