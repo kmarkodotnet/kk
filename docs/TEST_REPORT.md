@@ -1214,3 +1214,88 @@ felelősségmegosztást.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-115 tisztán JVM unit teszt. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
 | TR-05 | **NEM FUTOTT** – a tartalomfrissítés előrehaladás-megőrzése Room sémát és importálót igényel: T-116, T-117, majd a tesztek T-118. |
+
+---
+
+## 2026-11-11 – T-116: Room séma (core/data)
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:kspDebugKotlin` | 0 | BUILD SUCCESSFUL – a séma JSON létrejött: `core/data/schemas/hu.kyokushin.trainer.core.data.db.KyokushinDatabase/1.json` |
+| `.\gradlew.bat :core:data:testDebugUnitTest` | 0 | BUILD SUCCESSFUL – **52 teszt, 0 hiba, 0 kihagyott** (`KyokushinTypeConvertersTest` 10, `RoomSchemaContractTest` 14, `DaoContractTest` 2, `KyokushinDatabaseTest` 10, a T-115 16 tesztje változatlanul zöld) |
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **314 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 227 + core/data 52); 36 új teszt |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 772 902 bájt) |
+
+A tesztszámok a `*/*/build/test-results/**/TEST-*.xml` JUnit XML-ek `tests`, `failures`,
+`errors` és `skipped` attribútumainak összegei, nem becslés.
+
+### Amit a tesztek mérnek
+
+| Teszt | Mit rögzít |
+|---|---|
+| `converter_instant_roundTripsThroughEpochMilli_DR08` | `Instant` ↔ `Long` epoch milli, oda-vissza |
+| `converter_instant_nullStaysNullForUnfinishedSession_FR19` | a befejezetlen menet `finishedAt`-ja NULL marad |
+| `converter_instant_epochAndNegativeValuesSurvive_DR08` | `Instant.EPOCH` és epoch előtti időpont is sértetlen |
+| `converter_instant_subMillisecondPrecisionIsIntentionallyTruncated_DR08` | a nanoszekundumos rész tudatos vesztése (csonkolás, nem kerekítés) |
+| `converter_enums_arePersistedByNameNotOrdinal_DR08` | a tárolt alak a konstans **neve**, nem szám |
+| `converter_enums_everyConstantRoundTrips_DR08` | mind az 5 enum minden konstansa oda-vissza |
+| `converter_enums_unknownStoredValueThrowsInsteadOfSilentDefault_CR02` | ismeretlen tárolt érték **dob**, nem esik vissza engedékenyebb értékre |
+| `converter_illustrationKind_nullMeansNoIllustrationReference_ADR003` | a „nincs illusztráció" állapot a NULL oszlopérték |
+| `converter_identifiers_roundTripThroughTheirFactory_DR03` | a value class azonosítók a privát konstruktor helyett az `of()` gyáron át |
+| `converter_identifiers_blankStoredValueIsRejectedByTheFactory_DR01` | üres azonosító az adatbázisból sem jut a domainbe |
+| `schema_isExportedForTheCurrentVersion_DR08` | a sémaexport megvan, `version = 1`, `identityHash` kitöltött |
+| `schema_containsEveryContentAndUserTable_DR04` | pontosan a 5 tartalom- és 3 felhasználói tábla |
+| `quizAttempt_hasUniqueIndexOnSessionAndQuestion_FR18` | **egyetlen** egyedi index, és az a `(sessionId, questionId)` páron (ADR-005) |
+| `quizAttempt_createSqlDeclaresTheUniqueIndex_FR18` | a tényleges DDL `CREATE UNIQUE INDEX` – a megszorítás az adatbázisban él |
+| `userTables_haveNoForeignKeyToContentTables_DR07` | a felhasználói tábláknak **nincs** idegen kulcsa tartalomtáblára |
+| `userTables_techniqueReferenceIsPlainIndexedColumn_TR05` | a `techniqueId` sima, indexelt TEXT oszlop FK nélkül |
+| `contentTables_neverCascadeIntoUserTables_DR07` | a megfordított irány is tilos |
+| `technique_referencesCategoryWithoutCascade_ADR004` | a tartalmon belüli kategória-hivatkozás `NO ACTION` |
+| `quizAttempt_cascadesOnlyFromItsOwnSession_DR07` | az egyetlen `CASCADE` felhasználói → felhasználói irányban van |
+| `schema_storesInstantsAsIntegerEpochMilli_DR08` | mind az 5 időbélyeg-oszlop INTEGER |
+| `schema_storesEnumsAsTextNotOrdinal_DR08` | mind az 5 enum-oszlop TEXT |
+| `schema_identifiersAreTextAndGeneratedKeysAreInteger_DR04` | `quiz_session.id` TEXT (domain adja), `quiz_attempt.id`/`study_review.id` INTEGER `autoGenerate` |
+| `technique_hasNoQuizEligibleColumn_ADR010` | nincs `quizEligible` oszlop – származtatott érték |
+| `dataModule_neverFallsBackToDestructiveMigration_DR08` | a modul forrásában nincs `fallbackToDestructiveMigration(` és `allowMainThreadQueries(` hívás (a KDoc-említések kiszűrve) |
+| `dao_everyFunctionIsSuspendOrReturnsFlow_NFR01` | mind a 8 DAO minden függvénye `suspend` vagy `Flow` – reflexióval a lefordított interfészen |
+| `dao_databaseExposesEveryDao_DR04` | nincs tábla DAO nélkül |
+| `recordAttempt_secondAnswerToTheSameQuestionIsIgnoredNotDuplicated_FR18` | a második válasz `-1`-et ad, 1 sor marad, és az **első** ítélet marad meg |
+| `recordAttempt_differentQuestionsInTheSameSessionAreBothRecorded_FR18` | az index nem fog túl sokat |
+| `recordAttempt_sameTechniqueTwiceInOneSessionIsAllowed_ADR005` | ugyanaz a technika két külön kérdésben rögzülhet |
+| `recordAttempt_theSameQuestionInANewSessionIsRecordedAgain_FR21` | a hibák újragyakorlása új `sessionId`-vel nem ütközik |
+| `userData_survivesRetiringAndDeletingTheTechnique_TR05` | `retired` jelölés **és** a technikasor fizikai törlése után is megvan a próbálkozás és az önértékelés |
+| `contentUpsert_isIdempotentAndKeepsUserRows_FR32` | ugyanaz a rekord újra betöltve upsert, a felhasználói sor érintetlen |
+| `deletingASession_cascadesToItsOwnAttemptsOnly_DR07` | a menet törlése a saját válaszait viszi, az önértékelést és a tartalmat nem |
+| `storedColumns_holdEnumNamesAndEpochMillis_DR08` | nyers SQL olvasás: `"IMAGE_TO_JP"`, epoch milli, TEXT azonosító |
+| `unfinishedSession_keepsNullFinishedAtUntilClosed_FR19` | a lezárás egyszer ír, másodszor nem |
+| `contentState_staysASingleRowAcrossImports_DR04` | a `content_state` egysoros marad |
+
+### Az exportált séma tényleges tartalma
+
+A `1.json` ellenőrzött lényege (a tesztek ezt állítják, nem leírás):
+
+- `quiz_attempt`: `index_quiz_attempt_sessionId_questionId` **unique**, és egy sima index a
+  `techniqueId`-n; egyetlen idegen kulcs: `quiz_session(sessionId)` `CASCADE`.
+- `study_review`: **nulla** idegen kulcs, sima index a `techniqueId`-n.
+- `technique`: egyetlen idegen kulcs a `category`-ra, `NO ACTION`; nincs `quizEligible` oszlop.
+- Időbélyegek `INTEGER`, enumok és azonosítók `TEXT`.
+
+### Rétegszabály, NFR-07, felhasználói szöveg
+
+- A `db` csomagban **nincs public deklaráció**: minden entitás, DAO, konverter és az
+  adatbázis is `internal` (ADR-001 L3/L4, TR-07).
+- Nincs `Clock`, `Instant.now()` vagy `Random` hívás (NFR-07): a konverter kapott értéket
+  alakít, a tesztek fix időbélyegeket használnak.
+- Felhasználói szöveg nem keletkezett. A konverterek kivételszövegei **fejlesztői
+  diagnosztika** (olvashatatlan adatbázisérték), nem UI-felirat – nem `strings.xml`-be tartoznak.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03). A séma viselkedését emulátor helyett Robolectric + in-memory Room méri. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| Room `MigrationTestHelper` | **NEM FUTOTT** – `version = 1`, migráció még nem létezik; az első migrációs teszt a `2.json` megjelenésekor esedékes (DR-08). |
+| TR-05 teljes lefedése | **RÉSZBEN** – a `userData_survivesRetiringAndDeletingTheTechnique_TR05` és a `contentUpsert_isIdempotentAndKeepsUserRows_FR32` a séma szintjén már bizonyítja az előrehaladás megőrzését, de a teljes TR-05 (átnevezés, valódi `contentVersion` váltás a `ContentImporter`-en keresztül, statisztika-változatlanság) a T-117 után, a T-118 tárgya. |

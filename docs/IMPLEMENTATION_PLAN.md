@@ -90,8 +90,8 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 3.1 | A kanonikus séma implementálása (ADR-011): manifest + `entries`, `schema_version` string | FR-29 | ✅ **kész** – T-115: `core/data` `internal` DTO-k (`ManifestDto`, `CategoryDto`, `IllustrationDto`, `EntriesFileDto`, `EntryDto`) `@SerialName` snake_case leképezéssel és `ignoreUnknownKeys = true`, `KnowledgeAssetSource` + `AndroidKnowledgeAssetSource` (assets-olvasás, képfájllista), `KnowledgeContentReader` (`Parsed` / `Unreadable` → **V010**), DTO → `KnowledgeInput` mapper. 16 új teszt, a valódi 161 rekordon is |
 | 3.2 | A `knowledgebase/` tartalom bemásolása `app/src/main/assets/knowledge/` alá + `editorial_status` alapú `datasetTrust` (ADR-010) | CR-01, CR-03 | ⬜ |
 | 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ⬜ |
-| 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ⬜ |
-| 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ⬜ |
+| 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ✅ **kész** – T-116: `KyokushinDatabase` (`version = 1`, `exportSchema = true`), 5 tartalom- és 3 felhasználói tábla, 8 `internal` DAO (minden művelet `suspend` vagy `Flow`), `KyokushinTypeConverters` (`Instant` ↔ epoch milli, enum ↔ **név**, azonosító value classok az `of()` gyárukon át). A felhasználói táblák `techniqueId`-jén **nincs** idegen kulcs a tartalomra (ADR-004) |
+| 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
 | 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ⬜ |
 | 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | ⬜ |
 | 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ⬜ |
@@ -165,14 +165,14 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-116** – `core/data`: a Room séma (tartalom- és felhasználói táblák, DAO-k,
-   `@TypeConverter`-ek, `UNIQUE(sessionId, questionId)` index). (**A T-115 kész:** a
-   kanonikus séma beolvasása, a V010 és a DTO → `KnowledgeInput` leképezés megvan,
-   278 zöld teszttel.)
-2. **T-117** – `core/data`: a `ContentImporter` (a `KnowledgeContentReader` kimenetéből
+1. **T-117** – `core/data`: a `ContentImporter` (a `KnowledgeContentReader` kimenetéből
    validátor → upsert, idempotens, `retired` jelölés, a tartalomfrissítés
-   előrehaladás-megőrzésével).
-3. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése.
+   előrehaladás-megőrzésével). (**A T-116 kész:** a Room séma, a DAO-k és a konverterek
+   megvannak, 314 zöld teszttel; a sémaexport a `core/data/schemas/` alatt van.)
+2. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése. A
+   Robolectric + in-memory Room futtatás a T-116 óta bizonyítottan működik ehhez.
+3. **T-201** – `core/data`: `TechniqueRepository` implementáció (entitás → domain mapper,
+   `retired = false` szűrés).
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
@@ -427,3 +427,29 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   *Nem futott:* az `AndroidKnowledgeAssetSource` vékony delegáló osztályára nincs unit teszt
   (a `core/data` modulnak nincs saját assets könyvtára, a tartalom másolása a T-601) –
   lásd `docs/TEST_REPORT.md`.
+- 2026-11-11 – **T-116 kész (Fázis 3.4, 3.5): a Room séma a `core/data`-ban.**
+  Új, kizárólag `internal` perzisztenciaréteg a `hu.kyokushin.trainer.core.data.db`
+  csomagban: `KyokushinDatabase` (`version = 1`, `exportSchema = true`, a séma JSON a
+  `core/data/schemas/` alatt), 5 tartalomtábla (`category`, `technique`,
+  `technique_alias`, `synonym_group`, `content_state`), 3 felhasználói tábla
+  (`quiz_session`, `quiz_attempt`, `study_review`), 8 DAO – **minden művelet `suspend`
+  vagy `Flow`**, `allowMainThreadQueries` nincs.
+  **ADR-005:** `UNIQUE(sessionId, questionId)` a `quiz_attempt`-en, és
+  `OnConflictStrategy.IGNORE` beszúrás, így a második válasz nem kivétel, hanem `-1`
+  sorazonosító – ebből lesz a `ProgressRepository.recordAttempt` `false` válasza.
+  **ADR-004:** a `quiz_attempt` és a `study_review` `techniqueId` oszlopán **nincs**
+  idegen kulcs a `technique` táblára (nem is `NO_ACTION`): a `NO_ACTION` beszúrási
+  kényszert adna, és újra összekötné a tartalom és az előrehaladás életciklusát (DR-07).
+  Az egyetlen `CASCADE` felhasználói adat → felhasználói adat irányban van
+  (`quiz_attempt.sessionId` → `quiz_session`).
+  `@TypeConverter`: `Instant` ↔ `Long` epoch milli, enum ↔ a konstans **neve** (nem
+  `ordinal`, mert az átrendezésre törékeny), és az azonosító value classok a privát
+  konstruktoruk helyett az `of()` gyárukon át – így üres azonosító az adatbázisból sem
+  kerülhet a domainbe. Ismeretlen enum-név visszaolvasása **dob**, nem esik vissza
+  engedékenyebb értékre (CR-02).
+  Szándékos eltérés az ARCHITECTURE 5.2 táblázatától: a `technique` táblán **nincs**
+  `quizEligible` oszlop – a kvízjogosultság származtatott érték (ADR-010).
+  `fallbackToDestructiveMigration()` sehol; ezt teszt is tiltja (DR-08).
+  **314 zöld teszt** (36 új: 10 konverter, 14 sémaszerződés az exportált JSON-ból, 2 DAO
+  szerződés reflexióval, 10 in-memory adatbázis Robolectricen), `testDebugUnitTest` és
+  `assembleDebug` exit 0. Következő: T-117, a `ContentImporter`.

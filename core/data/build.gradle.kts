@@ -21,6 +21,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    testOptions {
+        unitTests {
+            // A Room séma tényleges viselkedését (UNIQUE index, cascade hiánya) Robolectric
+            // alatt, in-memory adatbázison mérjük – emulátor nélkül. Ehhez a unit teszt
+            // JVM-nek látnia kell az Android erőforrásokat és a csomagolt manifestet.
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {

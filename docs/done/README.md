@@ -29,3 +29,4 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-113](T-113-core-quiz-quizscoring.md) | core/quiz: QuizScoring | E1 | `core/quiz` | 2026-11-11 |
 | [T-114](T-114-tr-04-eredmenyszamitas-tesztek.md) | TR-04: eredményszámítás tesztek | E1 | `core/quiz` | 2026-11-11 |
 | [T-115](T-115-core-data-a-kanonikus-sema-beolvasasa.md) | core/data: a kanonikus séma beolvasása | E1 | `core/data` | 2026-11-11 |
+| [T-116](T-116-core-data-room-sema.md) | core/data: Room séma | E1 | `core/data` | 2026-11-11 |
