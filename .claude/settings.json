@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(./gradlew:*)",
+      "Bash(gradlew.bat:*)",
+      "Bash(java -version)",
+      "Bash(javac -version)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(sed -n:*)",
+      "Bash(mkdir:*)",
+      "Bash(python -m json.tool:*)",
+      "PowerShell(Get-Content:*)",
+      "PowerShell(Test-Path:*)",
+      "PowerShell(Get-ChildItem:*)",
+      "Read(//F/Claude/kyo/**)",
+      "Grep(//F/Claude/kyo/**)",
+      "Glob(//F/Claude/kyo/**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "WebFetch"
+    ]
+  },
+  "env": {
+    "GRADLE_OPTS": "-Dorg.gradle.jvmargs=-Xmx2g"
+  }
+}

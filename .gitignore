@@ -1,0 +1,28 @@
+# Gradle / build
+.gradle/
+build/
+*/build/
+local.properties
+captures/
+.cxx/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.kotlin/
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+output.json
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Claude helyi beállítás (gépspecifikus)
+.claude/settings.local.json
