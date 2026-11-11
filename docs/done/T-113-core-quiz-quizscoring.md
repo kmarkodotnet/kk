@@ -48,3 +48,29 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-11 |
+| Commit | PENDING |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | 245 teszt, 0 hiba (core/model 35 + core/quiz 210; 9 új a `QuizScoringTest`-ben) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:** A `Score` nem csak hordozza a nullable arányt, hanem **kikényszeríti**: az
+`init` blokk visszautasítja a `Score(0, 0, 0.0)`-t és az `answered > 0` melletti `null`-t is,
+így a FR-27 szabálya a típus szintjén él, nem csak a `score()` törzsében. A `score()` a
+tervben nem szereplő, de az US-03 4. elfogadási kritériumához tartozó **dedupot** is elvégzi
+a `(sessionId, questionId)` páron (a legkorábbi `answeredAt` nyer) – a tárolás `UNIQUE`
+indexe (ADR-005) mellett ez a második védelem a dupla koppintás ellen, és a T-114 erre a
+viselkedésre írhatja a TR-04 dupla-válasz esetét. A T-114-nek nincs több hátralévő
+előkészítése; a `Score` ratio **arány 0..1**, nem százalék – a formázás és a „nincs adat"
+magyar szöveg a T-411 eredményképernyőjére tartozik.

@@ -76,8 +76,8 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 2.3 | **Validátor tesztek** (táblázatos, minden hibakódra) | **TR-01** | ✅ **kész** – T-106: `KnowledgeValidationRuleTableTest` 31 nevesített, parametrizált eset a V001…V010 kódokra + `KnowledgeValidationRuleCoverageTest` (gépi lefedettségi őr), `KnowledgeValidatorGuaranteesTest` (nem dob kivételt / nem emel státuszt), `RealKnowledgeBaseValidationTest` (a valós 161 rekord, 0 BLOKKOLÓ hiba). **105 zöld teszt**, `testDebugUnitTest` és `assembleDebug` exit 0 |
 | 2.4 | `core/quiz` generátor: `QuizRequest`/`QuizPlan`, jelöltszűrés, distraktorválasztás, seedelt keverés, `dryRun` | FR-14, FR-22, CR-07, NFR-07 | ✅ **kész** – T-107 (szerződés), T-108 (jelöltszűrés), T-109 (distraktorválasztás), T-110 (seedelt determinizmus) és T-111 (`dryRun` készenléti összegzés): a `QuizCandidateFilter`, a `DistractorSelector` és a `DefaultQuizGenerator` – Fisher–Yates keverés kizárólag a seedelt RNG-ből, kérdés- és opciósorrend a seedből, ismétlésmentes helyes válaszok, tényleges `Shortfall`, és kérdésépítés nélküli `dryRun`, amely a `generate`-tel közös slotlistából számol |
 | 2.5 | **Generátor tesztek** (invariánsok, seed-determinizmus, fallback, típusjogosultság) | **TR-02, TR-03** | ✅ **kész** – T-112: a nyolc kvízmotor-invariáns egy 21 kérés × 7 seed mátrixon és a valódi 161 rekordos tartalmon; kategóriaszűrés, feliratos/placeholder/hiányzó kép, shortfall-okprioritás, `dryRun` ↔ `generate` egyezés a közös `questionSlots` ponton. **236 zöld teszt** |
-| 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ⬜ |
-| 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | ⬜ |
+| 2.6 | `QuizScoring` nullable százalékkal | FR-27 | ✅ **kész** – T-113: `core.quiz.scoring.QuizScoring.score(attempts): Score` tiszta függvényként, `Score(answered, correct, ratio: Double?)`; 0 megválaszolt kérdés → `ratio == null` (nem `0.0`), a `Score` init blokkja ezt az invariánst típusszinten is kikényszeríti. Egy kérdés egyszer számít: a `(sessionId, questionId)` páron dedup, a legkorábbi `answeredAt` nyer (FR-18). A helyességet nem számolja újra, a `QuizAttempt.correct`-et összegzi (DR-09) |
+| 2.7 | **Scoring tesztek** (0%, 100%, félbehagyott, dupla, nulla válasz) | **TR-04** | 🟡 **részben** – T-113 alaptesztek (`QuizScoringTest`, 9 eset: nulla válasz, 0%, 100%, félbehagyott, dupla válasz, több munkamenet, sorrendfüggetlenség, `Score` invariánsok). A teljes TR-04 készlet a T-114 tárgya |
 | 2.8 | Ellenőrzés: `./gradlew testDebugUnitTest` | NFR-12 | ⬜ |
 
 > Ez a fázis a termék helyességének magja, és **Android SDK nélkül is fordítható/tesztelhető**
@@ -165,10 +165,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-113…T-114** – `QuizScoring` + **TR-04 tesztek**: nullable sikerarány, félbehagyott
-   kvíz, dupla válasz (a T-103 `QuizAttempt`-jére épül). Ez a két task zárja a Fázis 2-t és
-   vele az **M1** mérföldkövet. (**A T-112 lezárva:** TR-02 és TR-03 lefedve, a kvízmotor
-   helyessége igazolt.)
+1. **T-114** – **TR-04 tesztek**: a teljes eredményszámítási készlet (0%, 100%, félbehagyott,
+   dupla válasz, nulla válasz) a már meglévő `QuizScoring`-ra. Ez a task zárja a Fázis 2-t és
+   vele az **M1** mérföldkövet. (**A T-113 lezárva:** `QuizScoring` + `Score` nullable
+   aránnyal, 9 alapteszttel; a `score` szerződése – dedup a `(sessionId, questionId)` páron,
+   a `correct` mező összegzése – a T-114 kiindulópontja.)
 2. **T-115…T-117** – `core/data`: a kanonikus séma beolvasása, a Room séma és a
    `ContentImporter` (a tartalomfrissítés előrehaladás-megőrzésével).
 3. **T-118** – **TR-05 tesztek**: a tartalomfrissítés előrehaladás-megőrzése.
@@ -363,3 +364,15 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   ponton forrásellenőrzéssel is rögzítve. **236 zöld teszt** (core/model 35 + core/quiz 201;
   34 új), `testDebugUnitTest --rerun-tasks` és `assembleDebug` exit 0. Hátra az M1-hez: a
   T-113 `QuizScoring` és a T-114 TR-04 készlet.
+- 2026-11-11 – Fázis 2.6 kész: **T-113 `QuizScoring`**. A `core.quiz.scoring` csomagban
+  `object QuizScoring { fun score(attempts: List<QuizAttempt>): Score }` tiszta függvényként –
+  nincs állapot, nincs mellékhatás, nincs óra- és véletlenhívás (a modul forrásellenőrzéses
+  NFR-07 tesztje a scoring fájlra is lefut). A `Score(answered, correct, ratio: Double?)`
+  aránya **nullable**: 0 megválaszolt kérdés → `null`, nem `0.0` (FR-27), és ezt a `Score`
+  init blokkja is kikényszeríti, így egy üres összegzés típusszinten sem gyártható 0%-kal.
+  Egy kérdés egyszer számít (FR-18): a `(sessionId, questionId)` páron dedup, a legkorábbi
+  `answeredAt` nyer, ezért sem a dupla koppintás, sem egy újrajátszott eseménysor nem
+  duplázza az eredményt; a meg nem válaszolt kérdés nem hibás, csak nem szerepel. A
+  helyességet nem számolja újra, a `QuizAttempt.correct` mezőt összegzi (DR-09). **245 zöld
+  teszt** (core/model 35 + core/quiz 210; 9 új a `QuizScoringTest`-ben), `testDebugUnitTest`
+  és `assembleDebug` exit 0. Hátra az M1-hez: a T-114 teljes TR-04 készlet.

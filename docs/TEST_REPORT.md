@@ -996,3 +996,68 @@ Felhasználói szöveg nem keletkezett.
 | TR-04…TR-08 | **NEM FUTOTT** – az eredményszámítás (TR-04) a T-113/T-114, a tartalomfrissítés (TR-05) a T-115…T-118, a UI (TR-06…TR-08) a 2. mérföldkő tárgya. |
 
 **TR-02 és TR-03 ezzel lefedett: az M1 mérföldkő kvízhelyességi magja kész.**
+
+---
+
+## 2026-11-11 – T-113: QuizScoring (core/quiz)
+
+**Környezet:** Windows 11 Pro, JDK 17.0.21+9 (Eclipse Adoptium), Gradle wrapper,
+`JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – összesen **245 teszt, 0 hiba, 0 kihagyott** (core/model 35 + core/quiz 210) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk` (19 688 289 bájt) |
+
+A tesztszámok a `core/*/build/test-results/test/TEST-*.xml` JUnit XML-ek `tests`,
+`failures`, `errors` és `skipped` attribútumainak összegei, nem becslés. Az új
+`QuizScoringTest` önmagában **9 teszt, 0 hiba**.
+
+### Ami elkészült
+
+`core/quiz/src/main/kotlin/.../scoring/QuizScoring.kt`:
+
+- `data class Score(answered: Int, correct: Int, ratio: Double?)` – a `ratio` **nullable**:
+  0 megválaszolt kérdés → `null`, nem `0.0` (FR-27). Az `init` blokk ezt az invariánst
+  kétirányúan kikényszeríti (`answered == 0` → `ratio == null`; `answered > 0` → `ratio`
+  nem null és `0.0..1.0`), továbbá `correct in 0..answered`.
+- `object QuizScoring { fun score(attempts: List<QuizAttempt>): Score }` – tiszta függvény:
+  nincs állapot, nincs mellékhatás, nincs óra- és nincs véletlenhívás. A modul már meglévő
+  forrásellenőrzéses NFR-07 tesztje (`quizModuleMainSources_containNoUnseededRandomOrClock_NFR07`)
+  az új fájlt is átvizsgálja, és zöld.
+- Egy kérdés egyszer számít (FR-18): dedup a `(sessionId, questionId)` páron, a legkorábbi
+  `answeredAt` nyer, azonos időbélyegnél a lista sorrendje dönt. A meg nem válaszolt kérdés
+  nem szerepel az összegzésben, és nem hibás.
+- A helyességet nem számolja újra: a `QuizAttempt.correct` mezőt összegzi (DR-09).
+
+### A `QuizScoringTest` esetei (9)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `score_noAttempts_hasNoRatioInsteadOfZeroPercent_FR27` | 0 válasz → `ratio == null`, nem `0.0` |
+| `score_allWrong_isZeroRatioNotMissingData_FR27` | a 0% valós adat, nem esik `null`-ra |
+| `score_allCorrect_isFullRatio_FR20` | 100% határeset |
+| `score_abandonedQuiz_countsOnlyAnsweredQuestions_FR20` | 10-ből 4 megválaszolt, 3 helyes → 75% |
+| `score_repeatedAnswerForSameQuestion_countsFirstOnly_FR18` | dupla válasz nem duplázza az eredményt, az első számít |
+| `score_sameQuestionIdInDifferentSessions_bothCount_FR21` | a kulcs a `(sessionId, questionId)` pár, nem a kérdés |
+| `score_doesNotRecomputeCorrectnessFromIds_TR04` | szinonim választás esetén a mentett ítélet nyer (DR-09) |
+| `score_isPureAndOrderIndependent_NFR07` | sorrendfüggetlen és ismételhető eredmény |
+| `score_rejectsInconsistentManuallyBuiltScore_FR27` | a `Score` invariánsai kézi példányosításnál is tartanak |
+
+### Rétegszabály
+
+A `core/quiz` továbbra is csak a `core:model`-re és a `kotlinx-serialization-json`-ra függ;
+a scoring csomag `android`/`androidx`/`room`/`java.io` importot nem tartalmaz (ADR-001 L1,
+TR-07). Felhasználói szöveg nem keletkezett – a „nincs adat" szöveg és a százalékformázás a
+UI dolga (T-411), a `null` arány csak a jelzés.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy futó emulátor (B-03); a T-113 tisztán JVM unit teszt. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| TR-04 teljes készlet | **RÉSZBEN** – a fenti 9 alapteszt a szerződést fedi; a teljes TR-04 készlet (bővebb határesetek, valódi tartalom, aggregált statisztika) a T-114 tárgya. |
+| TR-05…TR-08 | **NEM FUTOTT** – a tartalomfrissítés (TR-05) a T-115…T-118, a UI (TR-06…TR-08) a 2. mérföldkő tárgya. |
