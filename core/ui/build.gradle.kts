@@ -45,7 +45,10 @@ dependencies {
     api(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
 
-    implementation(libs.androidx.core.ktx)
+    // `api`, nem `implementation`: a megosztott komponensek publikus API-ja `@StringRes`
+    // annotált erőforrás-azonosítókat hordoz (`TechniqueField`, `EmptyStateReason`), és
+    // az `androidx.annotation` ezen a függőségen keresztül jut a hívó modulokba.
+    api(libs.androidx.core.ktx)
     // A képdekódolás `Dispatchers.IO`-n fut, nem a kompozícióban – explicit függőség,
     // nem a Compose runtime tranzitív coroutines-ára támaszkodunk.
     implementation(libs.kotlinx.coroutines.core)

@@ -20,4 +20,51 @@
     <string name="illustration_placeholder_label">Ábra készül</string>
     <string name="illustration_awaiting_review">A kép szakmai ellenőrzésre vár</string>
 
+    <!--
+        Hitelesítési jelölők (FR-05, FUNCTIONAL_SPEC 2.2 és 8.).
+
+        A `verified = true` rekord SZÁNDÉKOSAN nem kap szöveget: a hitelesített állapot a
+        jelölő hiánya. Ezért nincs "content_verified" kulcs.
+    -->
+    <string name="content_unverified">Ellenőrzésre vár</string>
+    <string name="content_incomplete">Hiányos</string>
+    <string name="content_incomplete_missing_fields">Hiányzó mezők: %1$s</string>
+    <!--
+        A felsorolás elválasztója. A dupla idézőjel NEM a szöveg része: az Android
+        erőforrás-fordító különben levágná a záró szóközt.
+    -->
+    <string name="content_incomplete_missing_fields_separator">", "</string>
+
+    <!-- A hiányos rekord megnevezhető mezői (a jelölő felsorolásához). -->
+    <string name="content_field_romaji">romaji név</string>
+    <string name="content_field_hungarian">magyar jelentés</string>
+    <string name="content_field_category">kategória</string>
+    <string name="content_field_illustration">illusztráció</string>
+    <string name="content_field_japanese_script">japán írásmód</string>
+    <string name="content_field_description">leírás</string>
+
+    <!--
+        Lektorálatlanság-szalag (ADR-010). Nem elutasítható, nem elrejthető és nem
+        kikapcsolható: a szövege kizárólag a tartalom bizalmi szintjétől függ.
+    -->
+    <string name="content_unreviewed_banner">Lektorálatlan gyakorlóanyag – a tartalom szakmai ellenőrzésre vár.</string>
+
+    <!--
+        Üres állapotok (NFR-06, FUNCTIONAL_SPEC 2.4 és 8.).
+
+        Az ok dönti el a szöveget ÉS az akciót: a "nincs tartalom" betöltési hiba, a
+        "nincs találat" a keresés szűkítésének következménye.
+    -->
+    <string name="empty_library_no_content">A tudástár üres. A tartalom betöltése nem sikerült.</string>
+    <string name="empty_library_no_result">Nincs találat a(z) „%1$s” keresésre.</string>
+    <string name="empty_progress_no_data">Még nincs adat. Indíts egy kvízt!</string>
+    <string name="empty_quiz_not_enough_data">A kiválasztott beállításokkal nem állítható össze kvíz. Válassz több kategóriát, engedélyezz több kérdéstípust, vagy csökkentsd a kérdésszámot.</string>
+
+    <string name="empty_action_diagnostics">Diagnosztika</string>
+    <string name="empty_action_clear_filters">Szűrők törlése</string>
+
+    <!-- Hibaállapot (NFR-06, FUNCTIONAL_SPEC 10.). -->
+    <string name="error_load_failed">A tartalom betöltése nem sikerült.</string>
+    <string name="error_action_retry">Újra</string>
+
 </resources>

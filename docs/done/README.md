@@ -35,3 +35,5 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-201](T-201-core-data-techniquerepository.md) | core/data: TechniqueRepository | E2 | `core/data` | 2026-11-11 |
 | [T-202](T-202-core-data-kereses.md) | core/data: keresés | E2 | `core/data` | 2026-11-11 |
 | [T-203](T-203-di-hilt-modulok.md) | di: Hilt modulok | E2 | `di` | 2026-11-11 |
+| [T-204](T-204-core-ui-techniqueillustration.md) | core/ui: TechniqueIllustration | E2 | `core/ui` | 2026-11-11 |
+| [T-205](T-205-core-ui-jelolok-es-allapotkomponensek.md) | core/ui: jelölők és állapotkomponensek | E2 | `core/ui` | 2026-11-11 |

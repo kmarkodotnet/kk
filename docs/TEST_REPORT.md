@@ -1702,3 +1702,75 @@ hanem az `IllustrationLabel` szándéktípust, és a `QuizOption` ágon a techni
 | `@Preview` **tényleges kirenderelése** (világos/sötét) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel, fejnélküli CLI-ből nem fut. Ami igazolt: a négy előnézet-függvény (nyolc `@Preview` bejegyzés) **lefordul** (`:core:ui:compileDebugKotlin` exit 0), és a párosítás világos + `UI_MODE_NIGHT_YES` kódban ellenőrizhető. |
 | A kép **tényleges** megjelenítése assetből | **MÉG NINCS ASSET** – a `knowledge/illustrations/` tartalmát a T-601 teszi az `app/src/main/assets` alá. Addig az `Asset` ág a „hiányzó fájl” → helyőrző tartalékon fut, ami a FUNCTIONAL_SPEC 10. szerinti elvárt viselkedés (nincs összeomlás). |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-11 – T-205 · `core/ui`: jelölők és állapotkomponensek
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:ui:testDebugUnitTest` | **0** | `BUILD SUCCESSFUL in 5s` – a `core/ui` 28 tesztje zöld (18 új) |
+| `.\gradlew.bat testDebugUnitTest` | **0** | `BUILD SUCCESSFUL in 9s` – az Android modulok (`core/data`, `core/ui`, `app`) tesztjei zöldek |
+| `.\gradlew.bat test testDebugUnitTest --rerun-tasks` | **0** | `BUILD SUCCESSFUL in 30s` – a teljes készlet újrafúratva: **393 teszt, 0 hiba, 0 kihagyott** (a T-204 utáni 375-höz képest +18) |
+| `.\gradlew.bat assembleDebug` | **0** | `BUILD SUCCESSFUL in 2s` – `app/build/outputs/apk/debug/app-debug.apk` (20 296 639 byte) |
+
+Környezet: `JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`,
+Windows PowerShell, Gradle wrapper 9.9.1.
+
+Modulonkénti bontás a `build/test-results` XML-ekből: `core/quiz` 227, `core/data` 99,
+`core/model` 35, **`core/ui` 28**, `app` 4 – összesen 393, hiba és hibás befejezés 0.
+
+### Új tesztek (18)
+
+| Teszt | Mit igazol |
+|---|---|
+| `VerificationBadgeTextTest.verifiedRecord_hasNoBadgeAtAll_FR05` | a hitelesített rekord **nem** kap jelölőt – a hitelesség a jelölő hiánya (FUNCTIONAL_SPEC 2.2) |
+| `VerificationBadgeTextTest.awaitingReview_isLabelledAwaitingReview_FR05` | a címke pontosan „Ellenőrzésre vár" |
+| `VerificationBadgeTextTest.incomplete_isLabelledIncomplete_FR05` | a címke pontosan „Hiányos" |
+| `VerificationBadgeTextTest.incomplete_listsTheMissingFieldsByName_FR05` | a hiányzó mezők magyar megnevezéssel, az erőforrásból jönnek |
+| `VerificationBadgeTextTest.incomplete_withoutMissingFieldList_showsLabelWithoutDetail_FR05` | üres felsorolás mellett a chip részletezés nélkül áll, nem tűnik el |
+| `VerificationBadgeTextTest.awaitingReview_neverListsMissingFields_FR05` | ép, csak nem lektorált rekordnál nincs hiányzó mező, a hívó tévedése nem jut a képernyőre |
+| `VerificationBadgeTextTest.missingFields_areDeduplicated_FR05` | a kétszer átadott mező egyszer szerepel |
+| `VerificationBadgeTextTest.everyTechniqueField_hasAHungarianLabel_NFR02` | mind a hat `TechniqueField` értéknek van nem üres erőforrás-szövege |
+| `UnreviewedNoticeTest.unreviewedDataset_showsTheNonDismissibleBanner_CR03` | a szalag szövege szó szerint az ADR-010 szerinti |
+| `UnreviewedNoticeTest.reviewedDataset_showsNoBannerWithoutCodeChange_ADR010` | **a T-205 lényegi pontja:** `REVIEWED` tartalomnál a jelzés magától eltűnik (AC-08) |
+| `UnreviewedNoticeTest.bannerText_dependsOnlyOnDatasetTrust_ADR010` | a szalag szövege kizárólag a bizalmi szinttől függ, nincs rejtett állapot |
+| `EmptyStateReasonTest.noContent_andNoResult_differInMessageAndAction_NFR06` | **a másik lényegi pont:** a „nincs tartalom" és a „nincs találat" üzenete ÉS akciója különbözik |
+| `EmptyStateReasonTest.libraryNoContent_reportsLoadFailureAndOffersDiagnostics_FR32` | a betöltési hiba üzenete + a „Diagnosztika" akció |
+| `EmptyStateReasonTest.libraryNoResult_quotesTheQueryAndOffersFilterReset_NFR06` | a keresőszöveg látszik az üzenetben, az akció „Szűrők törlése" |
+| `EmptyStateReasonTest.progressNoData_callsToActionInTheMessageAndHasNoButton_NFR06` | akció nélküli ok: „Még nincs adat. Indíts egy kvízt!" |
+| `EmptyStateReasonTest.quizNotEnoughData_explainsWhatToChange_NFR06` | a kvíz üres állapota megmondja, mit kell változtatni |
+| `EmptyStateReasonTest.everyReason_producesANonEmptyHungarianMessage_NFR06` | mind a négy ok ad nem üres magyar üzenetet |
+| `EmptyStateReasonTest.errorState_offersRetryInHungarian_NFR06` | az „Újra" akció és a hibaüzenet erőforrásból jön |
+
+### Miért unit teszt az elrejthetetlenség bizonyítéka?
+
+Két egymást erősítő bizonyíték van, és egyik sem UI teszt (B-03: nincs emulátor):
+
+1. **Fordítási idejű:** az `UnreviewedBanner`-nek nincs `onDismiss`, `dismissible` vagy
+   `visible` paramétere, és a szöveget feloldó `UnreviewedNotice.bannerText` egyetlen
+   bemenete a `DatasetTrust`. Nincs olyan hívás, amivel a szalagot ki lehetne kapcsolni –
+   nem azért, mert senki nem teszi meg, hanem mert nincs rá API.
+2. **Futásidejű:** a fenti három Robolectric teszt a **tényleges** `strings.xml` fölött
+   fut, és a `REVIEWED` → `null`, `PRACTICE_ON_UNREVIEWED` → pontos szöveg párosítást
+   méri. Ha valaki a szalagot felhasználói beállításhoz kötné, a bemenet típusa miatt
+   ezek elbuknak.
+
+### Menet közbeni hiba és megoldása (hitelesség kedvéért rögzítve)
+
+`VerificationBadgeTextTest.incomplete_listsTheMissingFieldsByName_FR05 FAILED` –
+a felsorolás „illusztráció,magyar jelentés" lett a várt „illusztráció, magyar jelentés"
+helyett. Ok: az `aapt` levágja a sztringerőforrás záró szóközét, így a `", "`
+elválasztóból `","` maradt. Megoldás: az erőforrásérték dupla idézőjelbe zárva
+(`<string name="...">", "</string>`), ami megőrzi a szóközt. Ez nem a teszt hibás
+elvárása volt, ezért a kód – pontosabban az erőforrás – javult, nem a teszt.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt (`createAndroidComposeRule`) a négy komponensre | **NEM FUTOTT** – B-03. A szövegszabályokat a fenti unit tesztek fedik; a tényleges TalkBack bejárás, a `LiveRegionMode.Polite` szalag felolvasása és a 48 dp-s érintési célpont mérése a T-604 és T-606 tárgya. |
+| `@Preview` **tényleges kirenderelése** (világos/sötét) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel, fejnélküli CLI-ből nem fut. Ami igazolt: a kilenc előnézet-függvény (18 `@Preview` bejegyzés) **lefordul** (`:core:ui:compileDebugKotlin` exit 0), és a világos + `UI_MODE_NIGHT_YES` párosítás kódban ellenőrizhető. |
+| WCAG AA kontrasztmérés a jelölők és a szalag színein | **NEM FUTOTT** – eszköz nélkül nem mérhető. Ami igazolt: minden szín Material 3 téma-tokenpárból jön (`surfaceVariant`/`onSurfaceVariant`, `errorContainer`/`onErrorContainer`), hardcode-olt `Color(0xFF…)` nincs a komponensekben. A tényleges mérés a T-604 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

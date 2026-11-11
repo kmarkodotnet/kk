@@ -101,7 +101,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | 🟨 **részben** – T-204: `TechniqueIllustration` kész (mindhárom `IllustrationRef` eset, paraméterezhető `contentDescription`, 6+4 teszt). A jelölők és állapotkomponensek: T-205 |
+| 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | ✅ **kész** – T-204: `TechniqueIllustration` (mindhárom `IllustrationRef` eset, 6+4 teszt); T-205: `VerificationBadge`, `UnreviewedBanner` (a „DemoBanner" tényleges, ADR-010 szerinti alakja), `EmptyState(EmptyStateReason)`, `ErrorState` (+18 teszt) |
 | 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | — | ⬜ |
 | 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | ⬜ |
 | 4.4 | Tudástár részletező | FR-04, FR-05 | ⬜ |
@@ -166,9 +166,16 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő három lépés
 
-1. **T-205** – `core/ui`: jelölők és állapotkomponensek.
-2. **T-206** – `navigation`: NavHost és alsó navigáció.
-3. **T-207** – `feature/library`: lista ViewModel.
+1. **T-206** – `navigation`: NavHost és alsó navigáció.
+2. **T-207** – `feature/library`: lista ViewModel.
+3. **T-208** – `feature/library`: lista UI.
+
+(**A T-205 kész:** a `core/ui` megosztott jelölői és állapotkomponensei készen állnak.
+A következő képernyők ezeket használják, és nem írnak új magyar szöveget a kódba:
+`VerificationBadge(status, missingFields)`, `UnreviewedBanner(trust)`,
+`EmptyState(reason, onAction?)` az `EmptyStateReason` négy okával, és
+`ErrorState(onRetry, messageRes)`. Az `UnreviewedBanner`-nek **nincs** elrejtő paramétere,
+és `DatasetTrust.REVIEWED` mellett magától nem bocsát ki UI-t – ez az ADR-010/AC-08.)
 
 (**A T-203 kész:** a Hilt gráf teljes és felépül. Az első ViewModel (T-207) a
 `TechniqueRepository`-t, a `ContentImporter`-t, a `Clock`-ot, az RNG-t és a két
@@ -636,3 +643,48 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   exit 0. Új katalógusbejegyzés nincs; a `core/ui` megkapta a már katalogizált
   `robolectric`, `androidx-test-core` és `kotlinx-coroutines-core` függőséget.
   Következő: T-205, a `core/ui` jelölői és állapotkomponensei.
+
+- 2026-11-11 – **T-205 kész (Fázis 4.1 lezárva): a `core/ui` jelölői és
+  állapotkomponensei.** Négy megosztott komponens, minden szöveg a
+  `core/ui/.../values/strings.xml`-ben (NFR-02), minden szín téma-tokenből, `@Preview`
+  világos és sötét témában mindegyikre.
+  - **`VerificationBadge(status, missingFields)`** (FR-05, FUNCTIONAL_SPEC 2.2):
+    `AWAITING_REVIEW` → „Ellenőrzésre vár" chip, `INCOMPLETE` → „Hiányos" chip + a
+    hiányzó mezők magyar felsorolása, `VERIFIED` → **semmi**, mert a specifikáció
+    szerint a hitelesség a jelölő hiánya. A hiányzó mezőket a hívó **nem szövegként**
+    adja át, hanem a `TechniqueField` enummal, így a mezőnevek sem szöknek ki a
+    `strings.xml`-ből.
+  - **`UnreviewedBanner(trust)`** (ADR-010, CR-03): a nem elutasítható
+    lektorálatlanság-szalag. Nincs `onDismiss`, nincs `dismissible`, nincs `visible`
+    paramétere – az elrejthetetlenség az API alakjába van zárva, nem csak
+    dokumentálva. Egyetlen bemenete a `DatasetTrust`, ami a manifest szerkesztői
+    állapotából jön; `REVIEWED` mellett a composable nem bocsát ki UI-t, tehát
+    lektorált tartalom érkezésekor a jelzés kódmódosítás nélkül eltűnik (AC-08).
+  - **`EmptyState(reason, onAction?)`** (NFR-06, FUNCTIONAL_SPEC 2.4): az `EmptyStateReason`
+    sealed interface **okot** kap, nem szöveget – `LibraryNoContent` (betöltési hiba,
+    javasolt akció „Diagnosztika", FR-32), `LibraryNoResult(query)` (a keresőszöveget
+    idézi, akció „Szűrők törlése"), `ProgressNoData` és `QuizNotEnoughData` (akció
+    nélkül, mert az üzenet maga hív cselekvésre). Az ok hordozza az üzenetet **és** a
+    javasolt akció címkéjét, hogy a kettő ne szakadhasson el; a gomb csak akkor
+    jelenik meg, ha a hívó műveletet is adott.
+  - **`ErrorState(onRetry, messageRes)`** (NFR-06): magyar hibaüzenet + „Újra".
+    A `messageRes` `@StringRes`, nem `String`: így egy kivétel angol `message`-e nem
+    kerülhet a felhasználó elé. A művelet nem opcionális – ha nincs mit újrapróbálni,
+    az üres állapot, nem hiba.
+  - Akadálymentesség: a chip egyetlen bejárási egység (`clearAndSetSemantics`, a
+    címke és a felsorolás egyszerre hangzik el), a szalag `LiveRegionMode.Polite`,
+    a gombok `heightIn(min = 48.dp)` – a Material 3 alapértelmezett 40 dp nem elég
+    (FUNCTIONAL_SPEC 9.).
+  - **18 új teszt** (összesen **393 zöld teszt**), a tényleges `strings.xml` fölött
+    Robolectrickel (`sdk = [34]`). A döntő állítások: a `VERIFIED` ág nem ad jelölőt,
+    az `AWAITING_REVIEW` soha nem sorol fel hiányzó mezőt, a „nincs tartalom" és a
+    „nincs találat" üzenete **és** akciója különbözik, és `REVIEWED` tartalomnál a
+    szalag szövege `null`.
+  - **Build-változás:** a `core/ui` `androidx-core-ktx` függősége `implementation`-ből
+    `api`-ra került, mert a publikus API `@StringRes` annotált azonosítókat hordoz, és
+    az `androidx.annotation` ezen keresztül jut a hívó modulokba. Új
+    katalógusbejegyzés nincs, verziószám nem változott.
+  - **Menet közbeni hiba:** az `aapt` levágja a sztringek záró szóközét, ezért a
+    felsorolás elválasztója (`", "`) üresen jött át és a mezők szóköz nélkül
+    ragadtak össze. Megoldás: dupla idézőjelbe zárt erőforrásérték.
+  Következő: T-206, a `navigation` NavHost és az alsó navigáció.
