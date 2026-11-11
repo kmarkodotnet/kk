@@ -22,6 +22,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    sourceSets {
+        named("test") {
+            // A Room `MigrationTestHelper` a sémaleírókat az **assets**-ből olvassa, ezért
+            // az exportált séma (`schemas/`) a **teszt** source setbe kerül assetként, nem a
+            // `main`-be: a migráció-ellenőrzés tesztművelet, a leszállított APK-nak nincs
+            // szüksége a séma JSON-okra (DR-08).
+            assets.srcDir(layout.projectDirectory.dir("schemas"))
+        }
+    }
+
     testOptions {
         unitTests {
             // A Room séma tényleges viselkedését (UNIQUE index, cascade hiánya) Robolectric

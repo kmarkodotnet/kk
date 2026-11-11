@@ -12,6 +12,7 @@ import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
+import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -265,6 +266,8 @@ class KyokushinDatabaseTest {
                     quizExcluded = false,
                     retired = false,
                     datasetVersion = datasetVersion,
+                    searchRomaji = NameNormalizer.normalize("age tsuki"),
+                    searchHungarian = NameNormalizer.normalize(hungarian),
                 ),
             ),
         )

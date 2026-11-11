@@ -1,6 +1,7 @@
 package hu.kyokushin.trainer.core.data.db
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -68,6 +69,10 @@ internal data class CategoryEntity(
         // A Tudástár listája és a keresés (FR-03, T-202) az ASCII-normalizált alakon
         // szűr és rendez – az index ezért ezen az oszlopon van, nem a `romaji`-n.
         Index(value = ["romajiAscii"]),
+        // A `search_romaji` / `search_hungarian` oszlopokra szándékosan NINCS index: a
+        // keresés részszó-egyezés (`LIKE '%…%'`, FR-03), aminél a bal oldali joker miatt
+        // az SQLite nem tud indexet használni – a lekérdezés akkor is teljes táblát
+        // olvas. Egy ott felvett index csak az import írási költségét növelné.
     ],
 )
 internal data class TechniqueEntity(
@@ -83,6 +88,23 @@ internal data class TechniqueEntity(
     val retired: Boolean,
     /** A `manifest.json` `contentVersion` értéke, amelyből ez a sor származik (FR-32). */
     val datasetVersion: String,
+    /**
+     * A romaji név **előre normalizált** alakja: a keresés `LIKE '%…%'` feltétele ezen fut
+     * (FR-03, T-202, ADR-012).
+     *
+     * Az értéket a `NameNormalizer.normalize(romaji)` állítja elő a leképezésben
+     * (`ContentEntityMappers.toEntity`), tehát a normalizálás szabálya egyetlen helyen él
+     * – ugyanaz, amit a validátor V006 vizsgálata és az [TechniqueAliasEntity.aliasNormalized]
+     * használ. Nincs rá SQL-oldali újraszámolás: az SQLite `lower()` nem kezeli a
+     * diakritikus jeleket, egy SQL-ben megírt második normalizáló pedig szétcsúszna az
+     * elsőtől.
+     *
+     * Miért nem elég a [romajiAscii]? Mert az **megjelenítésre** szánt, kis-/nagybetűt
+     * megtartó érték (`Mae Geri`), a keresés viszont összehasonlítási kulcsot kér.
+     */
+    @ColumnInfo(name = "search_romaji") val searchRomaji: String,
+    /** A magyar jelentés előre normalizált alakja – lásd [searchRomaji] (FR-03, ADR-012). */
+    @ColumnInfo(name = "search_hungarian") val searchHungarian: String,
     @ColumnInfo(name = "illustrationKind") val illustrationKind: IllustrationKind? = null,
     @ColumnInfo(name = "illustrationRef") val illustrationRef: String? = null,
     @ColumnInfo(name = "illustrationFileName") val illustrationFileName: String? = null,
@@ -131,6 +153,27 @@ internal data class TechniqueAliasEntity(
     val techniqueId: TechniqueId,
     val alias: String,
     val aliasNormalized: String,
+)
+
+/**
+ * Egy keresési találat sora: a technika + a **mivel egyezett** információ (FR-03, T-202).
+ *
+ * Nem `@Entity`, hanem lekérdezés-projekció: a [nameMatched] és a [matchedAlias] nem
+ * tárolt adat, hanem a `LIKE` feltétel kimenete a keresőmintára. Azért egyetlen
+ * lekérdezésből jön, mert különben a UI-nak kellene kitalálnia, melyik alias egyezett –
+ * az pedig a mintaillesztés második, Kotlin oldali leírása lenne.
+ *
+ * @property nameMatched a technika saját neve (romaji vagy magyar) illeszkedett-e. Ha
+ *   igaz, a UI **nem** írja ki az „Egyezés: `{alias}`" sort, mert a találat önmagát
+ *   magyarázza (FUNCTIONAL_SPEC 3.1).
+ * @property matchedAlias az illeszkedő alias eredeti (nem normalizált) alakja, vagy
+ *   `null`, ha egyetlen alias sem illeszkedett. Több illeszkedő alias esetén az ábécé
+ *   szerint első – a kiírt szöveg így determinisztikus (NFR-07).
+ */
+internal data class TechniqueSearchRow(
+    @Embedded val technique: TechniqueEntity,
+    val nameMatched: Boolean,
+    val matchedAlias: String?,
 )
 
 /**

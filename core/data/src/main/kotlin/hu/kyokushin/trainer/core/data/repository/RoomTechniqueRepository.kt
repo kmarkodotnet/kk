@@ -2,7 +2,7 @@ package hu.kyokushin.trainer.core.data.repository
 
 import hu.kyokushin.trainer.core.data.db.KyokushinDatabase
 import hu.kyokushin.trainer.core.data.db.TechniqueAliasEntity
-import hu.kyokushin.trainer.core.data.db.TechniqueEntity
+import hu.kyokushin.trainer.core.data.db.TechniqueSearchRow
 import hu.kyokushin.trainer.core.data.db.toCategory
 import hu.kyokushin.trainer.core.data.db.toContentState
 import hu.kyokushin.trainer.core.data.db.toTechnique
@@ -30,9 +30,10 @@ import kotlinx.coroutines.withContext
  *
  * ## Négy szabály, amit ez az osztály betart
  *
- * 1. **A `retired` szűrés itt van, nem a hívónál** (ADR-004, DR-07). A listánál és a
- *    kvízjelölteknél **SQL-ben**, nem Kotlin oldali `filter`-rel: így egy jövőbeli, nyers
- *    DAO-hívás sem tudja véletlenül kikerülni. A [getTechnique] a dokumentált kivétel.
+ * 1. **A `retired` szűrés és a keresés is itt van, nem a hívónál** (ADR-004, DR-07,
+ *    FR-03). A listánál és a kvízjelölteknél **SQL-ben**, nem Kotlin oldali `filter`-rel:
+ *    így egy jövőbeli, nyers DAO-hívás sem tudja véletlenül kikerülni. A [getTechnique] a
+ *    dokumentált kivétel.
  * 2. **Egyetlen Room típus sem szivárog ki.** A metódusok domain modellt adnak vissza, a
  *    leképezés a `ContentEntityMappers` (T-117) – nincs második mapper-implementáció.
  * 3. **Nincs N+1 lekérdezés** (NFR-10). Az aliasok egyetlen `technique_alias`
@@ -42,14 +43,19 @@ import kotlinx.coroutines.withContext
  *    metódusok `withContext(ioDispatcher)`-rel, a `Flow`-k `flowOn(ioDispatcher)`-rel
  *    futnak; a dispatcher injektált, hogy a teszt virtuális órája vezérelhesse.
  *
+ * ## A keresés (FR-03, T-202, ADR-012)
+ *
+ * A szűrés teljes egészében az adatbázisban fut: az előre normalizált
+ * `technique.search_romaji`, `technique.search_hungarian` és
+ * `technique_alias.aliasNormalized` oszlopokon `LIKE '%…%'` feltétellel. A normalizálás
+ * a `NameNormalizer` – ugyanaz a függvény, amit a validátor és az import használ –,
+ * tehát a keresés nem találhat olyan egyezést, amit a szinonimakizárás nem tart
+ * azonosnak. Az egyező alias ugyanabból a lekérdezésből jön, mert a UI-nak ki kell
+ * írnia („Egyezés: `{alias}`"), és egy Kotlin oldali újbóli mintaillesztés ugyanazt a
+ * feltételt írná le másodszor.
+ *
  * ## Mi tartozik a következő feladatokhoz
  *
- * - A keresés **SQL-be költözése** az előre normalizált oszlopokra és az egyező alias
- *   megjelölése a T-202 tárgya. Itt a szerződés szerinti viselkedés már teljes
- *   (ékezet- és kisbetű-érzéketlen részszó-egyezés romajira, magyar névre és aliasra), de
- *   a szűrés a beolvasott soron fut, nem `LIKE`-kal: a tudástár néhány száz rekordja
- *   mellett ez mérhetően nem számít, viszont nem is tűnik el a szerződésből, amikor a
- *   T-202 lecseréli.
  * - Az [QuizCandidateSet.illustrationDigests] feltöltése a T-402 tárgya: a képek tartalmi
  *   ujjlenyomatához **nincs oszlop** a sémában, tehát a mező itt üres. Üres térkép
  *   mellett a `JP_TO_IMAGE` típus nem tud vizuálisan azonos képpárt kizárni – ezt a
@@ -72,24 +78,33 @@ internal class RoomTechniqueRepository @Inject constructor(
     override fun observeTechniques(
         query: String,
         categories: Set<CategoryId>,
-    ): Flow<List<Technique>> {
+    ): Flow<List<Technique>> =
+        observeTechniqueMatches(query, categories)
+            .map { matches -> matches.map(TechniqueMatch::technique) }
+
+    override fun observeTechniqueMatches(
+        query: String,
+        categories: Set<CategoryId>,
+    ): Flow<List<TechniqueMatch>> {
         // A normalizálás a `core/quiz` NameNormalizer-éé: ugyanaz az alak, amit a validátor
-        // V006 szinonimavizsgálata és a tárolt `aliasNormalized` oszlop használ (FR-03).
-        // Két külön szabály azt jelentené, hogy a keresés olyan egyezést talál, amit a
-        // szinonimakizárás nem tart azonosnak.
-        val normalizedQuery = NameNormalizer.normalize(query)
+        // V006 szinonimavizsgálata, a tárolt `aliasNormalized` és a két keresőoszlop
+        // használ (FR-03). Két külön szabály azt jelentené, hogy a keresés olyan egyezést
+        // talál, amit a szinonimakizárás nem tart azonosnak.
+        val pattern = searchPattern(NameNormalizer.normalize(query))
         return combine(
-            activeTechniques(categories),
+            matchingTechniques(pattern, categories),
             database.techniqueAliasDao().observeAll(),
         ) { rows, aliasRows ->
             val aliasesById = aliasRows.groupBy { it.techniqueId }
-            rows.mapNotNull { row ->
-                val aliases = aliasesById[row.id].orEmpty()
-                if (!row.matches(normalizedQuery, aliases)) {
-                    null
-                } else {
-                    row.toTechnique(aliases.map(TechniqueAliasEntity::alias))
-                }
+            rows.map { row ->
+                TechniqueMatch(
+                    technique = row.technique.toTechnique(
+                        aliasesById[row.technique.id].orEmpty().map(TechniqueAliasEntity::alias),
+                    ),
+                    // Ha a technika saját neve is illeszkedett, a találat önmagát
+                    // magyarázza – ilyenkor nincs mit kiírni (FUNCTIONAL_SPEC 3.1).
+                    matchedAlias = row.matchedAlias.takeUnless { row.nameMatched },
+                )
             }
         }.flowOn(ioDispatcher)
     }
@@ -131,16 +146,20 @@ internal class RoomTechniqueRepository @Inject constructor(
             .flowOn(ioDispatcher)
 
     /**
-     * Az aktív technikák lekérdezése a kategóriaszűrő két ágán.
+     * A keresésnek megfelelő aktív technikák a kategóriaszűrő két ágán.
      *
      * Üres halmaz jelentése **minden kategória**, nem „semmi" – ezért külön lekérdezés,
      * nem egy `IN ()` üres listával (az egyetlen sort sem adna vissza).
      */
-    private fun activeTechniques(categories: Set<CategoryId>): Flow<List<TechniqueEntity>> =
+    private fun matchingTechniques(
+        pattern: String,
+        categories: Set<CategoryId>,
+    ): Flow<List<TechniqueSearchRow>> =
         if (categories.isEmpty()) {
-            database.techniqueDao().observeActive()
+            database.techniqueDao().observeActiveMatching(pattern)
         } else {
-            database.techniqueDao().observeActiveInCategories(categories.toList())
+            database.techniqueDao()
+                .observeActiveMatchingInCategories(pattern, categories.toList())
         }
 
     /**
@@ -166,23 +185,24 @@ internal class RoomTechniqueRepository @Inject constructor(
             .filter { it.size >= 2 }
 
     /**
-     * Illeszkedik-e a sor a normalizált keresőszövegre (FR-03).
+     * A normalizált keresőszövegből **kész `LIKE` minta** (FR-03, ADR-012).
      *
-     * Négy helyen keres: a hiteles `romaji` alakon, annak diakritikus jelek nélküli
-     * `romajiAscii` változatán, a magyar jelentésen és az aliasokon. Az aliasnál a tárolt
-     * [TechniqueAliasEntity.aliasNormalized] oszlop a kulcs – azt az import állította elő
-     * ugyanazzal a normalizálóval, tehát itt nem kell újraszámolni.
+     * Két dolgot tesz, és mindkettő szándékos:
      *
-     * Üres keresőszöveg mindenre illeszkedik: a szűrő kikapcsolt állapota nem „semmi".
+     * 1. **Rész-szó egyezés**: `%` mindkét oldalon, tehát a `dachi` a `Heisoku Dachi`
+     *    végén is talál, nem csak prefixként.
+     * 2. **A joker karakterek escape-elése**: a beírt `%` és `_` literális karakter, nem
+     *    joker – egy „%" beírása különben a teljes tudástárat adná vissza. Az escape
+     *    karakter a `\`, ezért azt kell elsőként duplázni.
+     *
+     * Üres keresőszövegre a minta `%`: minden sorra illeszkedik, mert a kikapcsolt szűrő
+     * jelentése „nincs szűrés", nem „nincs találat".
      */
-    private fun TechniqueEntity.matches(
-        normalizedQuery: String,
-        aliases: List<TechniqueAliasEntity>,
-    ): Boolean {
-        if (normalizedQuery.isEmpty()) return true
-        return NameNormalizer.normalize(romaji).contains(normalizedQuery) ||
-            NameNormalizer.normalize(romajiAscii).contains(normalizedQuery) ||
-            NameNormalizer.normalize(hungarian).contains(normalizedQuery) ||
-            aliases.any { it.aliasNormalized.contains(normalizedQuery) }
+    private fun searchPattern(normalizedQuery: String): String {
+        val escaped = normalizedQuery
+            .replace("""\""", """\\""")
+            .replace("%", """\%""")
+            .replace("_", """\_""")
+        return "%$escaped%"
     }
 }

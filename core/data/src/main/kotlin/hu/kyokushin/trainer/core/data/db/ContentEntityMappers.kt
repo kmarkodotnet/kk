@@ -26,7 +26,8 @@ import hu.kyokushin.trainer.core.quiz.validation.CategoryInput
  * 2. **Nem emel státuszt** (CR-02): a [Technique.status] és az illusztráció kvízkapui
  *    oda-vissza változatlanul mennek át.
  * 3. **A származtatott oszlopok itt egyetlen helyen keletkeznek**: a
- *    [TechniqueAliasEntity.aliasNormalized] a [NameNormalizer] kimenete, hogy a keresés
+ *    [TechniqueAliasEntity.aliasNormalized], valamint a [TechniqueEntity.searchRomaji] és
+ *    [TechniqueEntity.searchHungarian] a [NameNormalizer] kimenete, hogy a keresés
  *    (FR-03) és a V006 szinonimavizsgálat bitre ugyanazt az alakot lássa.
  */
 
@@ -43,6 +44,11 @@ internal fun Technique.toEntity(): TechniqueEntity = TechniqueEntity(
     quizExcluded = quizExcluded,
     retired = retired,
     datasetVersion = datasetVersion,
+    // A két keresőoszlop itt, az import útvonalán keletkezik – és csak itt (FR-03,
+    // ADR-012). A `NameNormalizer` a normalizálás egyetlen definíciója, ugyanaz, amit a
+    // validátor V006 vizsgálata és az `aliasNormalized` használ.
+    searchRomaji = NameNormalizer.normalize(romaji),
+    searchHungarian = NameNormalizer.normalize(hungarian),
     illustrationKind = illustration.toKind(),
     illustrationRef = (illustration as? IllustrationRef.Asset)?.ref,
     illustrationFileName = (illustration as? IllustrationRef.Asset)?.fileName,

@@ -16,6 +16,7 @@ import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
+import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.time.Instant
@@ -227,6 +228,93 @@ class RoomTechniqueRepositoryTest {
         assertThat(technique.aliases).containsExactly("Chudan Tsuki", "Chudan Zuki")
     }
 
+    @Test
+    fun observeTechniques_findsEveryDachiTechniqueForAnUppercaseQuery_FR03() = repositoryTest {
+        seedCategories()
+        database.techniqueDao().upsertAll(
+            listOf(
+                technique(id = "KY-0001", categoryId = dachi, romaji = "Heisoku Dachi"),
+                technique(id = "KY-0002", categoryId = dachi, romaji = "Zenkutsu Dachi"),
+                technique(id = "KY-0003", romaji = "Seiken Chudan Tsuki"),
+            ),
+        )
+
+        // US-06 2. kritérium: a „DACHI" **minden** `… dachi` technikát megtalál, nem csak
+        // az elsőt – a `LIKE '%dachi%'` részszó-egyezés, nem prefix.
+        assertThat(repository.observeTechniques(query = "DACHI").first().map { it.id.value })
+            .containsExactly("KY-0001", "KY-0002")
+    }
+
+    @Test
+    fun observeTechniques_filtersOnTheStoredSearchColumnsInSql_FR03() = repositoryTest {
+        seedCategories()
+        database.techniqueDao().upsertAll(
+            listOf(
+                technique(id = "KY-0001", romaji = "Seiken Chudan Tsuki"),
+                // Szándékosan üres keresőoszlopok: a név illeszkedne, a tárolt normalizált
+                // alak viszont nem. Ha a szűrés Kotlin oldalon, a beolvasott soron futna, ez
+                // a technika mégis találat lenne – a teszt tehát azt bizonyítja, hogy a
+                // feltétel az adatbázisban, a `search_*` oszlopokon fut (ADR-012).
+                technique(id = "KY-0002", romaji = "Seiken Jodan Tsuki").copy(
+                    searchRomaji = "",
+                    searchHungarian = "",
+                ),
+            ),
+        )
+
+        val hits = repository.observeTechniques(query = "tsuki").first()
+
+        assertThat(hits.map { it.id.value }).containsExactly("KY-0001")
+    }
+
+    @Test
+    fun observeTechniqueMatches_tellsWhichAliasMatched_FR03() = repositoryTest {
+        seedCategories()
+        database.techniqueDao().upsertAll(
+            listOf(
+                technique(id = "KY-0001", romaji = "Seiken Chudan Tsuki", hungarian = "Ököl ütés"),
+            ),
+        )
+        // Az `aliases` a valódi tartalomban mindenhol üres (R-05), ezért az alias-ág
+        // fixtúrája szintetikus – de a tárolt `aliasNormalized` ugyanaz a normalizáló
+        // kimenete, mint éles úton.
+        database.techniqueAliasDao().upsertAll(
+            listOf(
+                aliasOf("KY-0001", "Chūdan Zuki"),
+                aliasOf("KY-0001", "Ago Uchi"),
+            ),
+        )
+
+        // Alias alapján talált tétel: a UI kiírja, hogy „Egyezés: Chūdan Zuki"
+        // (FUNCTIONAL_SPEC 3.1, US-06 3. kritérium).
+        val aliasHit = repository.observeTechniqueMatches(query = "ZUKI").first().single()
+        assertThat(aliasHit.technique.id.value).isEqualTo("KY-0001")
+        assertThat(aliasHit.matchedAlias).isEqualTo("Chūdan Zuki")
+
+        // A technika saját nevére illeszkedő találat önmagát magyarázza: nincs mit kiírni.
+        val nameHit = repository.observeTechniqueMatches(query = "chudan tsuki").first().single()
+        assertThat(nameHit.matchedAlias).isNull()
+
+        // Magyar név szerinti és üres keresésre sincs alias-megjelölés.
+        assertThat(repository.observeTechniqueMatches(query = "okol").first().single().matchedAlias)
+            .isNull()
+        assertThat(repository.observeTechniqueMatches().first().single().matchedAlias).isNull()
+    }
+
+    @Test
+    fun observeTechniques_treatsLikeWildcardsAsLiteralCharacters_FR03() = repositoryTest {
+        seedCategories()
+        database.techniqueDao().upsertAll(
+            listOf(technique(id = "KY-0001", romaji = "Seiken Chudan Tsuki")),
+        )
+
+        // A `%` és a `_` a keresőszövegben beírt karakter, nem joker: különben egyetlen
+        // `%` a teljes tudástárat adná vissza, és a találatlista hazudna.
+        assertThat(repository.observeTechniques(query = "%").first()).isEmpty()
+        assertThat(repository.observeTechniques(query = "chudan_tsuki").first()).isEmpty()
+        assertThat(repository.observeTechniques(query = "chudan tsuki").first()).hasSize(1)
+    }
+
     // --- CR-07 / V006: a szinonimacsoportok a szűrés után is érvényesek ----------
 
     @Test
@@ -379,6 +467,12 @@ class RoomTechniqueRepositoryTest {
         )
     }
 
+    private fun aliasOf(techniqueId: String, alias: String) = TechniqueAliasEntity(
+        techniqueId = TechniqueId.of(techniqueId),
+        alias = alias,
+        aliasNormalized = NameNormalizer.normalize(alias),
+    )
+
     private fun technique(
         id: String,
         categoryId: CategoryId = tsuki,
@@ -392,6 +486,11 @@ class RoomTechniqueRepositoryTest {
         romaji = romaji,
         romajiAscii = romaji,
         hungarian = hungarian,
+        // A két keresőoszlopot az éles útvonalon a `ContentEntityMappers.toEntity`
+        // tölti ki ugyanezzel a normalizálóval (FR-03, ADR-012) – a fixtúra ezt
+        // utánozza, nem egy saját, eltérő szabállyal.
+        searchRomaji = NameNormalizer.normalize(romaji),
+        searchHungarian = NameNormalizer.normalize(hungarian),
         status = VerificationStatus.AWAITING_REVIEW,
         quizExcluded = false,
         retired = retired,

@@ -230,6 +230,16 @@ class RoomSchemaContractTest {
         assertThat(columns).containsAtLeast("status", "quizExcluded", "retired")
     }
 
+    @Test
+    fun techniqueTable_hasThePreNormalizedSearchColumns_FR03() {
+        val columns = entities.getValue("technique").fields()
+            .map { it["columnName"]!!.jsonPrimitive.content }
+
+        // A keresés ezeken az oszlopokon fut `LIKE '%…%'`-kal (ADR-012). Ha a sémából
+        // kiesnének, a keresés csendben nem találna semmit – ezért szerződés.
+        assertThat(columns).containsAtLeast("search_romaji", "search_hungarian")
+    }
+
     // --- DR-08: destruktív migráció tilalma, nincs főszálú lekérdezés -------------
 
     @Test

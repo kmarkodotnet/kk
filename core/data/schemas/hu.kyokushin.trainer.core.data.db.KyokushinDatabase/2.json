@@ -1,0 +1,551 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "31d30870789b286ac79b5c7af81197a7",
+    "entities": [
+      {
+        "tableName": "category",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `nameHu` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameHu",
+            "columnName": "nameHu",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sortOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "technique",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `romaji` TEXT NOT NULL, `romajiAscii` TEXT NOT NULL, `hungarian` TEXT NOT NULL, `japaneseScript` TEXT, `descriptionHu` TEXT, `status` TEXT NOT NULL, `quizExcluded` INTEGER NOT NULL, `retired` INTEGER NOT NULL, `datasetVersion` TEXT NOT NULL, `search_romaji` TEXT NOT NULL, `search_hungarian` TEXT NOT NULL, `illustrationKind` TEXT, `illustrationRef` TEXT, `illustrationFileName` TEXT, `illustrationQuizUsable` INTEGER, `illustrationHideableOnStudyCard` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`categoryId`) REFERENCES `category`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "romaji",
+            "columnName": "romaji",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "romajiAscii",
+            "columnName": "romajiAscii",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hungarian",
+            "columnName": "hungarian",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "japaneseScript",
+            "columnName": "japaneseScript",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "descriptionHu",
+            "columnName": "descriptionHu",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quizExcluded",
+            "columnName": "quizExcluded",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retired",
+            "columnName": "retired",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "datasetVersion",
+            "columnName": "datasetVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "searchRomaji",
+            "columnName": "search_romaji",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "searchHungarian",
+            "columnName": "search_hungarian",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustrationKind",
+            "columnName": "illustrationKind",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "illustrationRef",
+            "columnName": "illustrationRef",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "illustrationFileName",
+            "columnName": "illustrationFileName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "illustrationQuizUsable",
+            "columnName": "illustrationQuizUsable",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "illustrationHideableOnStudyCard",
+            "columnName": "illustrationHideableOnStudyCard",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_technique_categoryId",
+            "unique": false,
+            "columnNames": [
+              "categoryId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_technique_categoryId` ON `${TABLE_NAME}` (`categoryId`)"
+          },
+          {
+            "name": "index_technique_romajiAscii",
+            "unique": false,
+            "columnNames": [
+              "romajiAscii"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_technique_romajiAscii` ON `${TABLE_NAME}` (`romajiAscii`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "category",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "categoryId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "technique_alias",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`techniqueId` TEXT NOT NULL, `alias` TEXT NOT NULL, `aliasNormalized` TEXT NOT NULL, PRIMARY KEY(`techniqueId`, `alias`), FOREIGN KEY(`techniqueId`) REFERENCES `technique`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "techniqueId",
+            "columnName": "techniqueId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alias",
+            "columnName": "alias",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aliasNormalized",
+            "columnName": "aliasNormalized",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "techniqueId",
+            "alias"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_technique_alias_aliasNormalized",
+            "unique": false,
+            "columnNames": [
+              "aliasNormalized"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_technique_alias_aliasNormalized` ON `${TABLE_NAME}` (`aliasNormalized`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "technique",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "techniqueId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "synonym_group",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`groupId` INTEGER NOT NULL, `techniqueId` TEXT NOT NULL, PRIMARY KEY(`groupId`, `techniqueId`), FOREIGN KEY(`techniqueId`) REFERENCES `technique`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "groupId",
+            "columnName": "groupId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "techniqueId",
+            "columnName": "techniqueId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "groupId",
+            "techniqueId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_synonym_group_techniqueId",
+            "unique": false,
+            "columnNames": [
+              "techniqueId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_synonym_group_techniqueId` ON `${TABLE_NAME}` (`techniqueId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "technique",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "techniqueId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "content_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `schemaVersion` TEXT, `contentVersion` TEXT, `datasetTrust` TEXT NOT NULL, `importedAt` INTEGER NOT NULL, `acceptedCount` INTEGER NOT NULL, `rejectedCount` INTEGER NOT NULL, `blockingIssueCount` INTEGER NOT NULL, `warningIssueCount` INTEGER NOT NULL, `datasetRejected` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schemaVersion",
+            "columnName": "schemaVersion",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contentVersion",
+            "columnName": "contentVersion",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "datasetTrust",
+            "columnName": "datasetTrust",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "importedAt",
+            "columnName": "importedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "acceptedCount",
+            "columnName": "acceptedCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rejectedCount",
+            "columnName": "rejectedCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockingIssueCount",
+            "columnName": "blockingIssueCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "warningIssueCount",
+            "columnName": "warningIssueCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "datasetRejected",
+            "columnName": "datasetRejected",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "quiz_session",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `startedAt` INTEGER NOT NULL, `finishedAt` INTEGER, `requestedCount` INTEGER NOT NULL, `answeredCount` INTEGER NOT NULL, `seed` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAt",
+            "columnName": "startedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishedAt",
+            "columnName": "finishedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "requestedCount",
+            "columnName": "requestedCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "answeredCount",
+            "columnName": "answeredCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seed",
+            "columnName": "seed",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "quiz_attempt",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sessionId` TEXT NOT NULL, `questionId` TEXT NOT NULL, `techniqueId` TEXT NOT NULL, `questionType` TEXT NOT NULL, `selectedTechniqueId` TEXT NOT NULL, `correct` INTEGER NOT NULL, `answeredAt` INTEGER NOT NULL, FOREIGN KEY(`sessionId`) REFERENCES `quiz_session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "questionId",
+            "columnName": "questionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "techniqueId",
+            "columnName": "techniqueId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "questionType",
+            "columnName": "questionType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedTechniqueId",
+            "columnName": "selectedTechniqueId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correct",
+            "columnName": "correct",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "answeredAt",
+            "columnName": "answeredAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_quiz_attempt_sessionId_questionId",
+            "unique": true,
+            "columnNames": [
+              "sessionId",
+              "questionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_quiz_attempt_sessionId_questionId` ON `${TABLE_NAME}` (`sessionId`, `questionId`)"
+          },
+          {
+            "name": "index_quiz_attempt_techniqueId",
+            "unique": false,
+            "columnNames": [
+              "techniqueId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_quiz_attempt_techniqueId` ON `${TABLE_NAME}` (`techniqueId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "quiz_session",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sessionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "study_review",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `techniqueId` TEXT NOT NULL, `selfRating` TEXT NOT NULL, `reviewedAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "techniqueId",
+            "columnName": "techniqueId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selfRating",
+            "columnName": "selfRating",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewedAt",
+            "columnName": "reviewedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_study_review_techniqueId",
+            "unique": false,
+            "columnNames": [
+              "techniqueId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_study_review_techniqueId` ON `${TABLE_NAME}` (`techniqueId`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '31d30870789b286ac79b5c7af81197a7')"
+    ]
+  }
+}

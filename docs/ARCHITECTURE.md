@@ -256,7 +256,7 @@ ContentImporter ─────────────────── upsert
 | Tábla | Kulcs | Megjegyzés |
 |---|---|---|
 | `category` | `id` TEXT | `nameHu`, `sortOrder` |
-| `technique` | `id` TEXT | minden technikamező + `status`, `quizEligible`, `retired`, `contentVersion` |
+| `technique` | `id` TEXT | minden technikamező + `status`, `quizEligible`, `retired`, `contentVersion`; kereséshez `search_romaji`, `search_hungarian` (ADR-012) |
 | `technique_alias` | `(techniqueId, alias)` | normalizált kereséshez `aliasNormalized` oszloppal |
 | `synonym_group` | `(groupId, techniqueId)` | a validátor `synonymGroups` kimenete, hogy a generátor DB-ből is feltölthető legyen |
 
@@ -276,7 +276,8 @@ ContentImporter ─────────────────── upsert
   lehetetlenné a dupla válasz rögzítését (FR-18). Ez a második védelmi vonal a kvízállapot
   ellenőrzése mögött. → ADR-005.
 - `fallbackToDestructiveMigration()` **tilos**; minden `version` emelés explicit `Migration`-t
-  és ADR-t kap (DR-08).
+  és ADR-t kap (DR-08). A jelenlegi sémaverzió **2**: a `technique` két
+  előre normalizált keresőoszlopa (`KyokushinMigrations.MIGRATION_1_2`). → ADR-012.
 - Időbélyeg `Instant` ↔ `Long` (epoch milli) `@TypeConverter`-rel; enum ↔ `String`
   (nem ordinal, mert az átrendezésre törékeny).
 
@@ -473,6 +474,7 @@ ADR-ben indokolva.
 
 | [ADR-010](adr/ADR-010-quiz-on-unreviewed-content.md) | Kvíz engedélyezése lektorálatlan tartalmon, végig jelölve; `INCOMPLETE` rekord továbbra is kizárva | **elfogadva** |
 | [ADR-011](adr/ADR-011-canonical-content-schema.md) | A kapott tudástár sémája a kanonikus formátum (nincs konverziós réteg) | **elfogadva** |
+| [ADR-012](adr/ADR-012-sql-side-search-columns.md) | SQL-oldali keresés előre normalizált `search_romaji` / `search_hungarian` oszlopokon; séma 1 → 2 explicit migrációval | **elfogadva, tesztből igazolva** |
 
 Az ADR-ek részletes szövege a [`docs/adr/`](adr/) könyvtárban található.
 

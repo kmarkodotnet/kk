@@ -22,17 +22,22 @@ import androidx.room.TypeConverters
  *
  * ## Migráció (DR-08)
  *
- * `version = 1` – ez az első séma, migráció még nincs. A séma JSON a
- * `core/data/schemas/` alá exportálódik (`room.schemaLocation`, lásd
- * `core/data/build.gradle.kts`), és **verziókövetett**: a `2.json` megjelenésekor a
- * `1.json` az összehasonlítás alapja.
+ * `version = 2`. A séma JSON a `core/data/schemas/` alá exportálódik
+ * (`room.schemaLocation`, lásd `core/data/build.gradle.kts`), és **verziókövetett**: az
+ * `1.json` az összehasonlítás alapja a `2.json`-hoz.
+ *
+ * | Verzió | Változás | Migráció | ADR |
+ * |---|---|---|---|
+ * | 1 | az első séma | — | — |
+ * | 2 | `technique.search_romaji`, `technique.search_hungarian` (SQL-oldali keresés, FR-03) | [KyokushinMigrations.MIGRATION_1_2] | ADR-012 |
  *
  * **`fallbackToDestructiveMigration()` használata tilos.** Nem azért, mert kényelmetlen,
  * hanem mert pontosan azt a felhasználói adatot törölné, amit a DR-07 és az ADR-004
  * védeni hivatott: egy elfelejtett migráció csendben, hibajelzés nélkül nullázná a
  * felhasználó előrehaladását. A helyes viselkedés a hangos hiba. Az adatbázist építő
  * Hilt kötés (T-203) ezért `addMigrations(...)`-t kap, destruktív tartalékot nem.
- * Minden `version` emelés explicit `Migration`-t és ADR-t igényel.
+ * Minden `version` emelés explicit `Migration`-t és ADR-t igényel – a migrációk a
+ * [KyokushinMigrations] alatt, egy helyen élnek.
  */
 @Database(
     version = KyokushinDatabase.VERSION,
@@ -70,8 +75,13 @@ internal abstract class KyokushinDatabase : RoomDatabase() {
     abstract fun studyReviewDao(): StudyReviewDao
 
     internal companion object {
-        /** A séma verziója. Emeléskor: explicit `Migration` + ADR (DR-08). */
-        const val VERSION: Int = 1
+        /**
+         * A séma verziója. Emeléskor: explicit `Migration` + ADR (DR-08).
+         *
+         * 2 – a `technique` két keresőoszlopa (`search_romaji`, `search_hungarian`),
+         * [KyokushinMigrations.MIGRATION_1_2], ADR-012.
+         */
+        const val VERSION: Int = 2
 
         /** Az adatbázisfájl neve. Egy fájl, egy adatbázis az app teljes élettartamára. */
         const val FILE_NAME: String = "kyokushin.db"

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
  * |---|---|
  * | [observeCategories] | — |
  * | [observeTechniques] | **kiszűrve** |
+ * | [observeTechniqueMatches] | **kiszűrve** |
  * | [getQuizCandidates] | **kiszűrve** |
  * | [getTechnique] | **benne van**, lásd lent |
  *
@@ -71,6 +72,31 @@ interface TechniqueRepository {
         query: String = "",
         categories: Set<CategoryId> = emptySet(),
     ): Flow<List<Technique>>
+
+    /**
+     * Ugyanaz a keresés, mint az [observeTechniques], de a találat megmondja, **melyik
+     * alias** egyezett (FR-03, FUNCTIONAL_SPEC 3.1, US-06 3. kritérium).
+     *
+     * A Tudástár listája ezt a metódust használja: alias alapján talált tétel alatt a
+     * „Egyezés: `{alias}`" sor csak akkor jelenhet meg, ha a repository megmondja, mi
+     * illeszkedett. Az [observeTechniques] ennek a vetülete – ott, ahol az egyezés
+     * forrása nem érdekes (kategóriánkénti találatszám, tanulási és kvízlisták).
+     *
+     * A szűrés **az adatbázisban** fut, az előre normalizált `technique.search_romaji`,
+     * `technique.search_hungarian` és `technique_alias.aliasNormalized` oszlopokon
+     * `LIKE '%…%'` feltétellel (ADR-012) – a keresőszöveg joker karakterei
+     * (`%`, `_`) literálként illeszkednek, nem jokerként.
+     *
+     * @param query lásd [observeTechniques]; üres érték esetén minden találat
+     *   [TechniqueMatch.matchedAlias] értéke `null`.
+     * @param categories lásd [observeTechniques]; **üres halmaz = minden kategória**.
+     * @return a találatok a `romajiAscii` szerint rendezve; visszavont technika nincs
+     *   közöttük.
+     */
+    fun observeTechniqueMatches(
+        query: String = "",
+        categories: Set<CategoryId> = emptySet(),
+    ): Flow<List<TechniqueMatch>>
 
     /**
      * Egy technika az azonosítója alapján, az aliasaival együtt – vagy `null`, ha ilyen

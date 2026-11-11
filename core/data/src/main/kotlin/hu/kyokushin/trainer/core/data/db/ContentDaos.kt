@@ -68,6 +68,87 @@ internal interface TechniqueDao {
     )
     fun observeActiveInCategories(categories: List<CategoryId>): Flow<List<TechniqueEntity>>
 
+    /**
+     * A keresés **SQL-ben**: aktív technikák, amelyek illeszkednek a normalizált
+     * keresőminta részszavára (FR-03, T-202, ADR-012).
+     *
+     * Három helyen illeszkedhet: a [TechniqueEntity.searchRomaji], a
+     * [TechniqueEntity.searchHungarian] oszlopon, vagy a technika bármelyik aliasának
+     * [TechniqueAliasEntity.aliasNormalized] alakján. Az alias-ág `EXISTS` altkérdés, nem
+     * `JOIN`: a `JOIN` több aliasra ugyanazt a technikát többször adná vissza, és a
+     * `DISTINCT` a `t.*` projekcióval drágább is, zavarosabb is.
+     *
+     * A `nameMatched` és a `matchedAlias` ugyanebben a lekérdezésben keletkezik, hogy a
+     * találat meg tudja mondani, **melyik** alias egyezett (FUNCTIONAL_SPEC 3.1:
+     * „Egyezés: `{alias}`"). Egy Kotlin oldali újraellenőrzés ugyanazt a mintaillesztést
+     * írná le másodszor, más nyelven – és csendben szétcsúszhatna az SQL-beli ágtól.
+     *
+     * @param pattern **kész** `LIKE` minta (`%…%`), amelyben a joker karakterek már
+     *   escape-elve vannak; az előállítása a repository `searchPattern` függvénye. Üres
+     *   keresésre `%`, ami minden sorra illeszkedik – a kikapcsolt szűrő nem „nincs
+     *   találat". A `\` escape karakter, ezért a mintában literális `\` nem fordulhat elő
+     *   escape-elés nélkül.
+     */
+    @Query(
+        """
+        SELECT t.*,
+            (t.search_romaji LIKE :pattern ESCAPE '\'
+                OR t.search_hungarian LIKE :pattern ESCAPE '\') AS nameMatched,
+            (
+                SELECT a.alias FROM technique_alias a
+                WHERE a.techniqueId = t.id AND a.aliasNormalized LIKE :pattern ESCAPE '\'
+                ORDER BY a.alias ASC LIMIT 1
+            ) AS matchedAlias
+        FROM technique t
+        WHERE t.retired = 0
+            AND (
+                t.search_romaji LIKE :pattern ESCAPE '\'
+                OR t.search_hungarian LIKE :pattern ESCAPE '\'
+                OR EXISTS(
+                    SELECT 1 FROM technique_alias a
+                    WHERE a.techniqueId = t.id AND a.aliasNormalized LIKE :pattern ESCAPE '\'
+                )
+            )
+        ORDER BY t.romajiAscii ASC
+        """,
+    )
+    fun observeActiveMatching(pattern: String): Flow<List<TechniqueSearchRow>>
+
+    /**
+     * Ugyanaz a keresés egy kategóriahalmazon belül (FR-02 + FR-03).
+     *
+     * Üres halmazra nem hívható (`IN ()` egyetlen sort sem ad) – a „minden kategória"
+     * esetet a hívó az [observeActiveMatching]-gal fedi le.
+     */
+    @Query(
+        """
+        SELECT t.*,
+            (t.search_romaji LIKE :pattern ESCAPE '\'
+                OR t.search_hungarian LIKE :pattern ESCAPE '\') AS nameMatched,
+            (
+                SELECT a.alias FROM technique_alias a
+                WHERE a.techniqueId = t.id AND a.aliasNormalized LIKE :pattern ESCAPE '\'
+                ORDER BY a.alias ASC LIMIT 1
+            ) AS matchedAlias
+        FROM technique t
+        WHERE t.retired = 0
+            AND t.categoryId IN (:categories)
+            AND (
+                t.search_romaji LIKE :pattern ESCAPE '\'
+                OR t.search_hungarian LIKE :pattern ESCAPE '\'
+                OR EXISTS(
+                    SELECT 1 FROM technique_alias a
+                    WHERE a.techniqueId = t.id AND a.aliasNormalized LIKE :pattern ESCAPE '\'
+                )
+            )
+        ORDER BY t.romajiAscii ASC
+        """,
+    )
+    fun observeActiveMatchingInCategories(
+        pattern: String,
+        categories: List<CategoryId>,
+    ): Flow<List<TechniqueSearchRow>>
+
     /** Pontszerű változat a kvízjelöltekhez: nem kell rá megfigyelés (T-201, T-402). */
     @Query("SELECT * FROM technique WHERE retired = 0 ORDER BY romajiAscii ASC")
     suspend fun getActive(): List<TechniqueEntity>

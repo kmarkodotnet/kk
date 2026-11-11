@@ -1506,3 +1506,74 @@ nem derül ki – ezért érdemes a `Flow`-s ágakat mindig külön teszttel is 
 | `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
 | A keresés `LIKE`-os, SQL-oldali ága | **NINCS MÉG** – a T-202 tárgya; a mért viselkedés a beolvasott soron futó, de szerződés szerinti szűrés. |
 | A `QuizCandidateSet.illustrationDigests` feltöltése | **NINCS MÉG** – nincs ujjlenyomat-oszlop a sémában, a T-402 tárgya. Üres térképre nincs teszt, mert nincs mit mérni. |
+
+---
+
+## 2026-11-11 – T-202: SQL-oldali keresés + séma 1 → 2 migráció (`core/data`)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat :core:data:testDebugUnitTest --tests "*KyokushinMigrationTest*"` | 0 | BUILD SUCCESSFUL – a migrációs teszt önmagában |
+| `.\gradlew.bat testDebugUnitTest` | 0 | BUILD SUCCESSFUL – **358 teszt, 0 hiba, 0 error** (T-201 után 352 volt: +6) |
+| `.\gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL – `app/build/outputs/apk/debug/app-debug.apk`, 19 816 715 bájt |
+
+`JAVA_HOME = C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot`.
+
+### Új tesztek
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `RoomTechniqueRepositoryTest.observeTechniques_findsEveryDachiTechniqueForAnUppercaseQuery_FR03` | „DACHI" → **mindkét** `… dachi` technika (US-06 2. kritérium); a `LIKE '%…%'` részszó, nem prefix |
+| `RoomTechniqueRepositoryTest.observeTechniques_filtersOnTheStoredSearchColumnsInSql_FR03` | a szűrés a tárolt `search_*` oszlopokon fut: az üres keresőoszlopú sor **nem** találat, pedig a neve illeszkedne – ha a szűrés Kotlin oldalon futna, az lenne |
+| `RoomTechniqueRepositoryTest.observeTechniqueMatches_tellsWhichAliasMatched_FR03` | alias-találatnál a `matchedAlias` az egyező alias eredeti alakja („Chūdan Zuki"); saját névre, magyar névre és üres keresésre `null` (US-06 3. kritérium) |
+| `RoomTechniqueRepositoryTest.observeTechniques_treatsLikeWildcardsAsLiteralCharacters_FR03` | a beírt `%` és `_` literális karakter, nem joker – egyetlen `%` nem adja vissza a teljes tudástárat |
+| `RoomSchemaContractTest.techniqueTable_hasThePreNormalizedSearchColumns_FR03` | a `search_romaji` / `search_hungarian` az exportált sémában is ott van |
+| `KyokushinMigrationTest.migration1To2_addsSearchColumnsAndKeepsUserProgress_DR08` | a Room `MigrationTestHelper` a `2.json` exporthoz **validálja** a migrált sémát; a `search_romaji` áthidaló visszatöltése `heisoku dachi`; a `content_state.contentVersion` `NULL` (verziókapu nyitva); a `quiz_session` / `quiz_attempt` / `study_review` sorok megmaradnak (DR-07, FR-33) |
+
+### A `MigrationTestHelper` ebben a környezetben – ami működött és ami nem
+
+A migrációs teszt **lefutott** (emulátor nélkül, Robolectric alatt), de két
+környezetspecifikus akadályt kellett megoldani, és mindkettő a jövőbeli migrációkra is
+érvényes:
+
+1. **A séma JSON-t assetsből olvassa.** Az első kísérlet
+   `FileNotFoundException: Cannot find the schema file in the assets folder … Missing file:
+   hu.kyokushin.trainer.core.data.db.KyokushinDatabase/1.json` hibával elhasalt. Megoldás:
+   a `core/data/schemas` könyvtár a **`test` source set** assetjeként van bekötve
+   (`core/data/build.gradle.kts`) – a leszállított APK-ba így nem kerül bele.
+2. **A név alapú ág nem használható Robolectric alatt.** A
+   `MigrationTestHelper(instrumentation, databaseClass)` + `createDatabase(name, version)`
+   út `IllegalArgumentException: This driver is configured to open a database named
+   'migration-test.db' but 'C:\…\databases\migration-test.db' was requested` hibát ad
+   (a driver a nevet, a Room az abszolút utat kéri). Megoldás: a **fájl alapú**
+   konstruktor (`MigrationTestHelper(instrumentation, File, AndroidSQLiteDriver(),
+   KyokushinDatabase::class)`) és a `createDatabase(1)` / `runMigrationsAndValidate(2, …)`
+   `SQLiteConnection`-os API.
+3. **A segítő nem törli a fájlt.** Egy második futtatás
+   `IllegalStateException: A migration from 2 to 1 was required but not found` hibával
+   bukott, mert az előző futás fájlja már a 2-es verzión állt. Megoldás: a teszt `@Before`
+   és `@After` törli az átmeneti fájlt a `-wal` / `-shm` / `-journal` kísérőkkel együtt.
+
+### Rétegszabály, NFR-07, felhasználói szöveg
+
+- A `TechniqueMatch` a `core/data` publikus szerződésének része, és kizárólag
+  `core/model` típust hordoz (`Technique`); a `TechniqueSearchRow` Room-projekció
+  `internal` (TR-07, ADR-001 L4). A `techniqueRepository_publicApiExposesNoRoomOrDatabaseTypes_NFR03`
+  reflexiós teszt az új metódust is átvizsgálja.
+- NFR-07: nincs `Clock`, `Instant.now()`, `System.currentTimeMillis()` vagy `Random` hívás
+  az új kódban; a dispatcher injektált.
+- Felhasználói szöveg nem keletkezett: az „Egyezés: `{alias}`" sor megjelenítése a UI
+  feladata (T-207/T-208), a szöveg akkor kerül `strings.xml`-be.
+- A `NameNormalizer` **nem duplikálódott**: a normalizálás továbbra is egyetlen helyen él,
+  az SQL csak az általa előállított oszlopokon illeszt.
+
+### NEM FUTOTT
+
+| Parancs / teszt | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A keresést és a migrációt Robolectric + Room méri, `@Config(sdk = [34])`. |
+| `./gradlew ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+| `./gradlew lint` | **NEM FUTOTT** – nem része a feladat DoD-jának; a T-607 tárgya. |
+| Az alias-ág mérése **valódi** tartalmon | **NEM MÉRHETŐ** – az `aliases` mező a kapott tudástárban mindenhol üres (R-05), ezért az alias-tesztek fixtúrája szintetikus. A tárolt `aliasNormalized` ugyanaz a normalizáló kimenete, mint éles úton. |
+| A `search_hungarian` oszlop **pontos** értéke migráció után, import előtt | **NEM ÁLL ELŐ** – a migráció SQL-oldali `lower()`-e az ékezeteket nem bontja le; a pontos értéket a verziókapu nyitása után a következő import írja be (ADR-012). A teszt ezért a `contentVersion = NULL` kaput méri, nem egy ékezetmentes magyar alakot. |
+

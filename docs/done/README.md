@@ -30,3 +30,7 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-114](T-114-tr-04-eredmenyszamitas-tesztek.md) | TR-04: eredményszámítás tesztek | E1 | `core/quiz` | 2026-11-11 |
 | [T-115](T-115-core-data-a-kanonikus-sema-beolvasasa.md) | core/data: a kanonikus séma beolvasása | E1 | `core/data` | 2026-11-11 |
 | [T-116](T-116-core-data-room-sema.md) | core/data: Room séma | E1 | `core/data` | 2026-11-11 |
+| [T-117](T-117-core-data-contentimporter.md) | core/data: ContentImporter | E1 | `core/data` | 2026-11-11 |
+| [T-118](T-118-tr-05-tartalomfrissites-tesztek.md) | TR-05: tartalomfrissítés tesztek | E1 | `core/data` | 2026-11-11 |
+| [T-201](T-201-core-data-techniquerepository.md) | core/data: TechniqueRepository | E2 | `core/data` | 2026-11-11 |
+| [T-202](T-202-core-data-kereses.md) | core/data: keresés | E2 | `core/data` | 2026-11-11 |
