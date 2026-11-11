@@ -50,6 +50,14 @@ Ez nem hiba, hanem a tartalmi integritás helyes működése (lásd `docs/QUIZ_R
   a testhelyzet és a mozgásirány tipikusan hibás.
 - **Megengedett:** explicit képhelyőrző (placeholder). Ilyenkor a kép-alapú kvíztípusok
   (C: rajz → japán név, D: japán név → 4 rajz) **nem aktiválhatók**.
+- **A képbe égetett név felfedi a választ.** Ha a képen látszik a technika azonosítója,
+  japán vagy magyar neve, akkor a kép:
+  - a (C) és (D) kvíztípusban **nem használható** (leírja a helyes választ), és
+  - a tanulókártyán felfedés előtt **nem mutatható**.
+  Ez független a szakmai hitelességtől: egy tökéletesen ellenőrzött, de feliratos kép is
+  használhatatlan kvízben. A manifest ezért külön `has_embedded_label`, `quiz_usable` és
+  `hideable_on_study_card` mezőt hordoz (ADR-011). A megállapítás emberi megfigyelés –
+  minden új képet meg kell nézni. A jó megoldás: felirat nélküli képek, a nevet az app rajzolja.
 - Minden kép mellé dokumentálni kell: forrás, szerző, licenc, a felhasználás jogalapja.
   Hely: `docs/KNOWLEDGE_BASE.md` licenctáblázat + a manifest `illustrations[]` bejegyzései.
 - A rajznak egyértelműen mutatnia kell a testhelyzetet és a mozgásirányt. Többfázisú

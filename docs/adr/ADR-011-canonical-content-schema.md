@@ -48,7 +48,10 @@ Nincs konverziós réteg és nincs párhuzamos „belső" JSON formátum.
 | Mező | Hol | Miért |
 |---|---|---|
 | `categories[].sort_order` | manifest | a kategóriák sorrendje a UI-ban (DR-02); hiányában a tömbsorrend |
-| `illustrations[]` (`ref`, `file`, `license`, `source`, `author`) | manifest | képlicenc-nyilvántartás (CR-04); amíg nincs kép, üres tömb |
+| `illustrations[]` (`ref`, `file`, `content_type`, `width`, `height`, `sha256`, `origin`, `license`, `source`, `author`, `review_status`, `has_embedded_label`, `quiz_usable`, `hideable_on_study_card`) | manifest | képlicenc- és megbízhatóság-nyilvántartás (CR-04, CR-05) |
+| `synonym_groups[]` | manifest | azonos normalizált nevű rekordok; kölcsönös distraktor-kizárás (CR-07, V006) |
+| `search_romaji`, `search_hungarian` | rekord | előre normalizált keresési alak (FR-03) |
+| `incomplete` | rekord | a konverter megállapítása; az app validátora újraszámolja |
 | `quiz_excluded` | rekord | explicit, emberi kézzel megadott kizárás a kvízből, ha egy tétel pedagógiailag nem kvízelhető |
 | `retired` | rekord | ADR-004: a tananyagból kivont, de az előrehaladásban megőrzött tétel |
 
@@ -63,9 +66,9 @@ A `quiz_eligible` **szándékosan nem** kerül a fájlba: az számított érték
 | `review_status: "reviewed"` | `VerificationStatus.VERIFIED` |
 | `review_status: "editorial_review_required"` | `VerificationStatus.AWAITING_REVIEW` |
 | validátor jelölte hiányosság | `VerificationStatus.INCOMPLETE` (ADR-002) |
-| `image_path: null` | `IllustrationRef` = `null` |
-| `image_path` megadva, fájl létezik | `IllustrationRef.Asset` |
-| `image_path` megadva, fájl hiányzik | `IllustrationRef.Placeholder` (ADR-003, V005) |
+| `illustration_ref: null` | `IllustrationRef` = `null` |
+| `illustration_ref` megadva, a manifest bejegyzése és a fájl is megvan | `IllustrationRef.Asset` |
+| `illustration_ref` megadva, de a fájl hiányzik | `IllustrationRef.Placeholder` (ADR-003, V005) |
 | `japanese_romaji` | `romaji` |
 | `japanese_romaji_ascii` | a normalizált keresési index alapja (FR-03) |
 | `hungarian_name` | `hungarian` |
@@ -91,3 +94,37 @@ A `schema_version` **string** (semver), nem egész szám: a támogatott verziók
   hiteles; a `/kyo-validate-kb` parancs ellenőrzi az egyezést is.
 - A `docs/KNOWLEDGE_BASE.md` és a `kyo-knowledge-base` skill sémaleírását ehhez kell
   igazítani (Fázis 3.3).
+
+---
+
+## Kiegészítés (2026-11-11): `illustration_ref` az `image_path` helyett
+
+A tényleges konverzió során (`knowledgebase_transfer/tools/convert.py`) kiderült, hogy a
+képhez tartozó metaadat nem egy útvonal, hanem egy **rekordhalmaz**: licenc, eredet
+(`ai_generated`), szakmai review státusz, méret, SHA-256, és két megjelenítési kapu
+(`quiz_usable`, `hideable_on_study_card`).
+
+Ezért a rekord mezője `illustration_ref` lett, amely a `manifest.illustrations[].ref`
+értékre hivatkozik, és **nem** tartalmaz útvonalat. Indok: a kép metaadatai egy helyen
+élnek, így nem keletkezhet két igazság a licencről vagy a kvízhasználhatóságról (CR-04).
+
+### A `quiz_usable` kapu – miért nem elég a `review_status`
+
+A beérkezett 10 illusztrációból **háromba bele van égetve** a technika azonosítója, japán
+és magyar neve (KY-0045, KY-0050, KY-0052). Az ilyen kép:
+
+- a (C) „ábra → japán név" kérdésnél **leírja a helyes választ**;
+- a (D) „japán név → ábra" kérdésnél **elárulja, melyik opció a helyes**;
+- a tanulókártyán elrejtett néven **felfedi a választ a felfedés előtt**.
+
+Ez független attól, hogy a kép szakmailag hiteles-e: még egy tökéletesen ellenőrzött,
+feliratos kép is használhatatlan kvízben. Ezért két külön mező kell:
+
+| Mező | Mit jelent | Mire hat |
+|---|---|---|
+| `review_status` | szakmailag ellenőrzött-e a testhelyzet és a mozgásirány | a „ellenőrzésre vár" jelölés |
+| `has_embedded_label` → `quiz_usable`, `hideable_on_study_card` | felfedi-e a kép a választ | a (C)/(D) kvíztípus és a tanulókártya elrejtése |
+
+A `has_embedded_label` megállapítása **emberi megfigyelés** (a konverterben dokumentált,
+dátumozott lista), nem automatikus szövegfelismerés. Új kép felvételekor kötelező
+felülvizsgálni – ezt a `knowledgebase_transfer/README.md` is kiemeli.
