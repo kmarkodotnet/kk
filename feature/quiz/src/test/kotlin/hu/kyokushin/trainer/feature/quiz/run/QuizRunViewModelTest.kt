@@ -316,9 +316,14 @@ class QuizRunViewModelTest {
         job.cancel()
     }
 
-    /** T-410 „Teendők": „a kérdések között nincs visszalépés" – és az utolsón túl sem megy. */
+    /**
+     * T-410 „Teendők": „a kérdések között nincs visszalépés" – és az utolsón túl sem megy
+     * POZÍCIÓBAN (a harmadik [onNext] hívás T-411 óta lezárja a menetet és kiadja a
+     * [finishEvent]-et, lásd `quizRun_onNext_atLastQuestion_finishesSessionAndEmitsFinishEvent_FR20`
+     * – ez a teszt csak a pozíciót vizsgálja).
+     */
     @Test
-    fun quizRun_onNext_atLastQuestion_isNoOp() = runTest {
+    fun quizRun_onNext_atLastQuestion_positionDoesNotAdvanceFurther() = runTest {
         val plan = threeQuestionPlan()
         val viewModel = viewModel(savedStateHandle = handleFor(plan))
         val job = collectState(viewModel)
@@ -367,8 +372,8 @@ class QuizRunViewModelTest {
 
     /**
      * FR-19: megszakításkor a válaszok megmaradnak, és a ViewModel nem hív
-     * `finishSession`-t (lásd `FakeQuizRunProgressRepository.finishSession`, amely
-     * kivételt dob, ha mégis meghívnák).
+     * `finishSession`-t – ezt itt a [FakeQuizRunProgressRepository.finishSessionCalls]
+     * üres volta bizonyítja (T-411: a fake immár rögzíti, nem dobja el a hívást).
      */
     @Test
     fun quizRun_onConfirmClose_keepsRecordedAnswersAndEmitsCloseEvent_FR19() = runTest {
@@ -392,8 +397,50 @@ class QuizRunViewModelTest {
 
         assertThat(events).hasSize(1)
         assertThat(repository.allAttempts).hasSize(1)
+        assertThat(repository.finishSessionCalls).isEmpty()
         assertThat((viewModel.uiState.value as QuizRunUiState.Content).answeredCount).isEqualTo(1)
         assertThat((viewModel.uiState.value as QuizRunUiState.Content).closeConfirmationVisible).isFalse()
+        job.cancel()
+        eventJob.cancel()
+    }
+
+    // --------------------------------------------------------- normál befejezés / T-411
+
+    /**
+     * T-411 (G-09): az utolsó kérdésen a „Következő"/„Eredmény" gomb ([onNext]) a menetet
+     * lezárja ([ProgressRepository.finishSession]) és a [finishEvent]-en keresztül jelzi a
+     * hívónak, hogy navigáljon az eredményképernyőre – a pozíció **nem** lép tovább
+     * (nincs hova, FUNCTIONAL_SPEC 5.2/4.).
+     */
+    @Test
+    fun quizRun_onNext_atLastQuestion_finishesSessionAndEmitsFinishEvent_FR20() = runTest {
+        val plan = threeQuestionPlan()
+        val sessionId = SessionId.of("session-1")
+        val repository = FakeQuizRunProgressRepository()
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(plan, sessionId = sessionId),
+            progressRepository = repository,
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val events = mutableListOf<SessionId>()
+        val eventJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.finishEvent.collect { events += it }
+        }
+
+        viewModel.onNext()
+        viewModel.onNext()
+        advanceUntilIdle()
+        assertThat((viewModel.uiState.value as QuizRunUiState.Content).isLastQuestion).isTrue()
+
+        viewModel.onNext()
+        advanceUntilIdle()
+
+        assertThat(repository.finishSessionCalls).containsExactly(sessionId)
+        assertThat(events).containsExactly(sessionId)
+        // A pozíció nem lépett túl az utolsó kérdésen.
+        assertThat((viewModel.uiState.value as QuizRunUiState.Content).position).isEqualTo(2)
         job.cancel()
         eventJob.cancel()
     }

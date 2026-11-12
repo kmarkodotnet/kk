@@ -118,4 +118,35 @@
     <string name="quiz_run_empty_message">A kvízhez nem sikerült betölteni a kérdéseket.</string>
     <string name="quiz_run_empty_action">Vissza a beállításokhoz</string>
 
+    <!-- Eredmény (`quiz/result`, FUNCTIONAL_SPEC 5.3, FR-20, FR-21, FR-27, T-411, T-412, T-415). -->
+
+    <!-- Nagy összegzés: „{helyes} / {megválaszolt} helyes" (FUNCTIONAL_SPEC 5.3/1. szó
+         szerint idézve). %1$d a helyes, %2$d a megválaszolt kérdésszám. -->
+    <string name="quiz_result_score_fraction">%1$d / %2$d helyes</string>
+    <!-- A sikerarány szövegesen is kiolvasható, nem csak diagramon (NFR-04, T-411
+         „Kész ha"). %1$d egész szám, 0–100 között. -->
+    <string name="quiz_result_score_percent">Sikerarány: %1$d%%</string>
+
+    <!-- 0 válasz esetén (FUNCTIONAL_SPEC 5.3/1., FR-27, FUNCTIONAL_SPEC 8. `quiz.result.noAnswers`
+         szó szerint). -->
+    <string name="quiz_result_no_answers">Nem válaszoltál egyetlen kérdésre sem.</string>
+
+    <!-- Megszakított kvíz esetén (FUNCTIONAL_SPEC 5.3/1. szó szerint, FR-19). %1$d a
+         megválaszolt, %2$d a kért kérdésszám. -->
+    <string name="quiz_result_aborted">Megszakított kvíz – %1$d / %2$d kérdés.</string>
+
+    <!-- Hibás kérdések listája (FUNCTIONAL_SPEC 5.3/2.). -->
+    <string name="quiz_result_wrong_title">Hibás kérdések</string>
+    <string name="quiz_result_wrong_correct_label">Helyes megoldás:</string>
+    <string name="quiz_result_wrong_selected_label">A válaszod:</string>
+
+    <!-- Gombok (FUNCTIONAL_SPEC 5.3/3. szó szerint; a `quiz.result.retryWrong` kulcs a
+         FUNCTIONAL_SPEC 8. fejezetében is szó szerint szerepel). -->
+    <string name="quiz_result_retry_wrong">Hibák újragyakorlása</string>
+    <string name="quiz_result_new_quiz">Új kvíz</string>
+    <string name="quiz_result_back_to_progress">Vissza a Haladáshoz</string>
+
+    <!-- Védelmi háló (NFR-06): a menet nem található (pl. törölt haladás). -->
+    <string name="quiz_result_not_found_message">A kvízmenet nem található.</string>
+
 </resources>

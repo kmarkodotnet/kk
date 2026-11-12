@@ -5,6 +5,8 @@ import hu.kyokushin.trainer.core.data.db.KyokushinDatabase
 import hu.kyokushin.trainer.core.data.db.QuizAttemptEntity
 import hu.kyokushin.trainer.core.data.db.QuizSessionEntity
 import hu.kyokushin.trainer.core.data.db.StudyReviewEntity
+import hu.kyokushin.trainer.core.data.db.toQuizAttempt
+import hu.kyokushin.trainer.core.data.db.toQuizSession
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
@@ -99,6 +101,16 @@ internal class RoomProgressRepository @Inject constructor(
             database.quizSessionDao().markFinished(id, clock.instant())
         }
     }
+
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
+        withContext(ioDispatcher) {
+            val sessionEntity = database.quizSessionDao().getById(sessionId) ?: return@withContext null
+            val attemptEntities = database.quizAttemptDao().getBySession(sessionId)
+            QuizSessionResult(
+                session = sessionEntity.toQuizSession(),
+                attempts = attemptEntities.map { it.toQuizAttempt() },
+            )
+        }
 
     override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
         withContext(ioDispatcher) {

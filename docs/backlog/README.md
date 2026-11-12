@@ -23,11 +23,8 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-411](T-411-feature-quiz-eredmenykepernyo.md) | feature/quiz: eredményképernyő | E4 | `feature/quiz` | L | T-113, T-410 |
-| [T-412](T-412-feature-quiz-hibak-ujragyakorlasa.md) | feature/quiz: hibák újragyakorlása | E4 | `feature/quiz` | M | T-411 |
 | [T-413](T-413-feature-quiz-akadalymentesseg.md) | feature/quiz: akadálymentesség | E4 | `feature/quiz` | M | T-408, T-409 |
 | [T-414](T-414-feature-quiz-viewmodel-tesztek.md) | feature/quiz: ViewModel tesztek | E4 | `feature/quiz` | L | T-412 |
-| [T-415](T-415-feature-quiz-lektoralatlan-tartalom-jelzese.md) | feature/quiz: lektorálatlan tartalom jelzése | E4 | `feature/quiz` | S | T-404, T-411 |
 | [T-501](T-501-core-data-aggregalt-statisztika-lekerdezesek.md) | core/data: aggregált statisztika lekérdezések | E5 | `core/data` | L | T-401 |
 | [T-503](T-503-feature-progress-attekinto-kepernyo.md) | feature/progress: áttekintő képernyő | E5 | `feature/progress` | L | T-501, T-206 |
 | [T-504](T-504-feature-progress-gyakorlast-igenylo-lista.md) | feature/progress: gyakorlást igénylő lista | E5 | `feature/progress` | M | T-503 |

@@ -2,6 +2,8 @@ package hu.kyokushin.trainer.core.data.repository
 
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.QuestionType
+import hu.kyokushin.trainer.core.model.QuizAttempt
+import hu.kyokushin.trainer.core.model.QuizSession
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
@@ -25,6 +27,13 @@ import kotlinx.coroutines.flow.Flow
  * nincs `@Query`. A [observeStudyReviewSummary] ugyanilyen jellegű olvasó `Flow`, de az
  * ehhez tartozó adat (`study_review` darabszám besorolásonként) a T-301 hatókörébe esik,
  * ezért már itt megjelenik (FR-28, FUNCTIONAL_SPEC 6.1/5.).
+ *
+ * A [getSessionResult] is olvasó tag, de **nem** a T-501 aggregált, több-munkamenetes
+ * statisztikája (az a `observeOverallProgress`/`observeCategoryProgress`/
+ * `observeTechniqueProgress`/`observeNeedsPractice` négyes, még nincs megírva): ez
+ * kizárólag **egyetlen, már ismert `SessionId`-jú** menet visszaolvasása, a kvíz
+ * eredményképernyőjéhez (FR-20, FR-21, T-411/T-412, G-09 csoport). A kettő nem ütközik:
+ * az eredményképernyő a saját menetét nézi, nem a felhasználó teljes előzményét.
  *
  * ## Négy szabály, amit a megvalósításnak be kell tartania
  *
@@ -78,6 +87,21 @@ interface ProgressRepository {
      * egyszerűen nem történik írás.
      */
     suspend fun finishSession(id: SessionId)
+
+    /**
+     * Egy már lezárt vagy megszakított kvízmenet teljes eredménye (FR-20, FR-21, T-411).
+     *
+     * `null`, ha nincs ilyen azonosítójú menet – a hívó (`quiz/result`, T-411) ezt
+     * védelmi hálóként kezeli (NFR-06), nem kivételként: pl. egy sérült vagy törölt
+     * `sessionId` (a felhasználó törölte a haladást, miközben az eredményképernyőn volt)
+     * esetén.
+     *
+     * A [QuizSessionResult.attempts] a válaszadás sorrendjében érkezik (lásd
+     * [hu.kyokushin.trainer.core.data.db.QuizAttemptDao.getBySession] rendezése); a
+     * `UNIQUE(sessionId, questionId)` kényszer miatt (ADR-005) egy kérdésre legfeljebb egy
+     * próbálkozás van benne, tehát a hívónak nem kell újra deduplikálnia.
+     */
+    suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult?
 
     /**
      * Önértékelés rögzítése egy tanulókártyán (FR-10).
@@ -135,6 +159,20 @@ data class NewAttempt(
     val questionType: QuestionType,
     val selectedTechniqueId: TechniqueId,
     val correct: Boolean,
+)
+
+/**
+ * Egy kvízmenet teljes, visszaolvasott eredménye – a [ProgressRepository.getSessionResult]
+ * kimenete (FR-20, FR-21, T-411).
+ *
+ * @property session a menet metaadatai: [hu.kyokushin.trainer.core.model.QuizSession.isFinished]
+ *   dönti el, hogy a menet rendesen befejeződött-e, vagy megszakított (FR-19) –
+ *   az eredményképernyő ebből választja a „Megszakított kvíz – …" szöveget.
+ * @property attempts a menetben rögzített próbálkozások (lásd a metódus KDoc-ja).
+ */
+data class QuizSessionResult(
+    val session: QuizSession,
+    val attempts: List<QuizAttempt>,
 )
 
 /**

@@ -11,6 +11,7 @@ import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.SelfRating
+import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
 import java.lang.reflect.ParameterizedType
@@ -159,6 +160,64 @@ class RoomProgressRepositoryTest {
         repository.finishSession(sessionId)
 
         assertThat(database.quizSessionDao().getById(sessionId)!!.finishedAt).isEqualTo(fixedInstant)
+    }
+
+    // --- FR-20 / FR-21: a menet teljes eredménye visszaolvasható ----------------
+
+    @Test
+    fun getSessionResult_returnsSessionAndAttemptsInAnsweredOrder_FR20() = repositoryTest {
+        val sessionId = repository.startSession(requestedCount = 3, seed = 7L)
+        val secondTechnique = TechniqueId.of("KY-0002")
+        repository.recordAttempt(
+            NewAttempt(
+                sessionId = sessionId,
+                questionId = QuestionId.of("q-1"),
+                techniqueId = techniqueId,
+                questionType = QuestionType.JP_TO_HU,
+                selectedTechniqueId = techniqueId,
+                correct = true,
+            ),
+        )
+        repository.recordAttempt(
+            NewAttempt(
+                sessionId = sessionId,
+                questionId = QuestionId.of("q-2"),
+                techniqueId = secondTechnique,
+                questionType = QuestionType.HU_TO_JP,
+                selectedTechniqueId = techniqueId,
+                correct = false,
+            ),
+        )
+
+        val result = repository.getSessionResult(sessionId)
+
+        assertThat(result).isNotNull()
+        assertThat(result!!.session.id).isEqualTo(sessionId)
+        assertThat(result.session.requestedCount).isEqualTo(3)
+        assertThat(result.session.isFinished).isFalse()
+        assertThat(result.attempts.map { it.questionId.value })
+            .containsExactly("q-1", "q-2")
+            .inOrder()
+        assertThat(result.attempts.last().correct).isFalse()
+        assertThat(result.attempts.last().selectedTechniqueId).isEqualTo(techniqueId)
+    }
+
+    @Test
+    fun getSessionResult_finishedSessionReportsIsFinishedTrue_FR20() = repositoryTest {
+        val sessionId = repository.startSession(requestedCount = 1, seed = 1L)
+        repository.finishSession(sessionId)
+
+        val result = repository.getSessionResult(sessionId)
+
+        assertThat(result!!.session.isFinished).isTrue()
+        assertThat(result.attempts).isEmpty()
+    }
+
+    @Test
+    fun getSessionResult_unknownSessionIdReturnsNull_NFR06() = repositoryTest {
+        val result = repository.getSessionResult(SessionId.of("session-does-not-exist"))
+
+        assertThat(result).isNull()
     }
 
     // --- FR-10 / FR-28: önértékelés külön a kvízstatisztikától -------------------

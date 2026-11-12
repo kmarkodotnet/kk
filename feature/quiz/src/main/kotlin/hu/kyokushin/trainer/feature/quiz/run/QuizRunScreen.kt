@@ -71,6 +71,8 @@ import hu.kyokushin.trainer.feature.quiz.R
  *   navigál a Tudástár részletezőjére.
  * @param onExit a megszakítás megerősítve ([QuizRunViewModel.closeEvent]) – kifelé adott
  *   esemény, nem közvetlen navigáció.
+ * @param onFinish a kvíz normál befejezése, az utolsó kérdés „Eredmény" gombjával
+ *   ([QuizRunViewModel.finishEvent], T-411) – a hívó navigál a `quiz/result/{sessionId}`-ra.
  * @param modifier a szokásos Compose modifier.
  * @param viewModel a Hilt által adott ViewModel; teszt vagy előnézet nem ezt a
  *   konstruktort hívja, hanem közvetlenül a stateless [QuizRunScreen]-t.
@@ -79,6 +81,7 @@ import hu.kyokushin.trainer.feature.quiz.R
 fun QuizRunRoute(
     onOpenTechnique: (TechniqueId) -> Unit,
     onExit: () -> Unit,
+    onFinish: (SessionId) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: QuizRunViewModel = hiltViewModel(),
 ) {
@@ -86,6 +89,9 @@ fun QuizRunRoute(
 
     LaunchedEffect(viewModel) {
         viewModel.closeEvent.collect { onExit() }
+    }
+    LaunchedEffect(viewModel) {
+        viewModel.finishEvent.collect { sessionId -> onFinish(sessionId) }
     }
 
     QuizRunScreen(

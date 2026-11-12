@@ -122,9 +122,9 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403 ViewModel + T-404 UI, 2026-11-12) – `QuizSetupViewModel` + `QuizSetupScreen` (Compose) |
 | 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ✅ **kész** (G-08 csoport: T-407, T-409, 2026-11-12; majd T-408, 2026-11-12) – mind a négy kérdéstípus megjelenítése (`QuizRunScreen.kt`): az (A)/(B) szöveges és a (C)/(D) képes, a válasz-visszajelzéssel együtt |
 | 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ✅ **kész** (G-07 csoport: T-405, T-406, T-410, 2026-11-12) – `QuizRunViewModel` |
-| 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként | FR-20, FR-21 | ⬜ |
+| 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként, a lektorálatlanság jelzése | FR-20, FR-21, CR-01, CR-03 | ✅ **kész** (G-09 csoport: T-411, T-412, T-415, 2026-11-12) – `QuizResultViewModel`/`QuizResultScreen`: összegzés (sikerarány törve + százalék, „nincs adat", „megszakított"), hibás kérdések listája (típus, helyes technika romaji+magyar+ábra, saját válasz, kattintható), „Hibák újragyakorlása" (új munkamenet, új seed, kizárólag a hibás technikákból – a `ProgressRepository.getSessionResult` új, olvasó taggal), „Új kvíz”/„Vissza a Haladáshoz”. A lektorálatlanság-szalag a beállítón (T-404-ből már megvolt) és az eredményen is megjelenik, `REVIEWED` mellett automatikusan eltűnik (ADR-010). A normál befejezés (`QuizRunViewModel.onNext` az utolsó kérdésen → `finishSession` + `finishEvent`) is e csoportban készült el. |
 | 6.5 | Akadálymentesség a kvízben (szemantika, a (D) opciók nem fedik fel a választ) | NFR-04 | ⬜ |
-| 6.6 | **ViewModel tesztek** (dupla válasz, forgatás, megszakítás) | TR-04 | ✅ **kész** (G-07 csoport, lásd 6.3) – `QuizRunViewModelTest`, 14 eset |
+| 6.6 | **ViewModel tesztek** (dupla válasz, forgatás, megszakítás, normál befejezés, eredmény, újragyakorlás) | TR-04 | 🔄 **részben** (G-07 csoport, lásd 6.3, + G-09: T-411/T-412) – `QuizRunViewModelTest` (17 eset, a normál befejezéssel bővítve), `QuizResultViewModelTest` (9 eset), `QuizResultMessagesTest` (5 eset). A T-414 (teljes, önálló lefedettségi feladat) hátra van |
 
 ## Fázis 7 – Haladás és beállítások
 
@@ -166,11 +166,22 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-411** – `feature/quiz`: a `quiz/result` eredményképernyő (G-09 csoport első tagja,
-   T-411/T-412/T-415). Függősége (T-113, T-410) kész. A `quiz/setup`/`quiz/run` közötti
-   tényleges navigáció (a `QuizPlan` és a seed a `QuizRunViewModel`
-   `SavedStateHandle`-jébe írása) továbbra sincs bekötve a `navigation` modulban – lásd a
-   `QuizRunViewModel` KDoc-ja és `docs/CONVENTIONS.md` 5. szakasz új sorát.
+1. **T-413** – `feature/quiz`: akadálymentesség (TalkBack, a (D) opciók nem fedik fel a
+   választ). Függősége (T-408, T-409) kész. (A T-414 – ViewModel tesztek – és a T-501 –
+   aggregált statisztika – függősége is kész, mindhárom elérhető lenne; a numerikusan
+   legkisebb azonosítót választottuk.)
+
+(**A G-09 csoport – T-411, T-412, T-415 – kész, 2026-11-12:** a `quiz/result`
+eredményképernyő, a „Hibák újragyakorlása" és a lektorálatlanság jelzése. A
+`ProgressRepository` egy új, **olvasó** taggal bővült: `getSessionResult(sessionId):
+QuizSessionResult?` – egyetlen, már ismert menet visszaolvasása (FR-20, FR-21), **nem**
+a T-501 aggregált, több-munkamenetes statisztikája (az változatlanul hátravan). A
+`QuizRunViewModel.onNext()` az utolsó kérdésen immár lezárja a menetet
+(`finishSession`) és kiadja a `finishEvent`-et – a `quiz/run`/`quiz/result` közötti
+tényleges navigáció (a `navigation` modul bekötése) továbbra sincs megoldva, lásd a
+`QuizResultViewModel`/`QuizRunViewModel` KDoc-ja és `docs/CONVENTIONS.md` 5. szakasza:
+a `quiz/setup`/`quiz/run`/`quiz/result` teljes navigációs gráfja egyetlen, önálló,
+`navigation`-t érintő feladatra van hagyva.)
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -1080,3 +1091,42 @@ helyőrzőjének lecserélése).
   Lásd `docs/CONVENTIONS.md` 4. és 4.1 szakasz új sorai.
 
   Következő: T-411, `feature/quiz`: a `quiz/result` eredményképernyő (G-09 csoport).
+- 2026-11-12 – **G-09 csoport kész (T-411/T-412/T-415, Fázis 6.4):** a `quiz/result`
+  eredményképernyő, a hibák újragyakorlása és a lektorálatlanság jelzése.
+  `QuizResultViewModel` + `QuizResultScreen` (Compose): nagy összegzés (`{helyes}/
+  {megválaszolt} helyes` + százalék, két külön `Text`-ben – NFR-04 „nem csak diagramon"),
+  a „0 válasz”/„megszakított kvíz” variáns (`@Composable`-mentes `quizResultSummary`,
+  `QuizResultMessages.kt`, ugyanaz a döntés-kiemelési minta, mint a `QuizSetupMessages`-nél),
+  hibás kérdések listája (típus, helyes technika romaji+magyar+ábra, saját válasz,
+  kattintható → technika-részletező), „Hibák újragyakorlása”/„Új kvíz”/„Vissza a
+  Haladáshoz” gombok.
+  **Új `ProgressRepository` tag:** `getSessionResult(sessionId): QuizSessionResult?` –
+  **egyetlen, már ismert menet** visszaolvasása (FR-20), **nem** a T-501 aggregált
+  statisztikája; `RoomProgressRepository`-ban `QuizSessionDao.getById` +
+  `QuizAttemptDao.getBySession` + egy új entitás→domain mapper (`UserEntityMappers.kt`,
+  a `ContentEntityMappers.kt` mintájára – eddig nem volt rá szükség, mert a repository
+  csak írt/törölt, sosem olvasott vissza domain objektumot).
+  **„Hibák újragyakorlása” (T-412, FR-21):** a kvízmotor `QuizRequest`-je csak
+  kategória szerint szűr – nincs technikaszintű allow-list. A `QuizResultViewModel`
+  ezért egy **kizárólag** a hibás technikákat tartalmazó `QuizCandidateSet`-et épít
+  (társ-technika hozzáadása nélkül), így a correct-answer pool ÉS a distraktorpool is
+  garantáltan csak a hibás technikákból áll össze (US-16 AC-1: „ugyanazokra a
+  technikákra”). Ennek következménye a motor már dokumentált, nem-optimista szabálya:
+  4-nél kevesebb egyedi hibás technikával 0 kérdés állna össze – ilyenkor egy előzetes
+  `dryRun()` (ugyanaz a minta, mint a `quiz/setup`-nál) megakadályozza egy üres
+  munkamenet megnyitását.
+  A `quiz/run` normál befejezése (eddig a G-07-ben szándékosan no-op, lásd
+  `QuizRunViewModel.onNext` korábbi KDoc-ja) is e csoportban készült el:
+  `finishSession` + egy új `finishEvent` (`QuizRunViewModel`/`QuizRunRoute`).
+  **A lektorálatlanság jelzése (T-415):** a `quiz/setup` figyelmeztető sora a T-404-ben
+  **már elkészült** (`UnreviewedBanner(trust = state.datasetTrust)`) – ez a csoport csak
+  az eredményképernyőn adta hozzá, ugyanazzal a komponenssel (ADR-010, nem elrejthető,
+  `REVIEWED` mellett automatikusan eltűnik).
+  Új tesztek: `RoomProgressRepositoryTest` (+3, `getSessionResult`), `QuizRunViewModelTest`
+  (+2, a normál befejezés), `QuizResultViewModelTest` (9), `QuizResultMessagesTest` (5).
+  `.\gradlew.bat testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, 0 hiba);
+  `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`).
+  *Nyitva marad:* a `quiz/setup`/`quiz/run`/`quiz/result` navigációs gráfja (a
+  `navigation` modul bekötése) – lásd a „Következő lépés” szakasz.
+
+  Következő: T-413, `feature/quiz`: akadálymentesség.

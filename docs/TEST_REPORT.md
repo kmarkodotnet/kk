@@ -2699,3 +2699,98 @@ használható a rács").
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `quiz/setup` → `quiz/run` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak a tárgya. |
 | Kvíz **normál** befejezése (eredményképernyőre lépés, `finishSession`) | **NEM KÉSZÜLT EL** – szándékosan, a G-09 csoport (T-411) tárgya. |
+
+## 2026-11-12 – G-09 csoport kész (T-411, T-412, T-415 · `feature/quiz`, Fázis 6.4 – eredményképernyő, hibák újragyakorlása, lektorálatlanság jelzése)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle
+wrapper 9.9.1 (`./gradlew.bat`).
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :core:data:compileDebugKotlin :feature:quiz:compileDebugKotlin` | 0 | `BUILD SUCCESSFUL in 7s` – a főkód fordul (a `hiltViewModel()` deprecation figyelmeztetés dokumentált, nem blokkoló). |
+| `./gradlew.bat :core:data:compileDebugUnitTestKotlin :feature:learn:compileDebugUnitTestKotlin :feature:quiz:compileDebugUnitTestKotlin` | 0 | `BUILD SUCCESSFUL in 3s` (az első futás egy hiányzó `SessionId` importot jelzett a `RoomProgressRepositoryTest`-ben – javítva, a második futás zöld). |
+| `./gradlew.bat :core:data:testDebugUnitTest :feature:learn:testDebugUnitTest :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 24s`, 94 actionable task (11 executed, 83 up-to-date a nem érintett `core/*` modulokon) – a három érintett modul mind zöld. |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 35s`, **294 actionable task, mind a 294 végrehajtva** (teljes, őszinte projektfutás). |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 4s`, 300 actionable task; `app/build/outputs/apk/debug/app-debug.apk` elkészült. |
+
+A `build/test-results/**/TEST-*.xml` `tests` attribútumainak összege a teljes projekten
+**560** (nem becslés). Az érintett új/bővült osztályok:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…core.data.repository.RoomProgressRepositoryTest` (9 → **12**) | 12 | 0 |
+| `…feature.quiz.run.QuizRunViewModelTest` (15 → **17**) | 17 | 0 |
+| `…feature.quiz.result.QuizResultViewModelTest` (új) | **9** | 0 |
+| `…feature.quiz.result.QuizResultMessagesTest` (új) | **5** | 0 |
+
+### Mi készült
+
+**T-411 – `quiz/result` eredményképernyő.** `QuizResultViewModel` (új, `feature/quiz/result`):
+egyszeri `ProgressRepository.getSessionResult(sessionId)` visszaolvasás, `QuizScoring.score`
+(T-113) a sikerarányhoz, a hibás próbálkozások feloldása `TechniqueRepository.getTechnique`-tel
+(a **visszavont** technikát is visszaadja, DR-07 – egy később visszavont technikára mutató
+régi eredmény is helyesen megjelenik). `QuizResultUiState` (`Loading`/`NotFound`/`Content`),
+`QuizResultScreen` (Compose): nagy összegzés (`quiz_result_score_fraction` + külön
+`quiz_result_score_percent` – NFR-04 „nem csak diagramon, szövegesen is kiolvasható"),
+hibás kérdések listája (típus, helyes technika romaji+magyar+ábra, saját válasz,
+kattintható `Surface` → `onOpenTechnique`), három gomb.
+A „Nagy összegzés" három kölcsönösen kizáró ága (`Scored`/`NoAnswers`/`Aborted`) egy
+`@Composable`-mentes `quizResultSummary` függvényben él (`QuizResultMessages.kt`,
+ugyanaz a minta, mint a `QuizSetupMessages.kt`) – sima JUnittal tesztelve, Compose/
+Robolectric nélkül.
+
+**A kvíz normál befejezése (`QuizRunViewModel`, a G-07 óta nyitva hagyott rész):**
+`onNext()` az utolsó kérdésen immár `progressRepository.finishSession(sessionId)`-t hív és
+egy új `finishEvent: Flow<SessionId>`-et ad ki; a `QuizRunRoute` egy `onFinish` lambdával
+bővült. A `FakeQuizRunProgressRepository.finishSession` a G-07-ben szándékosan kivételt
+dobott (annak bizonyítására, hogy ott senki nem hívja) – itt már **rögzíti** a hívásokat.
+
+**Új `ProgressRepository` tag (`getSessionResult`, `core/data`):** `QuizSessionResult`
+(`session` + `attempts`) – **egyetlen, már ismert menet** visszaolvasása, nem a T-501
+aggregált statisztikája (lásd a `ProgressRepository.kt` KDoc-ja a kettő elhatárolásáról).
+`RoomProgressRepository` a `QuizSessionDao.getById` + `QuizAttemptDao.getBySession`
+(mindkettő már létező DAO-metódus) eredményét fordítja domain típusra egy új,
+`ContentEntityMappers.kt` mintájú `UserEntityMappers.kt`-ban (`QuizSessionEntity.toQuizSession()`,
+`QuizAttemptEntity.toQuizAttempt()`) – ez volt az első olvasó tag, amelynek entitás→domain
+fordításra volt szüksége (eddig a repository csak írt/törölt, lásd `docs/CONVENTIONS.md`
+1. szakasz).
+
+**T-412 – „Hibák újragyakorlása".** A kvízmotor `QuizRequest`-je csak kategória szerint
+szűr, nincs technikaszintű allow-list. A `QuizResultViewModel.onRetryWrong()` ezért egy
+**kizárólag** a hibás próbálkozások helyes technikáit tartalmazó `QuizCandidateSet`-et
+épít (társ-technika hozzáadása **nélkül**) – így a motor correct-answer poolja ÉS a
+distraktorpoolja is garantáltan csak ebből a halmazból áll össze, tehát az új munkamenet
+**kizárólag** a hibás technikákat kérdezi (US-16 AC-1: „ugyanazokra a technikákra").
+Ennek ára a motor már dokumentált, nem-optimista szabálya (`docs/CONVENTIONS.md` 1.
+szakasz: „legalább 4 technika kell egy négyopciós kérdéshez"): 4-nél kevesebb **egyedi**
+hibás technikával egyetlen kérdés sem állna össze – egy előzetes `dryRun()` (ugyanaz a
+minta, mint a `quiz/setup`-nál) ezért megakadályozza egy üres munkamenet megnyitását. A
+régi munkamenet érintetlen marad (nincs rá írás az `onRetryWrong`-ban), az új próbálkozások
+önálló, jogos rekordok.
+
+**T-415 – a lektorálatlanság jelzése.** A `quiz/setup` figyelmeztető sora **már a
+T-404-ben elkészült** (`UnreviewedBanner(trust = state.datasetTrust)` a `QuizSetupScreen`-ben)
+– ez a feladat csak az eredményképernyőn adta hozzá, ugyanazzal a komponenssel (ADR-010):
+nem elrejthető, és `DatasetTrust.REVIEWED` mellett automatikusan eltűnik, kódmódosítás
+nélkül.
+
+### Rétegszabály, akadálymentesség
+
+A `feature/quiz/result` kizárólag `core:model`/`core:ui`/`core:quiz`/`core:data`
+(repository-interfész) típusokat lát, Room/DAO/entitás sosem szivárog a UI-ig. Nincs
+közvetlen `Clock`/`Random` hívás (a `Random` az `onRetryWrong` seedsorsolásához injektált,
+ugyanaz a kötés, mint a `QuizSetupViewModel`-nél). Minden gomb és a hibás tétel sora
+`heightIn(min = 48.dp)`; 12 új `@Preview` (6 állapot × világos/sötét: betöltés, nem
+található, hibás kérdésekkel, hibátlan, megszakított, 0 válasz).
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `quiz/setup` ↔ `quiz/run` ↔ `quiz/result` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak (G-09, `feature/quiz`-re korlátozva) a tárgya. |
+| T-413 (akadálymentesség), T-414 (teljes ViewModel-teszt-lefedettség) | **NEM EBBEN A KÖRBEN** – önálló, nyitott taskok, nem ennek a csoportnak a tárgya. |

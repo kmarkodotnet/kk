@@ -5,6 +5,7 @@ import hu.kyokushin.trainer.core.data.content.ImportResult
 import hu.kyokushin.trainer.core.data.repository.ContentState
 import hu.kyokushin.trainer.core.data.repository.NewAttempt
 import hu.kyokushin.trainer.core.data.repository.ProgressRepository
+import hu.kyokushin.trainer.core.data.repository.QuizSessionResult
 import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
 import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
@@ -215,6 +216,10 @@ internal class FakeQuizProgressRepository(
         throw UnsupportedOperationException("A kvízbeállító nem zár le menetet.")
     }
 
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? {
+        throw UnsupportedOperationException("A kvízbeállító nem olvas vissza kvízeredményt.")
+    }
+
     override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
         throw UnsupportedOperationException("A kvízbeállító nem rögzít önértékelést.")
     }
@@ -229,7 +234,7 @@ internal class FakeQuizProgressRepository(
 
 /**
  * A [ProgressRepository] tesztdublőre a `feature/quiz/run` tesztjeihez (T-405, T-406,
- * T-410).
+ * T-410, T-411).
  *
  * A [recordAttempt] alapértelmezésben a valódi `UNIQUE(sessionId, questionId)` kényszert
  * tükrözi: ugyanarra a (menet, kérdés) párra a második hívás `false`-t ad, és nem írja
@@ -237,6 +242,11 @@ internal class FakeQuizProgressRepository(
  * [forceRecordResult] ettől függetlenül minden hívásra ugyanazt az értéket adja vissza –
  * ezzel szimulálható a DB-szintű elutasítás (`false`) olyan helyzetben is, amikor a
  * ViewModel saját (`answers` map-alapú) ellenőrzése még nem látná ütközőnek a kérdést.
+ *
+ * A [finishSession] a G-07 csoportban (T-405/T-406/T-410) még kivételt dobott – ott a
+ * `QuizRunViewModel` szándékosan nem hívta. A normál befejezés (utolsó kérdés →
+ * eredményképernyő) a G-09 csoport (T-411) tárgya, ezért itt már **rögzíti** a hívásokat,
+ * nem dob kivételt.
  */
 internal class FakeQuizRunProgressRepository(
     private val forceRecordResult: Boolean? = null,
@@ -246,6 +256,11 @@ internal class FakeQuizRunProgressRepository(
 
     /** Minden [recordAttempt] hívás, a hívás sorrendjében – a visszatérési értéktől függetlenül. */
     val allAttempts: List<NewAttempt> get() = _allAttempts
+
+    private val _finishSessionCalls = mutableListOf<SessionId>()
+
+    /** Minden [finishSession] hívás, a hívás sorrendjében (T-411). */
+    val finishSessionCalls: List<SessionId> get() = _finishSessionCalls
 
     private val recordedKeys = mutableSetOf<Pair<SessionId, QuestionId>>()
 
@@ -259,10 +274,11 @@ internal class FakeQuizRunProgressRepository(
     }
 
     override suspend fun finishSession(id: SessionId) {
-        throw UnsupportedOperationException(
-            "A G-07 csoport (T-405/T-406/T-410) szándékosan nem zár le menetet – lásd " +
-                "QuizRunViewModel.onConfirmClose KDoc-ja.",
-        )
+        _finishSessionCalls += id
+    }
+
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? {
+        throw UnsupportedOperationException("A futó kvíz nem olvassa vissza a kvízeredményt (ez a `quiz/result` felelőssége).")
     }
 
     override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
@@ -274,6 +290,50 @@ internal class FakeQuizRunProgressRepository(
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A futó kvíz nem törli a haladást.")
+    }
+}
+
+/**
+ * A [ProgressRepository] tesztdublőre a `feature/quiz/result` tesztjeihez (T-411, T-412).
+ *
+ * A [getSessionResult] a konstruktorban kapott, rögzített [QuizSessionResult]-ot adja
+ * vissza a megfelelő [SessionId]-ra, egyébként `null`-t (NFR-06 védelmi háló – pl. ismeretlen
+ * vagy törölt menet). A [startSession] az „Új kvíz" / „Hibák újragyakorlása" (T-412)
+ * új munkamenetéhez kell – minden hívás egy új, a hívás sorszámát hordozó azonosítót ad.
+ */
+internal class FakeQuizResultProgressRepository(
+    private val sessionResults: Map<SessionId, QuizSessionResult> = emptyMap(),
+) : ProgressRepository {
+
+    private val _startSessionCalls = mutableListOf<Pair<Int, Long>>()
+
+    /** Minden [startSession] hívás paraméterei, a hívás sorrendjében (T-412). */
+    val startSessionCalls: List<Pair<Int, Long>> get() = _startSessionCalls
+
+    override suspend fun startSession(requestedCount: Int, seed: Long): SessionId {
+        _startSessionCalls += requestedCount to seed
+        return SessionId.of("retry-session-${_startSessionCalls.size}")
+    }
+
+    override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
+        throw UnsupportedOperationException("Az eredményképernyő nem rögzít kvízválaszt.")
+
+    override suspend fun finishSession(id: SessionId) {
+        throw UnsupportedOperationException("Az eredményképernyő nem zár le menetet.")
+    }
+
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
+        sessionResults[sessionId]
+
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+        throw UnsupportedOperationException("Az eredményképernyő nem rögzít önértékelést.")
+    }
+
+    override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
+        throw UnsupportedOperationException("Az eredményképernyő nem olvassa az önértékelés-összegzést.")
+
+    override suspend fun clearAllProgress() {
+        throw UnsupportedOperationException("Az eredményképernyő nem törli a haladást.")
     }
 }
 

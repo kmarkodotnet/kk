@@ -72,8 +72,9 @@ import kotlinx.coroutines.launch
  * A kérdés-UI (opciógombok/képrács, T-407/T-408) és a válasz-visszajelzés (T-409) nem
  * része ennek a ViewModelnek – azok a [QuizRunUiState.Content.question] IDjeit oldják fel
  * a tudástárból. A kvíz **normál** befejezése (az utolsó kérdés utáni „Következő" →
- * eredményképernyő, `ProgressRepository.finishSession`) a G-09 csoport (T-411) tárgya: az
- * [onNext] ezért az utolsó kérdésen szándékosan **no-op** marad – lásd ott a KDoc-ot.
+ * eredményképernyő, `ProgressRepository.finishSession`) a G-07 lezárásakor még a G-09
+ * csoportra (T-411) volt hagyva; a G-09 ezt az [onNext] kibővítésével oldotta meg – lásd
+ * ott a KDoc-ot.
  *
  * ## A G-08 csoport (T-407/T-409) kiegészítése: [QuizRunUiState.Content.options]
  *
@@ -113,6 +114,15 @@ class QuizRunViewModel @Inject constructor(
 
     /** Egyszeri esemény: a megszakítás megerősítve – a hívó dönt a navigációról (L5). */
     val closeEvent: Flow<Unit> = _closeEvent.receiveAsFlow()
+
+    private val _finishEvent = Channel<SessionId>(Channel.BUFFERED)
+
+    /**
+     * Egyszeri esemény: a kvíz **normál** befejezése (az utolsó kérdés „Eredmény" gombja,
+     * T-411, G-09) – a hívó dönt a `quiz/result/{sessionId}`-ra navigálásról (L5). Lásd
+     * [onNext] KDoc-ja.
+     */
+    val finishEvent: Flow<SessionId> = _finishEvent.receiveAsFlow()
 
     /**
      * A teljes [QuizRunState], a `SavedStateHandle`-ből visszaépítve – `null`, ha a
@@ -192,15 +202,30 @@ class QuizRunViewModel @Inject constructor(
 
     /**
      * A következő kérdésre lépés (T-410 „Teendők": „a kérdések között nincs
-     * visszalépés" – nincs `onPrevious`).
+     * visszalépés" – nincs `onPrevious`), **vagy** az utolsó kérdésen a kvíz normál
+     * befejezése (FUNCTIONAL_SPEC 5.2/4.: az utolsó kérdésnél a gomb felirata
+     * „Eredmény", T-411, G-09).
      *
-     * Az utolsó kérdésen no-op: lásd az osztály KDoc-ja – a kvíz befejezése a G-09
-     * csoport (T-411) tárgya.
+     * Az utolsó kérdésen ez a metódus **nem** lép tovább pozícióban (nincs hova): helyette
+     * lezárja a menetet ([ProgressRepository.finishSession] – a `finishedAt` ettől lesz
+     * nem-`null`, FUNCTIONAL_SPEC 5.3, [hu.kyokushin.trainer.core.model.QuizSession.isFinished]),
+     * és egyszeri eseményként kiadja a [finishEvent]-et, hogy a hívó a
+     * `quiz/result/{sessionId}`-ra navigáljon (L5) – ugyanaz a mintázat, mint az
+     * [onConfirmClose]/[closeEvent] pár. A `finishSession` idempotens (a DAO csak akkor ír,
+     * ha a menet még befejezetlen, lásd `QuizSessionDao.markFinished`), tehát egy esetleges
+     * duplikált hívás (dupla koppintás a gombon) sem ír hibás állapotot.
      */
     fun onNext() {
         val plan = initial?.plan ?: return
         if (plan.questions.isEmpty()) return
         val index = savedStateHandle.get<Int>(KEY_CURRENT_INDEX) ?: 0
+        if (index >= plan.questions.lastIndex) {
+            viewModelScope.launch {
+                progressRepository.finishSession(initial.sessionId)
+                _finishEvent.send(initial.sessionId)
+            }
+            return
+        }
         savedStateHandle[KEY_CURRENT_INDEX] = (index + 1).coerceAtMost(plan.questions.lastIndex)
     }
 

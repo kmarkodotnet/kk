@@ -5,6 +5,7 @@ import hu.kyokushin.trainer.core.data.content.ImportResult
 import hu.kyokushin.trainer.core.data.repository.ContentState
 import hu.kyokushin.trainer.core.data.repository.NewAttempt
 import hu.kyokushin.trainer.core.data.repository.ProgressRepository
+import hu.kyokushin.trainer.core.data.repository.QuizSessionResult
 import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
 import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
@@ -179,6 +180,10 @@ internal class FakeLearnProgressRepository : ProgressRepository {
 
     override suspend fun finishSession(id: SessionId) {
         throw UnsupportedOperationException("A tanulás nem zár le kvízmenetet.")
+    }
+
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? {
+        throw UnsupportedOperationException("A tanulás nem olvas vissza kvízeredményt.")
     }
 
     override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
