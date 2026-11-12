@@ -1,6 +1,7 @@
 package hu.kyokushin.trainer.navigation
 
 import androidx.annotation.StringRes
+import hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel
 
 /**
  * Az alkalmazás navigációs szakaszai – a bottom navigation négy célja (FUNCTIONAL_SPEC 1.).
@@ -60,8 +61,17 @@ enum class KyokushinScreen(
         topLevel = true,
         showsBottomBar = true,
     ),
+    /**
+     * A `categoryIds`/`hideMode` opcionális lekérdezőparaméter neve **szándékosan**
+     * egyezik a [LearnCardsViewModel.KEY_CATEGORY_IDS]/[LearnCardsViewModel.KEY_HIDE_MODE]
+     * kulccsal (T-303 KDoc-ja, T-304): a Navigation Compose a route argumentumokat
+     * automatikusan a cél `NavBackStackEntry` `SavedStateHandle`-jébe teszi, tehát a
+     * ViewModel ugyanazzal a kulccsal olvassa vissza, amivel ide kerültek – lásd
+     * [KyokushinRoutes.learnCards].
+     */
     LEARN_CARDS(
-        routePattern = "learn/cards",
+        routePattern = "learn/cards?${LearnCardsViewModel.KEY_CATEGORY_IDS}={${LearnCardsViewModel.KEY_CATEGORY_IDS}}" +
+            "&${LearnCardsViewModel.KEY_HIDE_MODE}={${LearnCardsViewModel.KEY_HIDE_MODE}}",
         titleRes = R.string.nav_title_learn_cards,
         section = NavSection.LEARN,
         topLevel = false,
@@ -151,6 +161,17 @@ object NavArgs {
 object KyokushinRoutes {
 
     fun libraryDetail(techniqueId: String): String = "library/detail/$techniqueId"
+
+    /**
+     * A `learn/setup` (T-302) kijelölése a `learn/cards` (T-304) bemenete.
+     *
+     * @param categoryIds a [LearnCardsViewModel.CATEGORY_ID_SEPARATOR]-rel elválasztott
+     *   kategória-azonosítók, ugyanabban az alakban, ahogy a `LearnCardsViewModel` olvassa.
+     * @param hideMode a `HideMode` enum neve (`HideMode.name`).
+     */
+    fun learnCards(categoryIds: String, hideMode: String): String =
+        "learn/cards?${LearnCardsViewModel.KEY_CATEGORY_IDS}=$categoryIds" +
+            "&${LearnCardsViewModel.KEY_HIDE_MODE}=$hideMode"
 
     fun quizRun(sessionId: String): String = "quiz/run/$sessionId"
 

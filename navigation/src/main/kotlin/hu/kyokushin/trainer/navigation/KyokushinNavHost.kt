@@ -28,7 +28,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
+import hu.kyokushin.trainer.feature.learn.HideMode
+import hu.kyokushin.trainer.feature.learn.cards.LearnCardsRoute
+import hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel
+import hu.kyokushin.trainer.feature.learn.setup.LearnSetupRoute
 import hu.kyokushin.trainer.feature.library.detail.LibraryDetailRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListViewModel
@@ -179,8 +184,10 @@ private fun NavController.navigateToBottomNavDestination(destination: BottomNavD
  *
  * A funkciómodulok képernyői sorban cserélik le az eredeti [PlaceholderScreen]-t;
  * az útvonalak, az argumentumnevek és a bottom nav viselkedése nem változik. A
- * `library/list` útvonal már a valódi képernyőt mutatja (T-208: [LibraryListRoute]),
- * a többi cél egyelőre helyőrző.
+ * `library/list` (T-208: [LibraryListRoute]), a `library/detail` (T-209:
+ * [LibraryDetailRoute]), a `learn/setup` (T-302: [LearnSetupRoute]) és a `learn/cards`
+ * (T-304: [LearnCardsRoute]) útvonal már a valódi képernyőt mutatja, a többi cél
+ * egyelőre helyőrző.
  */
 @Composable
 private fun KyokushinNavGraph(
@@ -220,18 +227,44 @@ private fun KyokushinNavGraph(
         }
 
         composable(KyokushinScreen.LEARN_SETUP.routePattern) {
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.LEARN_SETUP.titleRes,
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_start_cards) {
-                        navController.navigate(KyokushinScreen.LEARN_CARDS.routePattern)
-                    },
-                ),
+            LearnSetupRoute(
+                // A kijelölt kategóriák és az elrejtési mód a `learn/cards` route
+                // lekérdezőparamétereként mennek tovább – a Navigation Compose ezeket
+                // automatikusan a cél `SavedStateHandle`-jébe teszi, ugyanazzal a névvel,
+                // amivel a `LearnCardsViewModel` olvassa (T-303/T-304, lásd
+                // `KyokushinScreen.LEARN_CARDS` KDoc-ja).
+                onStartCards = { categoryIds, hideMode ->
+                    navController.navigate(
+                        KyokushinRoutes.learnCards(
+                            categoryIds = categoryIds.joinToString(
+                                LearnCardsViewModel.CATEGORY_ID_SEPARATOR,
+                            ) { it.value },
+                            hideMode = hideMode.name,
+                        ),
+                    )
+                },
             )
         }
 
-        composable(KyokushinScreen.LEARN_CARDS.routePattern) {
-            PlaceholderScreen(titleRes = KyokushinScreen.LEARN_CARDS.titleRes)
+        composable(
+            route = KyokushinScreen.LEARN_CARDS.routePattern,
+            arguments = listOf(
+                navArgument(LearnCardsViewModel.KEY_CATEGORY_IDS) { defaultValue = "" },
+                navArgument(LearnCardsViewModel.KEY_HIDE_MODE) { defaultValue = HideMode.HIDE_JAPANESE.name },
+            ),
+        ) {
+            LearnCardsRoute(
+                // A „×" bezárás és a záróképernyő „Vissza a beállításokhoz" gombja is
+                // ide vezet: egyszerű visszalépés a `learn/setup`-ra.
+                onExit = { navController.popBackStack() },
+                // A `quiz/setup` (T-403/T-404) még nem létezik, tehát a kategóriák
+                // tényleges átvétele is csak akkor köthető be, amikor az a képernyő
+                // elkészül (ugyanaz a döntés, mint a T-302/T-303-nál, lásd
+                // `docs/CONVENTIONS.md` 4.1 szakasza). Itt csak a navigáció történik meg.
+                onStartQuiz = { _ ->
+                    navController.navigate(KyokushinScreen.QUIZ_SETUP.routePattern)
+                },
+            )
         }
 
         composable(KyokushinScreen.QUIZ_SETUP.routePattern) {

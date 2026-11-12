@@ -5,8 +5,11 @@ import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.feature.learn.ALL_LEARN_TECHNIQUES
+import hu.kyokushin.trainer.feature.learn.CATEGORY_DACHI
+import hu.kyokushin.trainer.feature.learn.CATEGORY_TSUKI
 import hu.kyokushin.trainer.feature.learn.FakeLearnTechniqueRepository
 import hu.kyokushin.trainer.feature.learn.HideMode
+import hu.kyokushin.trainer.feature.learn.TECHNIQUE_CHUDAN
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,7 +30,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * A tanulókártya ViewModel viselkedése – emulátor nélkül (T-303, FR-09, NFR-07).
+ * A tanulókártya ViewModel viselkedése – emulátor nélkül (T-303, T-307, FR-06, FR-09,
+ * NFR-07).
  *
  * Robolectric kell hozzá, mert a [SavedStateHandle] Android `Bundle` fölött validálja a
  * tárolt értékeket (CONVENTIONS 3.). `@Config(sdk = [34])` – a `compileSdk = 37`-hez nincs
@@ -123,7 +127,7 @@ class LearnCardsViewModelTest {
     }
 
     @Test
-    fun learnCards_nextAndPrevious_respectBounds_FR09() = runTest {
+    fun learnCards_previousAtStart_isNoOp_FR09() = runTest {
         val viewModel = viewModel(
             savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
         )
@@ -138,9 +142,25 @@ class LearnCardsViewModelTest {
         viewModel.onPrevious()
         advanceUntilIdle()
         assertThat((viewModel.uiState.value as LearnCardsUiState.Content).position).isEqualTo(0)
+        job.cancel()
+    }
 
-        // A végéig lépve a `hasNext` lezár, és további `onNext()` nem lép túl.
+    /**
+     * Az utolsó kártya utáni „Következő" a záróképernyőre visz (T-307,
+     * FUNCTIONAL_SPEC 4.2: „Az utolsó kártya után záróképernyő"), **nem** marad az
+     * utolsó kártyán – ez a T-303 eredeti elvárásához képest szándékos változás, amit a
+     * T-304/T-307 pár vezetett be (lásd `LearnCardsViewModel` osztály KDoc-ja).
+     */
+    @Test
+    fun learnCards_nextAfterLastCard_showsFinishedScreen_FR06() = runTest {
+        val categories = setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))
+        val viewModel = viewModel(savedStateHandle = handleFor(categories))
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val start = viewModel.uiState.value as LearnCardsUiState.Content
         val total = start.total
+
         repeat(total - 1) {
             viewModel.onNext()
             advanceUntilIdle()
@@ -149,9 +169,37 @@ class LearnCardsViewModelTest {
         assertThat(end.position).isEqualTo(total - 1)
         assertThat(end.hasNext).isFalse()
 
+        // A „Következő" az utolsó kártyán is engedélyezett (T-304 UI), és a
+        // záróképernyőre visz, nem marad az utolsó kártyán.
         viewModel.onNext()
         advanceUntilIdle()
-        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).position).isEqualTo(total - 1)
+        val finished = viewModel.uiState.value as LearnCardsUiState.Finished
+        assertThat(finished.total).isEqualTo(total)
+        assertThat(finished.categoryIds).isEqualTo(categories)
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_restartAfterFinished_returnsToFirstCardWithoutReveal_FR06() = runTest {
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onReveal()
+        val total = (viewModel.uiState.value as LearnCardsUiState.Content).total
+        repeat(total) {
+            viewModel.onNext()
+            advanceUntilIdle()
+        }
+        assertThat(viewModel.uiState.value).isInstanceOf(LearnCardsUiState.Finished::class.java)
+
+        viewModel.onRestart()
+        advanceUntilIdle()
+        val restarted = viewModel.uiState.value as LearnCardsUiState.Content
+        assertThat(restarted.position).isEqualTo(0)
+        assertThat(restarted.card.revealed).isFalse()
         job.cancel()
     }
 
@@ -180,6 +228,26 @@ class LearnCardsViewModelTest {
         advanceUntilIdle()
         // Visszalépve az első, már felfedett kártya felfedve marad (US-10 4. kritérium).
         assertThat((viewModel.uiState.value as LearnCardsUiState.Content).card.revealed).isTrue()
+        job.cancel()
+    }
+
+    // ------------------------------------------------------------- kategórianév / FR-06
+
+    @Test
+    fun learnCards_cardCarriesItsOwnCategoryName_FR06() = runTest {
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as LearnCardsUiState.Content
+        val expectedCategoryName = if (content.card.techniqueId == TECHNIQUE_CHUDAN.id) {
+            CATEGORY_TSUKI.nameHu
+        } else {
+            CATEGORY_DACHI.nameHu
+        }
+        assertThat(content.card.categoryName).isEqualTo(expectedCategoryName)
         job.cancel()
     }
 

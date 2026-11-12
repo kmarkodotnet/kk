@@ -50,6 +50,8 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
+    // A bezárás (×) ikonja a kártya felső sávján (T-304, FUNCTIONAL_SPEC 4.2/1.).
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
 

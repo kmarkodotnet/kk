@@ -25,4 +25,36 @@
     <string name="learn_setup_start_disabled_no_category">Válassz legalább egy kategóriát a kártyák indításához.</string>
     <string name="learn_setup_start_disabled_no_technique">A kiválasztott kategóriákban nincs megjeleníthető technika.</string>
 
+    <!-- Kártyák (`learn/cards`, FUNCTIONAL_SPEC 4.2, FR-07, FR-08, FR-09, T-304). -->
+
+    <!-- Felső sáv pozíciója: „3 / 12" (FUNCTIONAL_SPEC 4.2/1.). -->
+    <string name="learn_cards_position_of_total">%1$d / %2$d</string>
+    <string name="learn_cards_a11y_close">Bezárás</string>
+
+    <!-- A felfedésre váró felület felirata és a `stateDescription` két értéke
+         (T-304 „Kész ha": „felfedés előtt »elrejtve«, utána »felfedve«"). -->
+    <string name="learn_cards_reveal_prompt">Koppints a felfedéshez</string>
+    <string name="learn_cards_a11y_state_hidden">elrejtve</string>
+    <string name="learn_cards_a11y_state_revealed">felfedve</string>
+
+    <string name="learn_cards_previous">Előző</string>
+    <string name="learn_cards_next">Következő</string>
+
+    <!--
+        T-305: a feliratos képeknél (`hideableOnStudyCard == false`) ez a magyarázat
+        jelenik meg a kép helyén, felfedésig.
+    -->
+    <string name="learn_cards_image_hidden_title">A kép még rejtve van</string>
+    <string name="learn_cards_image_hidden_explanation">Ezen az ábrán szerepel a technika neve, ezért csak felfedés után látható.</string>
+
+    <!-- Üres kijelölés – védelmi háló, a `learn/setup` már letiltja ezt az esetet. -->
+    <string name="learn_cards_empty_message">A kiválasztott kategóriákban nincs megjeleníthető technika.</string>
+    <string name="learn_cards_empty_action">Vissza a beállításokhoz</string>
+
+    <!-- Záróképernyő (T-307, FUNCTIONAL_SPEC 4.2: „Az utolsó kártya után záróképernyő"). -->
+    <string name="learn_cards_finished_title">Végigértél %1$d kártyán.</string>
+    <string name="learn_cards_finished_restart">Újrakezdés</string>
+    <string name="learn_cards_finished_back_to_setup">Vissza a beállításokhoz</string>
+    <string name="learn_cards_finished_start_quiz">Kvíz indítása ezekkel a kategóriákkal</string>
+
 </resources>

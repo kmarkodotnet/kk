@@ -112,7 +112,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 5.1 | `learn/setup`: kategória- és elrejtésválasztás | FR-06, FR-07 | ✅ **kész** (T-302, 2026-11-12) |
-| 5.2 | `learn/cards`: felfedés, előző/következő, seedelt sorrend, pozíció mentése | FR-08, FR-09 | 🔄 **részben** – T-303: a `LearnCardsViewModel` (seedelt sorrend, pozíció, kártyánkénti felfedettség) kész; a Compose UI (felfedés/előző/következő gombok) a T-304 tárgya |
+| 5.2 | `learn/cards`: felfedés, előző/következő, seedelt sorrend, pozíció mentése | FR-06…FR-09 | ✅ **kész** (G-05 csoport: T-304, T-305, T-307, 2026-11-12) – `LearnCardsScreen` Compose UI (felső sáv, kártya, felfedés, Előző/Következő), a T-305 feliratos-kép-elrejtés és a T-307 záróképernyő. Az önértékelés (FR-10) **nem** ebben a körben: az T-306 tárgya |
 | 5.3 | Önértékelés → `StudyReview`, elkülönítve a kvízstatisztikától | FR-10, FR-28 | ⬜ |
 
 ## Fázis 6 – Kvíz UI
@@ -166,8 +166,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-304** – `feature/learn`: kártya UI (elrejtés/felfedés, előző/következő). Függőségei
-   (T-303, T-204) készen állnak.
+1. **T-306** – `feature/learn`: önértékelés (FR-10, FR-28). Függőségei (T-301, T-304)
+   készen állnak (G-05 csoport lezárva).
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -865,4 +865,41 @@ helyőrzőjének lecserélése).
   kapja meg a bemenetet. 20 új teszt (471 teszt, 0 hiba, `--rerun-tasks`-szal is
   leellenőrizve); `assembleDebug` exit 0.
 
-  Következő: T-304, `feature/learn`: kártya UI (elrejtés/felfedés, előző/következő).
+- 2026-11-12 – **G-05 csoport kész** (T-304, T-305, T-307, `docs/backlog/GROUPS.md`,
+  `feature/learn`, Fázis 5.2 **lezárva**). **T-304:** `LearnCardsScreen.kt` –
+  `LearnCardsRoute` + stateless képernyő: felső sáv (pozíció/összes, az **aktuális kártya
+  saját** kategórianeve – ehhez a `LearnCardsViewModel` kibővült
+  `repository.observeCategories()`-szel és a `LearnCardUiModel` egy `categoryName` mezővel
+  –, bezárás), a kártya (`VerificationBadge` + ábra + a nem elrejtett név, felfedés előtt
+  „Koppints a felfedéshez", utána mind a három elem), alsó Előző/Következő sáv (a
+  „Következő" az utolsó kártyán **sem** letiltva – ez a záróképernyőre vezet, lásd T-307),
+  `stateDescription` „elrejtve"/„felfedve", mind a hat állapot-ághoz (felfedés előtt/után,
+  feliratos kép rejtve, üres kijelölés, záróképernyő, betöltés) 2×`@Preview`.
+  **Akadálymentességi felismerés:** felfedés előtt az ábra `IllustrationLabel`-je
+  **`Decorative`**, nem `Technique` – különben a `TechniqueIllustration`
+  `contentDescription`-je kimondaná a rejtett nevet, ugyanaz a kiszivárgás, mint a
+  kvízopciónál, csak egy másik komponensen keresztül (`docs/CONVENTIONS.md` 4. szakasz új
+  sora). **T-305:** a feliratos képek (`IllustrationRef.Asset.hideableOnStudyCard ==
+  false` – a valós tartalomban KY-0045/KY-0050/KY-0052) felfedésig egy magyarázó
+  helyőrzőt kapnak a kép helyén, nem a tényleges pixeleket. **T-307:** a
+  `LearnCardsViewModel` egy új `LearnCardsUiState.Finished` ággal bővült – a `buildState`
+  a `position >= techniques.size` esetet **nem** szorítja vissza az utolsó kártyára
+  (szándékos, dokumentált viselkedésváltás a T-303-hoz képest, lásd `docs/CONVENTIONS.md`
+  5. szakasz új sora), hanem a záróképernyőt adja („Végigértél `{n}` kártyán." +
+  Újrakezdés/Vissza a beállításokhoz/Kvíz indítása ezekkel a kategóriákkal); `onRestart()`
+  a pozíciót és a felfedettséget nullázza, a seedet nem sorsolja újra. **A `navigation`
+  modul bekötötte** a `learn/setup`-ot és a `learn/cards`-ot (eddig helyőrzők voltak): a
+  `learn/cards` route két lekérdezőparamétert kapott
+  (`?categoryIds={categoryIds}&hideMode={hideMode}`), a nevek a `LearnCardsViewModel`
+  már létező, nem-`private` kulcs-konstansaiból jönnek (nincs duplikált `NavArgs`,
+  `docs/CONVENTIONS.md` 5. szakasz új sora). A „Kvíz indítása" kategóriái a
+  `LearnCardsRoute`-ból kifelé át vannak adva (`onStartQuiz: (Set<CategoryId>) -> Unit`),
+  de a `quiz/setup` (T-403/T-404) még nem létezik, ezért a `navigation` modul ma csak a
+  helyőrzőre navigál, a kategóriahalmazt eldobja – dokumentált nyitott ügy
+  (`docs/CONVENTIONS.md` 8. szakasz). A Compose döntési logika (kép elrejtése, ábraleírás,
+  `stateDescription`) `@Composable`-mentes `object`-ekbe emelve
+  (`LearnCardImagePolicy`/`LearnCardIllustrationLabelPolicy`/`LearnCardStateDescription`),
+  így emulátor nélkül, sima JUnit/Robolectric teszttel bizonyítható (8 teszt). 13 új teszt
+  összesen (471 → 484, 0 hiba, `--rerun-tasks`-szal leellenőrizve); `assembleDebug` exit 0.
+
+  Következő: T-306, `feature/learn`: önértékelés.

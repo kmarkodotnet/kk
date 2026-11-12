@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.kyokushin.trainer.core.data.di.DefaultDispatcher
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
+import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.feature.learn.HideMode
@@ -59,12 +60,21 @@ import kotlinx.coroutines.flow.stateIn
  * viszont jóval egyszerűbb, mint azonosító-halmazt egyeztetni az éppen aktuális
  * sorrenddel.
  *
- * ## Előző/következő határokkal
+ * ## Előző/következő határokkal, és a záróképernyő (T-307)
  *
- * A [onNext] és a [onPrevious] a nyers pozíciót írja (a felső határt a hívó oldalon a UI
- * a [LearnCardsUiState.Content.hasNext]/`hasPrevious` alapján tiltja le, T-304), a
- * [buildState] pedig **mindig** a `0..lastIndex` tartományba szorítja a megjelenítendő
- * pozíciót – véletlen, tartományon kívüli érték esetén sem omlik össze (NFR-06).
+ * A [onNext] és a [onPrevious] a nyers pozíciót írja; az alsó határt a [onPrevious]
+ * maga szorítja `0`-ra, a felső határnak viszont **nincs** hasonló szorítása [onNext]-ben
+ * – a `lastIndex` utáni pozíció szándékosan **nem** kerül vissza az utolsó kártyára, mert
+ * ez a [LearnCardsUiState.Finished] záróképernyő bemenete (FUNCTIONAL_SPEC 4.2: „Az
+ * utolsó kártya után záróképernyő"). A [buildState] tehát két esetet különböztet meg: ha
+ * a pozíció a `techniques.size`-nál kisebb, a megfelelő [LearnCardsUiState.Content] jön;
+ * ha nem, [LearnCardsUiState.Finished]. A UI (T-304) a „Következő" gombot ezért az
+ * utolsó kártyán **sem** tiltja le – egyetlen további lépés a záróképernyőre visz.
+ *
+ * A [onRestart] a záróképernyő „Újrakezdés" gombjának bemenete: visszaállítja a pozíciót
+ * `0`-ra és törli a felfedettségi készletet, de **nem** sorsol új [seed]-et – ugyanazon a
+ * (már egyszer sorsolt) sorrenden megy újra végig a felhasználó, csak elölről és üres
+ * felfedettséggel, hogy a kártyák ismét „kérdésként" hassanak.
  *
  * @property repository a tudástár olvasási felülete; innen jön a kijelölt kategóriák
  *   technikalistája (a visszavontak már kiszűrve, ADR-004).
@@ -108,10 +118,11 @@ class LearnCardsViewModel @Inject constructor(
 
     val uiState: StateFlow<LearnCardsUiState> = combine(
         repository.observeTechniques(categories = selectedCategories),
+        repository.observeCategories(),
         positionFlow,
         revealedPositionsFlow,
-    ) { techniques, position, revealedPositions ->
-        buildState(techniques, position, revealedPositions)
+    ) { techniques, categories, position, revealedPositions ->
+        buildState(techniques, categories, position, revealedPositions)
     }
         .flowOn(defaultDispatcher)
         .stateIn(
@@ -132,9 +143,10 @@ class LearnCardsViewModel @Inject constructor(
     /**
      * A következő kártyára lépés (FUNCTIONAL_SPEC 4.2/5.).
      *
-     * A nyers pozíció nő; a [buildState] szorítja érvényes tartományba, tehát az utolsó
-     * kártyán ismételt hívás biztonságos no-op a megjelenítés szintjén (NFR-06) – a
-     * tényleges letiltást a UI végzi `hasNext`-ből (T-304).
+     * A nyers pozíció nő, szorítás nélkül: az utolsó kártyán hívva a [buildState]
+     * [LearnCardsUiState.Finished]-t ad, azaz a záróképernyőre lép (T-307, lásd az
+     * osztály KDoc-ja). A UI (T-304) emiatt a „Következő" gombot az utolsó kártyán sem
+     * tiltja le.
      */
     fun onNext() {
         val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
@@ -147,20 +159,40 @@ class LearnCardsViewModel @Inject constructor(
         savedStateHandle[KEY_POSITION] = (position - 1).coerceAtLeast(0)
     }
 
+    /**
+     * Visszaállás az első kártyára, üres felfedettségi készlettel (T-307, a záróképernyő
+     * „Újrakezdés" gombja). A [seed] – és vele a kártyák sorrendje – **nem** változik,
+     * lásd az osztály KDoc-ja.
+     */
+    fun onRestart() {
+        savedStateHandle[KEY_POSITION] = 0
+        savedStateHandle[KEY_REVEALED] = ArrayList<String>()
+    }
+
     private fun buildState(
         techniques: List<Technique>,
+        categories: List<Category>,
         position: Int,
         revealedPositions: Set<Int>,
     ): LearnCardsUiState {
         if (techniques.isEmpty()) return LearnCardsUiState.Empty
 
         val ordered = shuffledOrder(techniques)
+
+        // A `lastIndex`-en túli pozíció a záróképernyő bemenete, nem egy "túllépett"
+        // érték, amit vissza kellene szorítani – lásd az osztály KDoc-ja (T-307).
+        if (position >= ordered.size) {
+            return LearnCardsUiState.Finished(total = ordered.size, categoryIds = selectedCategories)
+        }
+
+        val categoryNameById: Map<CategoryId, String> = categories.associate { it.id to it.nameHu }
         val clampedPosition = position.coerceIn(0, ordered.lastIndex)
         val technique = ordered[clampedPosition]
 
         return LearnCardsUiState.Content(
             card = LearnCardUiModel(
                 techniqueId = technique.id,
+                categoryName = categoryNameById[technique.categoryId].orEmpty(),
                 romaji = technique.romaji,
                 hungarian = technique.hungarian,
                 illustration = technique.illustration,

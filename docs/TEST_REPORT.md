@@ -2085,3 +2085,71 @@ milyen formában kell átadni az adatot. Lásd `docs/CONVENTIONS.md` 1. és 4.1 
 | `@Preview` **tényleges kirenderelése** (világos/sötét, mind a négy ág) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a nyolc előnézet-függvény lefordul. |
 | A `learn/cards` Compose UI tesztje | **NEM ALKALMAZHATÓ** – a T-303 nem ad UI-t, csak ViewModelt (ugyanaz a kettéválasztás, mint T-207/T-208 között); a T-304 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+## 2026-11-12 – G-05 csoport · `feature/learn`: kártya UI (T-304), feliratos kép elrejtése (T-305), záróképernyő (T-307)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:learn:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 11 új teszt (`LearnCardPoliciesTest` 8, `LearnCardsViewModelTest` nettó +3: 7 → 10), 0 hiba |
+| `./gradlew.bat :navigation:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 2 új teszt (`NavigationGraphTest`), 0 hiba |
+| `./gradlew.bat test testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **484 teszt, 0 hiba, 0 kihagyott** (471 → 484), minden task frissen futtatva (0 `UP-TO-DATE`) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+A futtatás Bash-ből történt (`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`,
+`./gradlew.bat …`). A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések
+`tests` attribútumainak modulonkénti összegzése adta, és minden modulban
+`failures="0" errors="0"`.
+
+### Mi készült
+
+A `learn/cards` Compose UI (`LearnCardsScreen.kt`): felső sáv (pozíció/összes, az
+**aktuális kártya saját** kategórianeve, bezárás), a kártya (ábra, a nem elrejtett név,
+„Koppints a felfedéshez" felfedésig, felfedés után mind a három elem), alsó Előző/Következő
+sáv, üres-kijelölés védelmi háló és a záróképernyő (T-307). A `LearnCardsViewModel`
+(T-303) kibővült: `repository.observeCategories()` a kártya saját kategórianevéhez,
+`LearnCardsUiState.Finished` ág (a `lastIndex` utáni pozíció **nem** szorítódik vissza az
+utolsó kártyára, hanem a záróképernyőt adja), és `onRestart()` (pozíció 0-ra, felfedettség
+törölve, **azonos** seed/sorrend). A `navigation` modul bekötötte a `learn/setup`-ot és a
+`learn/cards`-ot (eddig helyőrzők voltak): a `learn/cards` route két lekérdezőparamétert
+kapott (`categoryIds`, `hideMode`) a `LearnCardsViewModel` saját kulcsneveivel, amiket a
+Navigation Compose automatikusan a cél `SavedStateHandle`-jébe tesz.
+
+### Új tesztek (13) – `LearnCardPoliciesTest` (8) + `LearnCardsViewModelTest` nettó (+3) + `NavigationGraphTest` (2)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `imagePolicy_captionedAssetNotYetRevealed_mustHide_T305` | feliratos kép (`hideableOnStudyCard == false`), felfedés előtt: rejtendő |
+| `imagePolicy_captionedAssetRevealed_noLongerHidden_T305` | ugyanaz, felfedés után: már nem rejtendő |
+| `imagePolicy_plainAsset_neverHidden_T305` | normál kép sosem rejtendő, felfedés előtt sem |
+| `imagePolicy_placeholderOrMissingIllustration_neverHidden_T305` | `Placeholder`/`null` esetén nincs mit elrejteni |
+| `illustrationLabelPolicy_beforeReveal_isDecorative_notTheTechniqueName_FR07` | felfedés előtt az ábra leírása **dekoratív**, nem a technika neve (a TalkBack nem árulja el a rejtett nevet) |
+| `illustrationLabelPolicy_afterReveal_namesTheTechnique_FR07` | felfedés után a leírás a teljes nevet adja |
+| `stateDescription_beforeReveal_isHidden_T304` | a **tényleges** `strings.xml` fölött: felfedés előtt a `stateDescription` „elrejtve” |
+| `stateDescription_afterReveal_isRevealed_T304` | ugyanaz felfedés után: „felfedve” |
+| `learnCards_previousAtStart_isNoOp_FR09` | (a korábbi `…respectBounds…` teszt első fele, önálló tesztként) az „Előző” az elején no-op |
+| `learnCards_nextAfterLastCard_showsFinishedScreen_FR06` | az utolsó kártya utáni „Következő” a záróképernyőre visz, **nem** marad az utolsó kártyán (szándékos viselkedésváltás a T-303-hoz képest) |
+| `learnCards_restartAfterFinished_returnsToFirstCardWithoutReveal_FR06` | „Újrakezdés” a záróképernyőről az első, felfedetlen kártyára visz |
+| `learnCards_cardCarriesItsOwnCategoryName_FR06` | a kártya a saját technikájának kategórianevét hordozza, nem a kijelölés egészét |
+| `learnCards_routeArgumentNames_matchTheViewModelKeys_NFR03` | a `learn/cards` route argumentumnevei a `LearnCardsViewModel` kulcsaival egyeznek |
+| `routeBuilders_learnCards_fillsCategoryIdsAndHideMode_NFR03` | a `KyokushinRoutes.learnCards(...)` helyesen tölti ki a route mintát |
+
+### Szándékos, dokumentált eltérés: a „Kvíz indítása” nem köti be tényleges adatátvétellel a `quiz/setup`-ot
+
+A `learn/cards` záróképernyőjének „Kvíz indítása ezekkel a kategóriákkal" gombja a
+`LearnCardsRoute`-ból kifelé **átadja** a kiválasztott kategóriákat
+(`onStartQuiz: (Set<CategoryId>) -> Unit`) – ez a T-307 „Kész ha” pontja a modul saját
+határán. A `quiz/setup` (T-403/T-404) viszont még nem létezik, ezért a `navigation` modul
+jelenleg csak átnavigál a `quiz/setup` helyőrzőre, a kategóriahalmazt **nem** továbbítja –
+ugyanaz a döntés, mint a T-302/T-303 párnál a `learn/cards` argumentumaival
+(`docs/CONVENTIONS.md` 4.1 szakasz). Amikor a T-403/T-404 elkészül, a tényleges
+átvétel (route-argumentum vagy `SavedStateHandle` előretöltés) azzal a feladattal
+köthető be.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt (tényleges renderelés/koppintás a `learn/cards` képernyőn, TalkBack bejárás) | **NEM FUTOTT** – B-03. Ami igazolt: mind a 12 `@Preview` (6 állapot × világos/sötét) lefordul, és a Compose-mentes döntési szabályok (`LearnCardPoliciesTest`) valódi `strings.xml` fölött futnak. |
+| `@Preview` **tényleges kirenderelése** | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

@@ -1,6 +1,7 @@
 package hu.kyokushin.trainer.navigation
 
 import com.google.common.truth.Truth.assertThat
+import hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel
 import org.junit.Test
 
 /**
@@ -21,7 +22,7 @@ class NavigationGraphTest {
             "library/list",
             "library/detail/{techniqueId}",
             "learn/setup",
-            "learn/cards",
+            "learn/cards?categoryIds={categoryIds}&hideMode={hideMode}",
             "quiz/setup",
             "quiz/run/{sessionId}",
             "quiz/result/{sessionId}",
@@ -153,12 +154,40 @@ class NavigationGraphTest {
     fun argumentCarryingRoutes_useTheSharedArgumentNames_NFR03() {
         val withArguments = KyokushinScreen.entries.filter { it.routePattern.contains("{") }
 
-        assertThat(withArguments).hasSize(4)
-        withArguments.forEach { screen ->
+        // LIBRARY_DETAIL, QUIZ_RUN, QUIZ_RESULT, PROGRESS_TECHNIQUE (path argumentum,
+        // `NavArgs`-ból) + LEARN_CARDS (lekérdezőparaméter, `LearnCardsViewModel`
+        // kulcsaiból, lásd a következő tesztet).
+        assertThat(withArguments).hasSize(5)
+        withArguments.filterNot { it == KyokushinScreen.LEARN_CARDS }.forEach { screen ->
             val usesKnownArgument =
                 screen.routePattern.contains("{" + NavArgs.TECHNIQUE_ID + "}") ||
                     screen.routePattern.contains("{" + NavArgs.SESSION_ID + "}")
             assertThat(usesKnownArgument).isTrue()
         }
+    }
+
+    /**
+     * A `learn/cards` lekérdezőparaméterei a [LearnCardsViewModel] kulcsait használják,
+     * nem a `NavArgs`-t: a Navigation Compose a route argumentumokat automatikusan a cél
+     * `SavedStateHandle`-jébe teszi, tehát a ViewModel ugyanazzal a névvel olvassa vissza,
+     * amivel ide kerültek (T-303 KDoc-ja, T-304).
+     */
+    @Test
+    fun learnCards_routeArgumentNames_matchTheViewModelKeys_NFR03() {
+        assertThat(KyokushinScreen.LEARN_CARDS.routePattern)
+            .contains("{${LearnCardsViewModel.KEY_CATEGORY_IDS}}")
+        assertThat(KyokushinScreen.LEARN_CARDS.routePattern)
+            .contains("{${LearnCardsViewModel.KEY_HIDE_MODE}}")
+    }
+
+    @Test
+    fun routeBuilders_learnCards_fillsCategoryIdsAndHideMode_NFR03() {
+        val built = KyokushinRoutes.learnCards(categoryIds = "dachi,tsuki", hideMode = "HIDE_JAPANESE")
+
+        assertThat(built).isEqualTo(
+            KyokushinScreen.LEARN_CARDS.routePattern
+                .replace("{${LearnCardsViewModel.KEY_CATEGORY_IDS}}", "dachi,tsuki")
+                .replace("{${LearnCardsViewModel.KEY_HIDE_MODE}}", "HIDE_JAPANESE"),
+        )
     }
 }

@@ -8,6 +8,7 @@ import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
+import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
@@ -66,6 +67,7 @@ internal fun learnTechnique(
     hungarian: String,
     status: VerificationStatus = VerificationStatus.VERIFIED,
     retired: Boolean = false,
+    illustration: IllustrationRef? = null,
 ): Technique = Technique(
     id = TechniqueId.of(id),
     categoryId = CategoryId.of(categoryId),
@@ -75,6 +77,23 @@ internal fun learnTechnique(
     status = status,
     retired = retired,
     datasetVersion = "test-1",
+    illustration = illustration,
+)
+
+/** Feliratos kép (T-305): a fájl a technika nevét is tartalmazza, ezért felfedésig rejtve marad. */
+internal fun captionedIllustration(ref: String = "KY-0045"): IllustrationRef.Asset = IllustrationRef.Asset(
+    ref = ref,
+    fileName = "$ref.jpg",
+    quizUsable = false,
+    hideableOnStudyCard = false,
+)
+
+/** Normál (felirat nélküli) kép: a tanulókártyán felfedés előtt is látható. */
+internal fun plainIllustration(ref: String = "KY-0044"): IllustrationRef.Asset = IllustrationRef.Asset(
+    ref = ref,
+    fileName = "$ref.jpg",
+    quizUsable = true,
+    hideableOnStudyCard = true,
 )
 
 internal fun learnImportedState(
