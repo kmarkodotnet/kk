@@ -56,7 +56,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-12 |
-| Commit | lásd a T-308 lezárásánál (közös commit a G-06 csoporthoz) |
+| Commit | `f69422b` (közös a T-308 lezárásával, G-06 csoport) |
 
 **Futtatott parancsok:**
 
