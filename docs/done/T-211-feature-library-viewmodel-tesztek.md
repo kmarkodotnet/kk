@@ -56,7 +56,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-12 |
-| Commit | *(a következő commit rögzíti)* |
+| Commit | `9c00d10` |
 
 **Futtatott parancsok:**
 
