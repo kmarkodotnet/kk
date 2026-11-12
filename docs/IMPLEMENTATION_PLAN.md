@@ -119,7 +119,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403, 2026-11-12) – `QuizSetupViewModel`; a UI a T-404 tárgya |
+| 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403 ViewModel + T-404 UI, 2026-11-12) – `QuizSetupViewModel` + `QuizSetupScreen` (Compose) |
 | 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ⬜ |
 | 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ⬜ |
 | 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként | FR-20, FR-21 | ⬜ |
@@ -166,8 +166,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-404** – `feature/quiz`: beállító UI (FR-11…FR-13, FR-22, a `QuizSetupViewModel`
-   megjelenítése). Függősége (T-403) kész.
+1. **T-405** – `feature/quiz`: `QuizRunState` – a kérdéslista, seed, index és válaszok
+   `SavedStateHandle`-ben (FR-18, FR-19). Függősége (T-404) kész. A `quiz/run` és
+   `quiz/setup` közötti tényleges navigáció és a `QuizPlan` átadása még nincs bekötve a
+   `navigation` modulban – lásd a T-404 lezárását és `docs/CONVENTIONS.md` 5. szakasz
+   új sorát.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -949,3 +952,31 @@ helyőrzőjének lecserélése).
   `assembleDebug` exit 0. Lásd `docs/CONVENTIONS.md` 1. és 4.1 szakasz új sorai.
 
   Következő: T-404, `feature/quiz`: beállító UI.
+
+- 2026-11-12 – **T-404 kész** (`feature/quiz`: beállító UI, Fázis 6.1 lezárása).
+  `QuizSetupScreen.kt` – stateless `QuizSetupScreen` + a `QuizSetupViewModel`-t látó
+  `QuizSetupRoute` (ugyanaz a minta, mint a `LearnSetupScreen`/`LearnSetupRoute`): a
+  kategórialista jelölőnégyzettel és „`{kvízképes}` kvízképes / `{összes}` technika"
+  darabszámmal (FUNCTIONAL_SPEC 5.1/2.), `SingleChoiceSegmentedButtonRow` az 5/10/20
+  kérdésszámhoz (FUNCTIONAL_SPEC 5.1/3., FR-11 – ez az első szegmentált választó a
+  projektben, Material3 1.4.0 stabil API), négy kérdéstípus jelölőnégyzete, letiltott
+  sor alatt mindig látható, konkrét darabszámos indoklással (FR-13, ugyanaz a minta, mint
+  a `LearnCardSelfRatingRow`-nál: nem `stateDescription`, hanem normál bejárási sorrendű
+  szöveg), és az élő készenléti összegzés + a 0 kérdéses eset javaslata a gomb felett
+  (FR-22). A „Kvíz indítása" gomb eredménye (`QuizSetupViewModel.startEvent`) a
+  `QuizSetupRoute`-ból **kifelé** adott lambda (`onStartQuiz: (QuizStartResult) -> Unit`),
+  nem közvetlen navigáció (L5) – a tényleges `navigation` modul bekötés (navigálás a
+  `quiz/run/{sessionId}`-re és a `QuizPlan` átadása) **szándékosan nincs** ebben a
+  feladatban, mert a `quiz/run` képernyő még `PlaceholderScreen` (nem fogadna `QuizPlan`-t)
+  és a `QUIZ_SETUP` route-nak a `learn/cards`-ból érkező kategóriák átvétele is hátravan –
+  lásd `docs/CONVENTIONS.md` 5. szakasz új sora a pontos nyitott teendőről. Két
+  `@Composable`-mentes, Robolectric-kel (a tényleges `strings.xml` fölött) tesztelt
+  segédfüggvény (`QuizSetupMessages.kt`): `questionTypeLabelRes` (a négy kérdéstípus
+  felirata, szó szerint a FUNCTIONAL_SPEC 8. `quiz.type.*` kulcsaiból) és
+  `quizReadinessSummary` (a „ennyi kérdés áll össze" / hiány-szöveg döntése, szó szerint a
+  FUNCTIONAL_SPEC 5.1/5. és a `quiz.shortfall` kulcs mondatából). 4 új teszt
+  (505 → 509, 0 hiba, `--rerun-tasks`-szal leellenőrizve); `assembleDebug` exit 0.
+  `@Preview` világos + sötét, három `Content` variánsra (indítható, shortfall, 0 kérdés
+  letiltva) + `Loading`/`Error`. Lásd `docs/CONVENTIONS.md` 4.1 és 5. szakasz új sorai.
+
+  Következő: T-405, `feature/quiz`: `QuizRunState` (`SavedStateHandle`, FR-18, FR-19).

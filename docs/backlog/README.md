@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-404](T-404-feature-quiz-beallito-ui.md) | feature/quiz: beállító UI | E4 | `feature/quiz` | L | T-403 |
 | [T-405](T-405-feature-quiz-quizrunstate.md) | feature/quiz: QuizRunState | E4 | `feature/quiz` | M | T-403 |
 | [T-406](T-406-feature-quiz-egyszeri-valasz-kikenyszeritese.md) | feature/quiz: egyszeri válasz kikényszerítése | E4 | `feature/quiz` | M | T-405, T-401 |
 | [T-407](T-407-feature-quiz-a-es-b-kerdes-ui.md) | feature/quiz: (A) és (B) kérdés UI | E4 | `feature/quiz` | M | T-405 |

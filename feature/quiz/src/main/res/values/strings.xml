@@ -5,7 +5,27 @@
 -->
 <resources>
 
-    <!-- Beállítás (`quiz/setup`, FUNCTIONAL_SPEC 5.1, FR-11, FR-12, FR-13, FR-22, T-403). -->
+    <!-- Beállítás (`quiz/setup`, FUNCTIONAL_SPEC 5.1, FR-11, FR-12, FR-13, FR-22, T-403, T-404). -->
+
+    <string name="quiz_setup_categories_title">Kategóriák</string>
+    <!--
+        Egy kategória sorának darabszáma: „8 kvízképes / 12 technika" (FUNCTIONAL_SPEC
+        5.1/2.). Az első szám a kvízképes, a második az összes (nem visszavont) technika –
+        ellentétben a `learn/setup`-pal, ahol csak egy szám van (lásd CONVENTIONS 4.1).
+    -->
+    <string name="quiz_setup_category_count">%1$d kvízképes / %2$d technika</string>
+
+    <!-- Kérdésszám – szegmentált választó: 5 / 10 / 20 (FUNCTIONAL_SPEC 5.1/3., FR-11). -->
+    <string name="quiz_setup_count_title">Kérdésszám</string>
+
+    <!-- Kérdéstípusok (FUNCTIONAL_SPEC 5.1/4., FR-12). A négy felirat szó szerint a
+         FUNCTIONAL_SPEC 8. fejezetéből jön (`quiz.type.jpToHu`/`huToJp`/`imageToJp`/
+         `jpToImage`). -->
+    <string name="quiz_setup_types_title">Kérdéstípusok</string>
+    <string name="quiz_setup_type_jp_to_hu">Japán név → magyar jelentés</string>
+    <string name="quiz_setup_type_hu_to_jp">Magyar név → japán név</string>
+    <string name="quiz_setup_type_image_to_jp">Ábra → japán név</string>
+    <string name="quiz_setup_type_jp_to_image">Japán név → ábra</string>
 
     <!--
         A (C)/(D) képes típus letiltásának indoklása, ha nincs elég validált, kvízben
@@ -29,5 +49,20 @@
         javaslatot (kategória, kérdéstípus, kérdésszám) hordozza.
     -->
     <string name="quiz_setup_message_not_enough_data">A kiválasztott beállításokkal nem állítható össze kvíz. Válassz több kategóriát, engedélyezz több kérdéstípust, vagy csökkentsd a kérdésszámot.</string>
+
+    <!--
+        Élő készenléti összegzés (FUNCTIONAL_SPEC 5.1/5., FR-11): „A beállításokkal `{n}`
+        kérdés állítható össze." – szó szerint a leíró szöveg idézett mondata.
+    -->
+    <string name="quiz_setup_summary_ready">A beállításokkal %1$d kérdés állítható össze.</string>
+
+    <!--
+        Hiány esetén a `quiz.shortfall` kulcs szó szerinti szövege (FUNCTIONAL_SPEC 8.,
+        FR-22): „A kért `{k}` helyett `{n}` kérdés lesz, mert nincs több megfelelő
+        technika." %1$d a kért, %2$d a tényleges kérdésszám.
+    -->
+    <string name="quiz_setup_shortfall">A kért %1$d helyett %2$d kérdés lesz, mert nincs több megfelelő technika.</string>
+
+    <string name="quiz_setup_start">Kvíz indítása</string>
 
 </resources>

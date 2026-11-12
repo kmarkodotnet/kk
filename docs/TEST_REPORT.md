@@ -2325,3 +2325,66 @@ kódban (NFR-07).
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | Compose UI / `@Preview` | **NEM ALKALMAZHATÓ** – a T-403 nem ad UI-t, csak ViewModelt (ugyanaz a kettéválasztás, mint T-207/T-208 és T-302/T-303 között); a UI a T-404 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-12 – T-404 (`feature/quiz`: beállító UI)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – `QuizSetupMessagesTest` (4 teszt, 0 hiba) a meglévő `QuizSetupViewModelTest` (16 teszt) mellett |
+| `./gradlew.bat test testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **509 teszt, 0 hiba** (505 → 509) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL`, `app/build/outputs/apk/debug/app-debug.apk` |
+
+### Mi készült
+
+`QuizSetupScreen.kt` (`feature/quiz/.../setup/`): stateless `QuizSetupScreen` +
+`QuizSetupRoute` (a `QuizSetupViewModel`-t látó egyetlen composable), ugyanazzal a
+mintával, mint a `LearnSetupScreen`/`LearnSetupRoute`. Kategórialista jelölőnégyzettel
+(„`{kvízképes}` kvízképes / `{összes}` technika", FUNCTIONAL_SPEC 5.1/2.), szegmentált
+kérdésszám-választó (`SingleChoiceSegmentedButtonRow`/`SegmentedButton`, Material3
+1.4.0, 5/10/20, FR-11), négy kérdéstípus jelölőnégyzete (FR-12) letiltott sor alatt
+mindig látható, konkrét darabszámos indoklással (FR-13, T-404 „Kész ha" 1. pontja: nem
+általános szöveg), és az élő készenléti összegzés + a 0 kérdéses eset javaslata a
+„Kvíz indítása" gomb felett (FR-22). A gomb eredménye (`QuizSetupViewModel.startEvent`)
+a `QuizSetupRoute`-ból kifelé adott `onStartQuiz: (QuizStartResult) -> Unit` lambda – a
+`navigation` modul bekötése **szándékosan nincs** ebben a körben (lásd
+`docs/CONVENTIONS.md` 5. szakasz új sora: a `quiz/run` még `PlaceholderScreen`, nem
+fogadna `QuizPlan`-t, és a `learn/cards → quiz/setup` kategória-átadás is hátravan).
+
+Két `@Composable`-mentes segédfüggvény (`QuizSetupMessages.kt`), hogy a szöveg-döntés a
+tényleges `strings.xml` fölött, emulátor nélkül bizonyítható legyen (ugyanaz a minta,
+mint a `LibraryListItemAccessibility`/`UnreviewedNotice`): `questionTypeLabelRes`
+(a négy kérdéstípus felirata, szó szerint a FUNCTIONAL_SPEC 8. `quiz.type.*`
+kulcsaiból) és `quizReadinessSummary` (a „ennyi kérdés áll össze" / hiány-szöveg
+döntése, szó szerint a FUNCTIONAL_SPEC 5.1/5. mondatából és a `quiz.shortfall`
+kulcsból).
+
+### Új tesztek (4) – `QuizSetupMessagesTest` (Robolectric, a tényleges `strings.xml` fölött)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `quizReadinessSummary_withoutShortfall_announcesExpectedCount_FR11` | shortfall nélkül a „A beállításokkal `{n}` kérdés állítható össze." szó szerinti szöveg |
+| `quizReadinessSummary_withShortfall_announcesRequestedAndActualCount_FR22` | shortfall esetén a `quiz.shortfall` szó szerinti szövege, helyes paraméter-sorrenddel (kért, majd tényleges) |
+| `quizReadinessSummary_zeroQuestions_stillAnnouncesTheCount_FR22` | 0 kérdés esetén is a számot közlő szöveg jön (a „0" eset nem keverendő a `Shortfall`-lal) |
+| `questionTypeLabelRes_returnsTheFunctionalSpecWordingForEachType_FR12` | mind a négy kérdéstípus felirata szó szerint egyezik a FUNCTIONAL_SPEC 8.-cal |
+
+### Rétegszabály, akadálymentesség
+
+A `QuizSetupScreen.kt` kizárólag `core:model`, `core:ui` (`ErrorState`, `UnreviewedBanner`,
+`KyokushinTrainerTheme`) és `core:quiz` (`Shortfall`/`ShortfallReason`, csak az
+előnézetekhez) típusokat lát – nincs Room entitás, DAO vagy DTO (ADR-001 L3/L4), nincs
+közvetlen `Clock`/`Random` hívás (NFR-07, a UI réteg egyáltalán nem is lát ilyet). Minden
+felhasználói szöveg `strings.xml`-ben (`feature/quiz/src/main/res/values/strings.xml`),
+magyarul. A kategória- és kérdéstípus-sorok `Modifier.toggleable(role = Role.Checkbox)`-ot
+kapnak a teljes sorra (nem csak a `Checkbox`-ra), a gomb és minden sor `heightIn(min = 48.dp)`.
+`@Preview` világos + sötét témára, három `Content`-variánsra (indítható, shortfall, 0
+kérdés letiltva) + `Loading`/`Error`.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `navigation` modul bekötése (`QUIZ_SETUP` composable, `learn/cards → quiz/setup` kategória-átadás) | **NEM KÉSZÜLT EL** – szándékosan, lásd a „Mi készült" szakasz és `docs/CONVENTIONS.md` 5. szakasz új sora. Nem T-404 „Teendők" tárgya; a `quiz/run` oldali bekötés a T-405 utáni, önálló lépés. |
