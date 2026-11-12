@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A Tanulás képernyők felhasználói szövegei.
+    Minden szöveg magyar és KIZÁRÓLAG itt él (NFR-02, FUNCTIONAL_SPEC 8.).
+-->
+<resources>
+
+    <!-- Beállítás (`learn/setup`, FUNCTIONAL_SPEC 4.1, FR-06, FR-07). -->
+
+    <string name="learn_setup_categories_title">Kategóriák</string>
+    <!-- Egy kategória sorának találatszáma: pl. „12 technika" (FUNCTIONAL_SPEC 4.1/2.). -->
+    <string name="learn_setup_category_count">%1$d technika</string>
+
+    <string name="learn_setup_hide_mode_title">Mit rejtsünk el?</string>
+    <string name="learn_setup_hide_japanese">Japán nevet rejtse el</string>
+    <string name="learn_setup_hide_hungarian">Magyar nevet rejtse el</string>
+
+    <string name="learn_setup_start">Kártyák indítása</string>
+
+    <!--
+        A „Kártyák indítása" gomb letiltásának indoklása (FUNCTIONAL_SPEC 4.1/4.: „A
+        letiltás mellett magyarázó szöveg"). Két ok, mert a felhasználónak két teljesen
+        más teendője van: válasszon kategóriát, vagy válasszon olyat, amiben van tartalom.
+    -->
+    <string name="learn_setup_start_disabled_no_category">Válassz legalább egy kategóriát a kártyák indításához.</string>
+    <string name="learn_setup_start_disabled_no_technique">A kiválasztott kategóriákban nincs megjeleníthető technika.</string>
+
+</resources>
