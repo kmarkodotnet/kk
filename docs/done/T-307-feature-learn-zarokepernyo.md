@@ -54,7 +54,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-12 |
-| Commit | közös a T-304/T-305 lezárásával (G-05 csoport) |
+| Commit | `ca1e230` (kód), közös a T-304/T-305 lezárásával (G-05 csoport) |
 
 **Futtatott parancsok:**
 
