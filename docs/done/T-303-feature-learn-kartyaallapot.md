@@ -55,7 +55,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-12 |
-| Commit | lásd a T-302 lezárásával egy közös commit (G-04 csoport) |
+| Commit | `ca81ded` (kód), `2bdacbd` (docs) – közös a T-302 lezárásával (G-04 csoport) |
 
 **Futtatott parancsok:**
 
