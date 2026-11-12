@@ -29,7 +29,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
+import hu.kyokushin.trainer.feature.library.detail.LibraryDetailRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListRoute
+import hu.kyokushin.trainer.feature.library.list.LibraryListViewModel
 
 /**
  * Helyőrző azonosítók a navigációs váz bejárásához.
@@ -198,20 +200,22 @@ private fun KyokushinNavGraph(
             )
         }
 
-        composable(KyokushinScreen.LIBRARY_DETAIL.routePattern) { entry ->
-            val techniqueId = entry.arguments?.getString(NavArgs.TECHNIQUE_ID)
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.LIBRARY_DETAIL.titleRes,
-                argument = techniqueId,
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_open_technique_progress) {
-                        navController.navigate(
-                            KyokushinRoutes.progressTechnique(
-                                techniqueId ?: PLACEHOLDER_TECHNIQUE_ID,
-                            ),
-                        )
-                    },
-                ),
+        composable(KyokushinScreen.LIBRARY_DETAIL.routePattern) {
+            // A `techniqueId` argumentumot a ViewModel saját `SavedStateHandle`-je olvassa
+            // ki közvetlenül a NavBackStackEntry-ből (lásd `LibraryDetailViewModel`
+            // dokumentációja) – itt nincs rá szükség.
+            LibraryDetailRoute(
+                // A kategóriachipre koppintva vissza a listára, arra a kategóriára
+                // szűrve (US-07/T-209 Kész ha 2. pont). A Navigation Compose „eredmény
+                // visszaadása" mintája: a célként visszakapott SavedStateHandle-be írunk,
+                // mielőtt visszalépünk – ugyanaz a SavedStateHandle, amit a lista
+                // ViewModelje a kategóriakijelöléshez használ.
+                onOpenCategory = { categoryId ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(LibraryListViewModel.KEY_CATEGORIES, arrayListOf(categoryId.value))
+                    navController.popBackStack()
+                },
             )
         }
 

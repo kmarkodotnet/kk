@@ -25,4 +25,27 @@
     -->
     <string name="library_matched_alias">Egyezés: %1$s</string>
 
+    <!--
+        Részletező képernyő (FUNCTIONAL_SPEC 3.2, FR-04, FR-05, US-07, US-08).
+    -->
+
+    <!-- Aliasok felsorolása (3.2. 6. pont: „Más néven: …"). -->
+    <string name="library_detail_aliases">Más néven: %1$s</string>
+
+    <!--
+        US-08 3. kritérium: a „Hiányos rekord" blokk a `VerificationBadge`-ből jön
+        (a „Hiányos" jelölő + a hiányzó mezők felsorolása, FUNCTIONAL_SPEC 2.2); ez a
+        szöveg a HARMADIK, önálló elem, amit a kritérium külön megkövetel: a
+        kvízkizárás ténye.
+    -->
+    <string name="library_detail_quiz_excluded_notice">Ez a rekord hiányos, ezért nem használható kvízkérdésben.</string>
+
+    <!--
+        A technika nem létezik a betöltött tudástárban (FUNCTIONAL_SPEC 10.) – a
+        `TechniqueRepository.getTechnique` dokumentált `null` ága. A gyakorlatban nem
+        fordul elő, mert a részletező csak a listáról nyitható meg, de nem omolhat
+        össze, ha mégis ismeretlen azonosítóval hívják.
+    -->
+    <string name="library_detail_not_found">Ez a technika nem található a tudástárban.</string>
+
 </resources>

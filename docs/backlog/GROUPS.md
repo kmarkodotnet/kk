@@ -40,7 +40,6 @@ minden tagjának minden külső függősége teljesült.
 
 | Feladat | Miért marad önálló |
 |---|---|
-| T-209 | A részletező képernyő önálló, nagy felület. |
 | T-403, T-404 | A kvízbeállító ViewModel és UI külön-külön is `L`; a `dryRun`-egyezés miatt a ViewModel önmagában is figyelmet kíván. |
 | T-408 | A képes kérdéstípusok akadálymentessége önálló gondolkodást kíván. |
 | T-413, T-414 | Akadálymentesség és a kvíz ViewModel tesztjei – mindkettő a kvízhelyesség közelében. |

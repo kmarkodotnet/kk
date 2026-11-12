@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-209](T-209-feature-library-reszletezo-kepernyo.md) | feature/library: részletező képernyő | E2 | `feature/library` | L | T-207 |
 | [T-301](T-301-core-data-progressrepository-tanulasi-resz.md) | core/data: ProgressRepository – tanulási rész | E3 | `core/data` | M | T-116 |
 | [T-302](T-302-feature-learn-tanulas-beallitasa.md) | feature/learn: tanulás beállítása | E3 | `feature/learn` | M | T-203, T-206 |
 | [T-303](T-303-feature-learn-kartyaallapot.md) | feature/learn: kártyaállapot | E3 | `feature/learn` | M | T-302 |

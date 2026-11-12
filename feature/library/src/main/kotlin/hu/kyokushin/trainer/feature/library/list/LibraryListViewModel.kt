@@ -288,15 +288,26 @@ class LibraryListViewModel @Inject constructor(
         val matches: List<TechniqueMatch>,
     )
 
-    private companion object {
-        const val KEY_QUERY = "library.query"
+    companion object {
+        private const val KEY_QUERY = "library.query"
+
+        /**
+         * A kijelölt kategóriák `SavedStateHandle` kulcsa. **Nem** `private`: a
+         * `navigation` modul ugyanide írja be a kiválasztott kategóriát, amikor a
+         * részletező kategóriachipjéről a listára navigál vissza (US-07/T-209 Kész ha
+         * 2. pont) – a Navigation Compose „eredmény visszaadása" mintája szerint
+         * (`previousBackStackEntry.savedStateHandle.set(...)` a `popBackStack()` előtt).
+         * A kulcs ettől nem válik publikus API-vá a `feature/library`-n kívül máshol:
+         * kizárólag a `navigation` modul ismeri (L5 – az egyetlen modul, amely minden
+         * feature modult lát), és csak ezt a string konstanst, nem a ViewModel belsejét.
+         */
         const val KEY_CATEGORIES = "library.categories"
 
         /** FUNCTIONAL_SPEC 3.1: „Debounce ~200 ms". */
-        const val SEARCH_DEBOUNCE_MS = 200L
+        private const val SEARCH_DEBOUNCE_MS = 200L
 
         /** A konfigurációváltás alatt életben tartja a feliratkozást. */
-        const val STOP_TIMEOUT_MS = 5_000L
+        private const val STOP_TIMEOUT_MS = 5_000L
     }
 }
 

@@ -1921,3 +1921,56 @@ bizonyítható – a tényleges kirenderelés/koppintás-bejárás emulátort k�
 | Compose UI teszt a listára (koppintás, TalkBack bejárás, tényleges 56×56 dp méret) | **NEM FUTOTT** – B-03. Ami igazolt: a leírás-összeállítás és az akció-leképezés logikája (fent), és hogy mind az öt `@Preview` függvény lefordul és render-hívás nélkül helyesen épül fel (`:feature:library:compileDebugKotlin` exit 0). |
 | `@Preview` **tényleges kirenderelése** (világos/sötét, mind a négy állapot) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a tíz előnézet-függvény (öt állapot × világos/sötét) lefordul. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-12 – T-209 · `feature/library`: részletező ViewModel + UI
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:library:testDebugUnitTest` | 0 | `BUILD SUCCESSFUL` – 7 új teszt zöld (`LibraryDetailViewModelTest`) |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **441 teszt, 0 hiba, 0 kihagyott** (434 → 441), minden task frissen futtatva (0 `UP-TO-DATE`) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` (20 426 186 bájt, frissen generálva) |
+
+A futtatás Bash-ből történt (`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`,
+`./gradlew.bat …`). A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések
+`tests` attribútumainak összegzése adta (minden modulra, `test` és `testDebugUnitTest`
+feladatra együtt).
+
+### Új tesztek (7) – `LibraryDetailViewModelTest`
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `libraryDetail_loadsAllPresentFields_FR04` | a `getTechnique` eredménye a `Content` állapot összes jelenlévő mezőjébe (romaji, magyar név, kategória) helyesen kerül át |
+| `libraryDetail_optionalFieldsAbsent_stayNullOrEmpty_FR04` | hiányzó opcionális mezők (japán íráskép, leírás, aliasok) `null`/üres marad – a UI ettől nem rajzol „nincs adat" szakaszt |
+| `libraryDetail_incompleteRecord_missingFieldsNameTheIllustration_FR05` | `INCOMPLETE` rekordnál a hiányzó mezők listája `[ILLUSTRATION]` (US-08 3. kritérium) |
+| `libraryDetail_verifiedRecord_hasNoMissingFields_FR05` | hitelesített rekordnál a hiányzó mezők listája üres |
+| `libraryDetail_unknownTechniqueId_showsErrorInsteadOfCrashing_US07` | ismeretlen azonosítóra `Error(library_detail_not_found)` érkezik, nincs kivétel a hívónál |
+| `libraryDetail_repositoryThrows_showsErrorAndRetryRecovers_US07` | a repository kivétele `Error(error_load_failed)`-et ad, az „Újra" (`onRetry`) helyreállítja a `Content` állapotot |
+| `libraryDetail_exposesDatasetTrustForUnreviewedBanner_US08` | a `datasetTrust` a tartalom bizalmi szintjéből jön, nem felhasználói beállításból (ADR-010) |
+
+### Miért nincs saját Compose UI teszt
+
+Ugyanaz a döntés, mint a T-208/T-210-nél: a `LibraryDetailScreen.kt` nyolc `@Preview`
+függvénye (négy állapot × világos/sötét) a `:feature:library:compileDebugKotlin`
+sikeres fordításával igazoltan felépül és lefordul, de a tényleges kirenderelés és a
+koppintás-bejárás (kategóriachip, TalkBack sorrend) emulátort vagy Android Studio
+előnézet-renderelőt igényel (B-03). A ViewModel logikáját – ami a tartalmi helyesség
+döntő része – a fenti 7 Robolectric unit teszt fedi, a Compose fa kirenderelése nélkül.
+
+A `navigation` modul `KyokushinNavHost.kt`-jának módosítása (a `LIBRARY_DETAIL` ág
+lecserélése, a kategóriavisszaadás `previousBackStackEntry.savedStateHandle` mintája)
+a `:navigation:testDebugUnitTest`-tel igazoltan fordul, és a meglévő 15
+`NavigationGraphTest` teszt (útvonalminták, argumentumnevek) zöld marad – ez a teszt
+nem Compose-fát épít, csak az adatszintű szerződést (route-ok, argumentumnevek)
+ellenőrzi, ugyanúgy, mint a T-206 óta.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt a részletezőre (koppintás a kategóriachipen, tényleges vissza-navigáció, TalkBack bejárás) | **NEM FUTOTT** – B-03. Ami igazolt: a nyolc `@Preview` lefordul, és a kategória-visszaadás string-kulcsa (`LibraryListViewModel.KEY_CATEGORIES`) a navigációs gráf teszttel (route-szint) és a lista ViewModel tesztjeivel (a kulcs tényleges hatása a szűrésre) együtt igazolt – csak a két képernyő közötti tényleges koppintás-bejárás nem. |
+| `@Preview` **tényleges kirenderelése** (világos/sötét, mind a négy állapot) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a nyolc előnézet-függvény (négy állapot × világos/sötét) lefordul. |
+| „Már gyakoroltam" összegzés tesztje | **NEM ALKALMAZHATÓ** – a funkció maga nincs megírva, mert nincs `ProgressRepository` (T-301/T-401 hátra); lásd `docs/CONVENTIONS.md` 8. és az `IMPLEMENTATION_PLAN.md` 4.4 sora. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

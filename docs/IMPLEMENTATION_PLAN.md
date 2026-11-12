@@ -19,7 +19,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|
 | 2 – domain modell és kvízmotor | T-101…T-114 | **M1** – a mag igazoltan helyes ✅ **elérve** (T-114, 2026-11-11) |
 | 3 – tudástár, import, Room | T-115…T-118, T-201…T-203, T-301, T-401, T-402, T-501, T-502, T-601 | **M2** – a tartalom bent van |
-| 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app |
+| 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app ✅ **elérve** (T-209, 2026-11-12) |
 | 5 – Tanulás | T-302…T-308 | **M4** – tanulható app |
 | 6 – Kvíz UI | T-403…T-415 | **M5** – kvízelhető app |
 | 7 – Haladás és beállítások | T-503…T-509 | **M6** – mérhető app |
@@ -104,7 +104,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | ✅ **kész** – T-204: `TechniqueIllustration` (mindhárom `IllustrationRef` eset, 6+4 teszt); T-205: `VerificationBadge`, `UnreviewedBanner` (a „DemoBanner" tényleges, ADR-010 szerinti alakja), `EmptyState(EmptyStateReason)`, `ErrorState` (+18 teszt) |
 | 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | NFR-03, TR-06 | ✅ **kész** – T-206: a FUNCTIONAL_SPEC 1. tíz útvonala, négy fül magyar felirattal és ikonnal, a bottom nav a `quiz/run` és `quiz/result` képernyőn elrejtve (+15 teszt). A képernyők még megjelölt helyőrzők (T-207-től cserélődnek) |
 | 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | ✅ **kész** – T-207: `LibraryListUiState` (`Loading`/`Empty(reason)`/`Content`/`Error`) és `LibraryListViewModel` (200 ms debounce, kategóriahalmaz, `SavedStateHandle`, kategóriánkénti találatszám, az importot a ViewModel indítja); T-211: 17 ViewModel teszt; T-208: `LibraryListScreen` Compose UI (keresősáv, kategóriachip-sor „Összes” chippel, `LazyColumn` lista, listatétel egy TalkBack bejárási egységként), bekötve a `navigation` modul `library/list` útvonalára (+9 teszt, 434 összesen) |
-| 4.4 | Tudástár részletező | FR-04, FR-05 | ⬜ |
+| 4.4 | Tudástár részletező | FR-04, FR-05 | ✅ **kész** – T-209: `LibraryDetailUiState` (`Loading`/`Content`/`Error`, közös `datasetTrust`) és `LibraryDetailViewModel` (egyszeri `getTechnique` lekérdezés, `Technique.status`-ból levezetett hiányzómező-lista); `LibraryDetailScreen` Compose UI – nagy illusztráció (a `null` itt helyőrzővé lesz, szemben a listával), romaji, magyar név, japán íráskép és aliasok csak ha vannak, kattintható kategóriachip vissza a listára szűrve (a `navigation` modul a Navigation Compose „eredmény visszaadása" mintájával: `previousBackStackEntry.savedStateHandle` + `popBackStack()`), hitelesítési blokk a `VerificationBadge`-ből + önálló kvízkizárás-szöveg `INCOMPLETE` esetén. A `library/detail` helyőrzője lecserélve. A „már gyakoroltam" összegzés (FUNCTIONAL_SPEC 3.2 11.) és a `verified` forrásmező (3.2 10.) **dokumentáltan elmarad**: nincs `ProgressRepository` (T-301/T-401 hátra) és a kanonikus séma technikaszinten nem ad `source` mezőt (`docs/CONVENTIONS.md` 8.). 7 új teszt (441 teszt, 0 hiba); `assembleDebug` exit 0 |
 | 4.5 | Üres/hiba állapotok a funkcionális spec 2.4 és 10. pontja szerint | NFR-06 | ✅ **kész** – T-210: mind a négy állapot (`Loading`/`Empty` – nincs tartalom + debug „Diagnosztika” gomb/`Empty` – nincs találat + „Szűrők törlése”/`Error` + „Újra”) bekötve a `LibraryListScreen`-be, `@Preview`-vel mind a négy ágra (G-03 csoport T-208-cal) |
 
 ## Fázis 5 – Tanulás
@@ -166,43 +166,28 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-209** – `feature/library`: részletező képernyő.
+1. **T-301** – `core/data`: `ProgressRepository` (a tanulási/`StudyReview` rész).
 
-(**A T-207, T-208, T-210 és T-211 kész:** a Tudástár lista Compose felülete –
-keresősáv, kategóriachipek, lista, mind a négy állapot – a `navigation` modul
-`library/list` útvonalára bekötve. A `library/detail/{techniqueId}` útvonalon még a
-T-206 helyőrzője áll; a T-209 ezt cseréli le, és az item-kattintásra már a valódi
-`TechniqueId`-t kapja a `LibraryListRoute.onOpenTechnique` paraméterén.)
+(**A T-209 kész, ezzel a Fázis 4 / E2 epik és az M3 mérföldkő is lezárva:** a Tudástár
+teljes böngészhető – lista + részletező, keresés, szűrés, mind a négy állapot, minden
+hitelesítési jelölés. A `library/detail/{techniqueId}` útvonal már a valódi
+`LibraryDetailRoute`-ot mutatja. **Nyitott, T-301/T-401-re várakozó hiányosság:** a
+részletező „már gyakoroltam" összegzése (FUNCTIONAL_SPEC 3.2 11.) nincs megírva, mert
+nincs `ProgressRepository` – ha a T-301/T-401 elkészül, ezt a `LibraryDetailUiState`-be
+és a `LibraryDetailRoute`-ba utólag be kell kötni, lásd `docs/CONVENTIONS.md` 8.)
 
-(**A T-206 kész:** a navigációs váz áll, a Fázis 1 helyőrző kezdőképernyő lecserélve.
-A képernyőket a `navigation` modul `KyokushinNavHost.kt`-ja köti be; a következő
-feladatok egy-egy `composable { … }` blokk tartalmát cserélik le a `PlaceholderScreen`
-helyén, az útvonalakat és az argumentumneveket nem írják át. Az útvonalak egyetlen
-hiteles forrása a `KyokushinScreen` enum, az argumentumnevek a `NavArgs` objektum
-(`techniqueId`, `sessionId`), az argumentumot hordozó útvonalakat a `KyokushinRoutes`
-építi. A funkciómodulok **nem** navigálnak maguktól: eseményt (lambdát) adnak kifelé, az
-útvonalat a `navigation` modul dönti el – ez tartja a L5 rétegszabályt.)
-
-(**A T-205 kész:** a `core/ui` megosztott jelölői és állapotkomponensei készen állnak.
-A következő képernyők ezeket használják, és nem írnak új magyar szöveget a kódba:
-`VerificationBadge(status, missingFields)`, `UnreviewedBanner(trust)`,
-`EmptyState(reason, onAction?)` az `EmptyStateReason` négy okával, és
-`ErrorState(onRetry, messageRes)`. Az `UnreviewedBanner`-nek **nincs** elrejtő paramétere,
-és `DatasetTrust.REVIEWED` mellett magától nem bocsát ki UI-t – ez az ADR-010/AC-08.)
-
-(**A T-203 kész:** a Hilt gráf teljes és felépül. Az első ViewModel (T-207) a
-`TechniqueRepository`-t, a `ContentImporter`-t, a `Clock`-ot, az RNG-t és a két
-dispatchert konstruktorban kérheti – a `@DefaultDispatcher` a CPU-munkára, az
-`@IoDispatcher` a Room/asset elérésre. A `feature` modulok a `di`-re **nem** függenek és
-nem is kell: a kötések a `SingletonComponent`-ben állnak össze.)
-
-(**A T-202 kész:** a keresés SQL-oldali, előre normalizált oszlopokon fut, és a találat
-megmondja, melyik alias egyezett – a megjelenítés, az „Egyezés: `{alias}`" sor és a
-debounce a T-207/T-208 UI-feladata.)
+(**A T-203 kész:** a Hilt gráf teljes és felépül. Egy ViewModel a `TechniqueRepository`-t,
+a `ContentImporter`-t, a `Clock`-ot, az RNG-t és a két dispatchert kérheti konstruktorban –
+a `@DefaultDispatcher` a CPU-munkára, az `@IoDispatcher` a Room/asset elérésre. A
+`feature` modulok a `di`-re **nem** függenek és nem is kell: a kötések a
+`SingletonComponent`-ben állnak össze. A `ProgressRepository` kötését (T-301/T-401 után)
+is ide, a `core/data`-ba kell tenni, ugyanúgy, mint a `TechniqueRepository`-t.)
 
 Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 `ARCHITECTURE.md` érintett szakaszainak átvezetése ADR-010 és ADR-011 szerint
-(mezőnevek, `quizEligible` kapu, lektorálatlan jelölés, aktív kvíztípusok).
+(mezőnevek, `quizEligible` kapu, lektorálatlan jelölés, aktív kvíztípusok, és a 3.2
+10–11. pontban leírt, de a kanonikus sémában nem létező `source`/övfok mező és a
+hiányzó haladás-összegzés dokumentált eltávolítása/pontosítása).
 
 ## Változásnapló
 
@@ -773,3 +758,42 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 
 Következő: T-209, a Tudástár részletező képernyő (a `library/detail/{techniqueId}`
 helyőrzőjének lecserélése).
+
+- 2026-11-12 – **T-209 kész** (Fázis 4.4, az E2 epik és az M3 mérföldkő lezárása).
+  `feature/library/detail`: `LibraryDetailUiState` (`Loading`/`Content`/`Error`, közös
+  `datasetTrust`) és `LibraryDetailViewModel` – egyszeri (nem megfigyelt) `getTechnique`
+  lekérdezés, mert a részletező csak már betöltött tartalomból nyitható meg, nincs saját
+  importja. A hiányzó mezők listáját egy `missingFieldsFor(status)` függvény vezeti le:
+  a jelenlegi validátor (`DefaultKnowledgeValidator`) kizárólag a lógó képhivatkozás
+  miatt fokoz le `INCOMPLETE`-re, tehát a felsorolás ma mindig `[ILLUSTRATION]` (ha ez
+  változik, itt kell bővíteni). A `techniqueId` navigációs argumentumot a ViewModel a
+  saját `SavedStateHandle`-jéből olvassa – a Navigation Compose minden
+  `NavBackStackEntry`-t előre feltölt a route argumentumaival, függetlenül attól, melyik
+  modul hívja a `hiltViewModel()`-t –, ezért a `feature/library` nem kényszerül a
+  `navigation` modulra függeni (L5 megtartva).
+
+  `LibraryDetailScreen` Compose UI: nagy illusztráció (itt a `null` **helyőrzővé** válik,
+  szemben a listával, ahol a hely egyszerűen üres marad – ugyanaz a komponens,
+  [IllustrationRef.Placeholder] szubsztitúcióval), romaji, magyar név, japán íráskép és
+  aliasok csak akkor jelennek meg, ha van tartalmuk (US-07 3. kritérium), kattintható
+  kategóriachip. A kategóriachip a listára navigál vissza, arra a kategóriára szűrve: a
+  `navigation` modul a Navigation Compose „eredmény visszaadása" mintáját használja
+  (`navController.previousBackStackEntry?.savedStateHandle?.set(...)` a
+  `popBackStack()` előtt), ugyanabba a kulcsba, amit a lista ViewModelje a
+  kategóriaszűréshez használ (`LibraryListViewModel.KEY_CATEGORIES`, ezért az a
+  companion object mostantól nem `private`). Hitelesítési blokk: a `VerificationBadge`
+  adja a „Hiányos" jelölőt és a hiányzó mezők felsorolását, egy önálló szöveg pedig a
+  kvízkizárás tényét (US-08 3. kritérium) – ez a harmadik, különálló elem.
+
+  **Két, dokumentált tartalmi hiány** (lásd `docs/CONVENTIONS.md` 8.): a „már
+  gyakoroltam" összegzés (FUNCTIONAL_SPEC 3.2 11.) nincs megírva, mert nincs
+  `ProgressRepository` (T-301/T-401 hátra); a hitelesítési blokk nem jelenít meg
+  `source` mezőt `verified = true` esetén (3.2 10.), mert a kanonikus séma (ADR-011)
+  technikaszinten nem ad ilyen mezőt – csak az illusztrációknak van saját forrásuk.
+  Mindkettő a Teendők listájából deliberáltan ki lett véve, a „Kész ha" lista ezeket
+  nem is követeli meg.
+
+  7 új teszt (441 teszt, 0 hiba, `--rerun-tasks`-szal is leellenőrizve);
+  `assembleDebug` exit 0 (APK: `app/build/outputs/apk/debug/app-debug.apk`).
+
+  Következő: T-301, `core/data`: `ProgressRepository` (tanulási rész).
