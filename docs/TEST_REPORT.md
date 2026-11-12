@@ -2794,3 +2794,60 @@ található, hibás kérdésekkel, hibátlan, megszakított, 0 válasz).
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `quiz/setup` ↔ `quiz/run` ↔ `quiz/result` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak (G-09, `feature/quiz`-re korlátozva) a tárgya. |
 | T-413 (akadálymentesség), T-414 (teljes ViewModel-teszt-lefedettség) | **NEM EBBEN A KÖRBEN** – önálló, nyitott taskok, nem ennek a csoportnak a tárgya. |
+
+## 2026-11-12 – T-413 kész (`feature/quiz`: akadálymentesség)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle
+wrapper 9.9.1 (`./gradlew.bat`).
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 39s`, 294 actionable task, mind végrehajtva (teljes, őszinte projektfutás) – lefutott egyszer a módosítás ELŐTT (baseline, zöld), majd újra UTÁNA. |
+| `./gradlew.bat :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 22s`, 76 actionable task – a módosított modul önállóan is zöld. |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL`, 300 actionable task; `app/build/outputs/apk/debug/app-debug.apk`. |
+
+A `build/test-results/**/TEST-*.xml` (`testDebugUnitTest` ÉS a JVM modulok `test`
+feladata együtt) `tests` attribútumainak összege a teljes projekten **566** (560 → 566,
++6 az új `QuizOptionAccessibilityMappingTest`-tel), **0 hiba, 0 error**. Az érintett
+osztály:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.quiz.run.QuizOptionAccessibilityMappingTest` (új) | **6** | 0 |
+
+### Mi készült
+
+A feladat kiindulásakor a `feature/quiz` mindhárom képernyője a Teendők nagy részét
+**már tartalmazta** a T-407/T-408/T-409/T-411/T-412 saját UI-munkájából (opciók
+`selected`/`stateDescription`, (D) pozíció alapú képleírás – `IllustrationLabel.
+QuizOption`, `IllustrationContentDescriptionTest` –, a kérdés→opciók→visszajelzés→
+Következő bejárási sorrend, 48 dp célpontok a legtöbb gombon). Ezt a feladat
+kódolvasással, egyenként igazolta.
+
+**Talált és javított valódi hiány:** a `QuizCloseConfirmationDialog`
+(`QuizRunScreen.kt`) `AlertDialog`-jának „Mégsem"/„Megszakítás" `TextButton`-jai a
+Material 3 alapértelmezett (~40 dp) magasságukat kapták, nem a projekt 48 dp-es
+szabályát (NFR-04) – egy szerkezetileg azonos `TextButton` a `QuizResultScreen`-ben már
+korábban helyesen `heightIn(min = 48.dp)` volt. Mindkét dialógusgomb explicit
+`Modifier.heightIn(min = MIN_TOUCH_TARGET)`-et kapott.
+
+**Új teszt-lefedettség:** a válasz-visszajelzés ikon/szöveg/`stateDescription`
+leképező függvényei (`quizOptionIcon`/`quizOptionFeedbackTextRes`/
+`quizOptionStateDescriptionRes`, `QuizRunScreen.kt`) `private`-ból `internal`-ra
+nyíltak (ugyanaz a minta, mint a `QuizOptionFeedbackResolver`/`QuizImageOptionGrid`-nél,
+T-408/T-409) – egy új `QuizOptionAccessibilityMappingTest` (6 teszt) emulátor nélkül
+bizonyítja, hogy válasz előtt (`UNANSWERED`) és egy nem kiválasztott helytelen opciónál
+(`NEUTRAL`) nincs ikon/szöveg/`stateDescription`, míg a helyes/helytelen ágak a
+megfelelő, egymástól különböző string-erőforrást kapják.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| TR-06: TalkBackkel, tényleges eszközön/emulátorral végigvitt kvíz | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya; az itt dokumentált kódelemzés a helyettesítő bizonyíték. |
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – ugyanaz, B-03. A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `quiz/setup` ↔ `quiz/run` ↔ `quiz/result` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak a tárgya. |

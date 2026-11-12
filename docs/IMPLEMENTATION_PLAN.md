@@ -166,10 +166,10 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-413** – `feature/quiz`: akadálymentesség (TalkBack, a (D) opciók nem fedik fel a
-   választ). Függősége (T-408, T-409) kész. (A T-414 – ViewModel tesztek – és a T-501 –
-   aggregált statisztika – függősége is kész, mindhárom elérhető lenne; a numerikusan
-   legkisebb azonosítót választottuk.)
+1. **T-414** – `feature/quiz`: ViewModel tesztek. Függősége (T-412) kész. (A T-501 –
+   aggregált statisztika – függősége is kész, mindkettő elérhető lenne; a numerikusan
+   legkisebb azonosítót választottuk. **T-413 – akadálymentesség – 2026-11-12-én
+   elkészült**, lásd lejjebb.)
 
 (**A G-09 csoport – T-411, T-412, T-415 – kész, 2026-11-12:** a `quiz/result`
 eredményképernyő, a „Hibák újragyakorlása" és a lektorálatlanság jelzése. A
@@ -1130,3 +1130,24 @@ helyőrzőjének lecserélése).
   `navigation` modul bekötése) – lásd a „Következő lépés” szakasz.
 
   Következő: T-413, `feature/quiz`: akadálymentesség.
+
+**2026-11-12 – T-413 kész:** `feature/quiz`: akadálymentesség. A Teendők nagy része
+(opciók `selected`/`stateDescription`, (D) pozíció alapú leírás, bejárási sorrend,
+48 dp célpont) **már megvolt** a T-407/T-408/T-409/T-411/T-412 saját UI-munkájából –
+ez a feladat kódolvasással, egyenként igazolta mindegyiket (lásd
+`docs/done/T-413-feature-quiz-akadalymentesseg.md` „Elkészült” szakasza). Egy valódi
+hiányt talált és javított: a `QuizCloseConfirmationDialog` (`QuizRunScreen.kt`)
+`AlertDialog`-jának két `TextButton`-ja a Material 3 alapértelmezett (~40 dp)
+magasságot kapta, nem a projekt 48 dp-es szabályát – mindkettő explicit
+`Modifier.heightIn(min = MIN_TOUCH_TARGET)`-et kapott. Új, `internal`-ra nyitott
+leképező függvények (`quizOptionIcon`/`quizOptionFeedbackTextRes`/
+`quizOptionStateDescriptionRes`, korábban `private`) + egy új
+`QuizOptionAccessibilityMappingTest` (6 teszt) bizonyítja emulátor nélkül, hogy válasz
+előtt és egy nem kiválasztott helytelen opciónál nincs `stateDescription`/ikon/szöveg.
+`.\gradlew.bat testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, 566 teszt,
+0 hiba, 560 → 566); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`). TR-06
+(TalkBack emulátoron) a B-03 blokkoló miatt nem futott.
+
+Következő: T-414, `feature/quiz`: ViewModel tesztek (a `docs/backlog/GROUPS.md`
+szerint szándékosan nem csoportosítva a T-413-mal; a legkisebb azonosítójú, kész
+függőségű feladat T-414 és T-501 közül).

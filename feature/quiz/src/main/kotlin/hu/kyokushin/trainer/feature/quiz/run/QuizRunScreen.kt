@@ -633,19 +633,33 @@ private fun quizOptionContentColor(feedback: QuizOptionFeedback): Color = when (
     QuizOptionFeedback.SELECTED_INCORRECT -> MaterialTheme.colorScheme.onErrorContainer
 }
 
-private fun quizOptionIcon(feedback: QuizOptionFeedback): ImageVector? = when (feedback) {
+/**
+ * Az ikon-leképezés `internal` (nem `private`), hogy a döntés a Composable rétegtől
+ * függetlenül, sima JUnit teszttel bizonyítható legyen (T-413, NFR-04, lásd
+ * `docs/CONVENTIONS.md` 4.1 „Compose döntési logika tesztelése emulátor nélkül" –
+ * ugyanaz a minta, mint a [QuizOptionFeedbackResolver]-nél).
+ */
+internal fun quizOptionIcon(feedback: QuizOptionFeedback): ImageVector? = when (feedback) {
     QuizOptionFeedback.SELECTED_CORRECT, QuizOptionFeedback.CORRECT_UNSELECTED -> Icons.Filled.Check
     QuizOptionFeedback.SELECTED_INCORRECT -> Icons.Filled.Close
     QuizOptionFeedback.UNANSWERED, QuizOptionFeedback.NEUTRAL -> null
 }
 
-private fun quizOptionFeedbackTextRes(feedback: QuizOptionFeedback): Int? = when (feedback) {
+/** Lásd [quizOptionIcon] KDoc-ja – ugyanaz az `internal`-ra nyitás oka (T-413). */
+internal fun quizOptionFeedbackTextRes(feedback: QuizOptionFeedback): Int? = when (feedback) {
     QuizOptionFeedback.SELECTED_CORRECT, QuizOptionFeedback.CORRECT_UNSELECTED -> R.string.quiz_run_answer_correct
     QuizOptionFeedback.SELECTED_INCORRECT -> R.string.quiz_run_answer_wrong
     QuizOptionFeedback.UNANSWERED, QuizOptionFeedback.NEUTRAL -> null
 }
 
-private fun quizOptionStateDescriptionRes(feedback: QuizOptionFeedback): Int? = when (feedback) {
+/**
+ * Lásd [quizOptionIcon] KDoc-ja – ugyanaz az `internal`-ra nyitás oka (T-413). Ez a
+ * leképezés adja a T-413 „Opciók `selected` szemantikával; válasz után `stateDescription`"
+ * teendőjének bizonyítékát: válasz ELŐTT ([QuizOptionFeedback.UNANSWERED]) és egy nem
+ * kiválasztott, helytelen opciónál ([QuizOptionFeedback.NEUTRAL]) `null` jár – a
+ * TalkBack ezeknél nem jelent be semmilyen helyesség-állapotot.
+ */
+internal fun quizOptionStateDescriptionRes(feedback: QuizOptionFeedback): Int? = when (feedback) {
     QuizOptionFeedback.SELECTED_CORRECT,
     QuizOptionFeedback.CORRECT_UNSELECTED,
     -> R.string.quiz_run_option_state_correct
@@ -698,7 +712,14 @@ private fun QuizExplanationCard(
     }
 }
 
-/** A megszakítást megerősítő párbeszéd (FUNCTIONAL_SPEC 5.2/5., FUNCTIONAL_SPEC 8.). */
+/**
+ * A megszakítást megerősítő párbeszéd (FUNCTIONAL_SPEC 5.2/5., FUNCTIONAL_SPEC 8.).
+ *
+ * A Material 3 `AlertDialog` gombjai alapértelmezésben a `TextButton` ~40 dp-es
+ * minimumát kapják, nem a projekt 48 dp-es érintési célpont-szabályát (T-413, NFR-04,
+ * FUNCTIONAL_SPEC 9.) – ezért explicit `heightIn(min = MIN_TOUCH_TARGET)` kell mindkét
+ * gombra, ugyanúgy, mint a `QuizResultScreen` „Vissza a Haladáshoz" `TextButton`-jénél.
+ */
 @Composable
 private fun QuizCloseConfirmationDialog(
     onConfirm: () -> Unit,
@@ -709,12 +730,12 @@ private fun QuizCloseConfirmationDialog(
         title = { Text(text = stringResource(R.string.quiz_run_abort_title)) },
         text = { Text(text = stringResource(R.string.quiz_run_abort_message)) },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
+            TextButton(onClick = onConfirm, modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET)) {
                 Text(text = stringResource(R.string.quiz_run_abort_confirm))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET)) {
                 Text(text = stringResource(R.string.quiz_run_abort_dismiss))
             }
         },
