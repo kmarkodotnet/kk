@@ -81,6 +81,8 @@ fun LearnCardsRoute(
     LearnCardsScreen(
         uiState = uiState,
         onReveal = viewModel::onReveal,
+        onKnew = viewModel::onKnew,
+        onNeedsPractice = viewModel::onNeedsPractice,
         onNext = viewModel::onNext,
         onPrevious = viewModel::onPrevious,
         onRestart = viewModel::onRestart,
@@ -95,6 +97,8 @@ fun LearnCardsRoute(
 fun LearnCardsScreen(
     uiState: LearnCardsUiState,
     onReveal: () -> Unit,
+    onKnew: () -> Unit,
+    onNeedsPractice: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onRestart: () -> Unit,
@@ -116,6 +120,8 @@ fun LearnCardsScreen(
             is LearnCardsUiState.Content -> LearnCardsContent(
                 state = uiState,
                 onReveal = onReveal,
+                onKnew = onKnew,
+                onNeedsPractice = onNeedsPractice,
                 onNext = onNext,
                 onPrevious = onPrevious,
                 onExit = onExit,
@@ -159,11 +165,13 @@ private fun LearnCardsEmptyContent(
     }
 }
 
-/** A tényleges kártya tartalom: felső sáv, kártya, alsó Előző/Következő sáv. */
+/** A tényleges kártya tartalom: felső sáv, kártya, önértékelés, alsó Előző/Következő sáv. */
 @Composable
 private fun LearnCardsContent(
     state: LearnCardsUiState.Content,
     onReveal: () -> Unit,
+    onKnew: () -> Unit,
+    onNeedsPractice: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onExit: () -> Unit,
@@ -181,6 +189,13 @@ private fun LearnCardsContent(
         ) {
             LearnCardSurface(card = state.card, hideMode = state.hideMode, onReveal = onReveal)
         }
+
+        LearnCardSelfRatingRow(
+            revealed = state.card.revealed,
+            onKnew = onKnew,
+            onNeedsPractice = onNeedsPractice,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
 
         Row(
             modifier = Modifier
@@ -203,6 +218,56 @@ private fun LearnCardsContent(
             ) {
                 Text(text = stringResource(R.string.learn_cards_next))
             }
+        }
+    }
+}
+
+/**
+ * Az önértékelés két gombja: „Tudtam" / „Gyakorolnom kell" (T-306, FR-10, FR-28,
+ * FUNCTIONAL_SPEC 4.2/4.: „Csak felfedés után aktívak").
+ *
+ * **Akadálymentesség (T-306 „Kész ha": „A letiltott állapot oka TalkBackkel is
+ * bejelentve").** Felfedés előtt a két gomb `enabled = false`, és alattuk egy
+ * mindig-látható magyarázó szöveg jelenik meg – ugyanaz a minta, mint a `learn/setup`
+ * letiltott „Kártyák indítása" gombjánál (`LearnSetupScreen`). A szöveg a normál
+ * TalkBack-bejárási sorrendben van, tehát az olvasó a letiltott gombok után rögtön ezt
+ * mondja ki, nem csak egy hallgatólagos „nem elérhető" állapotot.
+ */
+@Composable
+private fun LearnCardSelfRatingRow(
+    revealed: Boolean,
+    onKnew: () -> Unit,
+    onNeedsPractice: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = onNeedsPractice,
+                enabled = revealed,
+                modifier = Modifier.weight(1f).heightIn(min = MIN_TOUCH_TARGET),
+            ) {
+                Text(text = stringResource(R.string.learn_cards_self_rate_needs_practice))
+            }
+            Button(
+                onClick = onKnew,
+                enabled = revealed,
+                modifier = Modifier.weight(1f).heightIn(min = MIN_TOUCH_TARGET),
+            ) {
+                Text(text = stringResource(R.string.learn_cards_self_rate_knew))
+            }
+        }
+        if (!revealed) {
+            Text(
+                text = stringResource(R.string.learn_cards_self_rate_disabled_reason),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            )
         }
     }
 }
@@ -487,6 +552,8 @@ private fun LearnCardsScreenHiddenPreview() {
                 hideMode = HideMode.HIDE_JAPANESE,
             ),
             onReveal = {},
+            onKnew = {},
+            onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
             onRestart = {},
@@ -515,6 +582,8 @@ private fun LearnCardsScreenRevealedPreview() {
                 hideMode = HideMode.HIDE_JAPANESE,
             ),
             onReveal = {},
+            onKnew = {},
+            onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
             onRestart = {},
@@ -544,6 +613,8 @@ private fun LearnCardsScreenCaptionedImageHiddenPreview() {
                 hideMode = HideMode.HIDE_JAPANESE,
             ),
             onReveal = {},
+            onKnew = {},
+            onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
             onRestart = {},
@@ -565,6 +636,8 @@ private fun LearnCardsScreenEmptyPreview() {
         LearnCardsScreen(
             uiState = LearnCardsUiState.Empty,
             onReveal = {},
+            onKnew = {},
+            onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
             onRestart = {},
@@ -589,6 +662,8 @@ private fun LearnCardsScreenFinishedPreview() {
                 categoryIds = setOf(CategoryId.of("dachi")),
             ),
             onReveal = {},
+            onKnew = {},
+            onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
             onRestart = {},
@@ -610,6 +685,8 @@ private fun LearnCardsScreenLoadingPreview() {
         LearnCardsScreen(
             uiState = LearnCardsUiState.Loading,
             onReveal = {},
+            onKnew = {},
+            onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
             onRestart = {},

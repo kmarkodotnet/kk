@@ -2153,3 +2153,66 @@ köthető be.
 | Compose UI teszt (tényleges renderelés/koppintás a `learn/cards` képernyőn, TalkBack bejárás) | **NEM FUTOTT** – B-03. Ami igazolt: mind a 12 `@Preview` (6 állapot × világos/sötét) lefordul, és a Compose-mentes döntési szabályok (`LearnCardPoliciesTest`) valódi `strings.xml` fölött futnak. |
 | `@Preview` **tényleges kirenderelése** | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+## 2026-11-12 – G-06 csoport · `feature/learn`: önértékelés (T-306), ViewModel tesztek (T-308)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle wrapper 9.9.1.
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:learn:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 17s` – `feature/learn` **36 teszt, 0 hiba** (5 új `LearnCardsViewModelTest` eset; korábban 10 → 15 ebben az osztályban) |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 34s`, 277 actionable task (277 executed) – **489 teszt, 0 hiba, 0 kihagyott** (484 → 489) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 3s` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések `tests` attribútumainak
+modulonkénti összegzése adta (`core/model` 35, `core/quiz` 227, `core/data` 109,
+`core/ui` 28, `feature/learn` 36, `feature/library` 33, `navigation` 17, `app` 4 = 489),
+minden modulban `failures="0" errors="0"`.
+
+### Mi készült
+
+**T-306:** a `LearnCardsViewModel` egy `progressRepository: ProgressRepository`
+konstruktorparaméterrel bővült (a Hilt gráf már ismeri – `RepositoryModule`), és három
+új metódust kapott: `onSelfRate(rating)` (ment egy `StudyReview`-t a jelenlegi kártya
+technikájára, majd hívja a meglévő `onNext()`-et – az utolsó kártyán ez is a
+záróképernyőre vezet), valamint a rövidítései, `onKnew()`/`onNeedsPractice()`. A mentés
+időbélyege **nem** itt, hanem a `RoomProgressRepository`-ban keletkezik az injektált
+`Clock`-ból (NFR-07) – a ViewModel ezért szándékosan nem kapott saját `Clock`-ot
+(CONVENTIONS 4.1: „Nem injektálunk, amire nincs szükség"). Védelmi háló (ugyanaz a minta,
+mint az egyszeri kvízválasznál, ADR-005): az `onSelfRate` a jelenlegi `uiState.value`
+felfedettségét is ellenőrzi, és no-op egy fel nem fedett kártyán.
+
+A `LearnCardsScreen.kt` egy új `LearnCardSelfRatingRow`-t kapott: „Gyakorolnom kell” /
+„Tudtam” gombpár, `enabled = card.revealed`, mindkettő ≥48 dp. Letiltott állapotban egy
+mindig-látható magyarázó szöveg jelenik meg alattuk (`learn_cards_self_rate_disabled_reason`)
+– ugyanaz a minta, mint a `learn/setup` letiltott „Kártyák indítása” gombjánál –, hogy a
+letiltás oka a TalkBack normál bejárási sorrendjében is kimondva legyen (T-306 „Kész ha”).
+
+**T-308:** a tanulási logika négy tétele közül három már a T-303/T-305 tesztkészletében
+lefedve volt (seedelt sorrend determinizmusa, felfedési állapot megőrzése léptetés/
+visszalépés után, feliratos kép elrejtése felfedésig) – ezekhez nem kellett új teszt. Az
+„Önértékelés rögzítése és az automatikus továbblépés” tétel az, amit a T-306 most
+implementált; ehhez 5 új teszt került a `LearnCardsViewModelTest`-be, egy új
+`FakeLearnProgressRepository` tesztdublőrrel (`LearnTestFixtures.kt`, a kvízmenethez
+tartozó tagjai `UnsupportedOperationException`-t dobnak, hogy egy véletlen felhasználásuk
+azonnal kiderüljön).
+
+### Új tesztek (5) – `LearnCardsViewModelTest`
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `learnCards_onKnew_whenRevealed_recordsStudyReviewAndAdvances_FR10` | felfedett kártyán a „Tudtam” gomb `StudyReview(KNEW)`-t ment és a következő kártyára lép |
+| `learnCards_onNeedsPractice_whenRevealed_recordsStudyReviewAndAdvances_FR10` | ugyanaz a „Gyakorolnom kell” gombra, `NEEDS_PRACTICE` besorolással |
+| `learnCards_onKnew_whenNotRevealed_isNoOp_FR10` | fel nem fedett kártyán az önértékelés nem ír rekordot és nem lép tovább (védelmi háló, ADR-005 mintája) |
+| `learnCards_onNext_withoutSelfRating_doesNotRecordStudyReview_FR10` | a sima „Következő” (nem az önértékelés gombjai) nem ír `StudyReview`-t – az önértékelés nélküli továbblépés megengedett |
+| `learnCards_onKnew_onLastCard_advancesToFinishedScreen_FR10` | az utolsó kártyán is menti az önértékelést, és a záróképernyőre lép, nem akad el |
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt (tényleges koppintás a „Tudtam”/„Gyakorolnom kell” gombon, TalkBack bejárás) | **NEM FUTOTT** – B-03. Ami igazolt: a meglévő `@Preview`-k (felfedés előtt/után) a két gombbal együtt lefordulnak, és a letiltási indoklás szövege a felfedés előtti állapotban megjelenik. |
+| `@Preview` **tényleges kirenderelése** | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

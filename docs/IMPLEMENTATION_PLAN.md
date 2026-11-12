@@ -20,7 +20,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 2 – domain modell és kvízmotor | T-101…T-114 | **M1** – a mag igazoltan helyes ✅ **elérve** (T-114, 2026-11-11) |
 | 3 – tudástár, import, Room | T-115…T-118, T-201…T-203, T-301, T-401, T-402, T-501, T-502, T-601 | **M2** – a tartalom bent van |
 | 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app ✅ **elérve** (T-209, 2026-11-12) |
-| 5 – Tanulás | T-302…T-308 | **M4** – tanulható app |
+| 5 – Tanulás | T-302…T-308 | **M4** – tanulható app ✅ **elérve** (T-306/T-308, 2026-11-12) |
 | 6 – Kvíz UI | T-403…T-415 | **M5** – kvízelhető app |
 | 7 – Haladás és beállítások | T-503…T-509 | **M6** – mérhető app |
 | 8 – minőség és átadás | T-602…T-610 | **M7** – átadható app |
@@ -113,7 +113,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|---|
 | 5.1 | `learn/setup`: kategória- és elrejtésválasztás | FR-06, FR-07 | ✅ **kész** (T-302, 2026-11-12) |
 | 5.2 | `learn/cards`: felfedés, előző/következő, seedelt sorrend, pozíció mentése | FR-06…FR-09 | ✅ **kész** (G-05 csoport: T-304, T-305, T-307, 2026-11-12) – `LearnCardsScreen` Compose UI (felső sáv, kártya, felfedés, Előző/Következő), a T-305 feliratos-kép-elrejtés és a T-307 záróképernyő. Az önértékelés (FR-10) **nem** ebben a körben: az T-306 tárgya |
-| 5.3 | Önértékelés → `StudyReview`, elkülönítve a kvízstatisztikától | FR-10, FR-28 | ⬜ |
+| 5.3 | Önértékelés → `StudyReview`, elkülönítve a kvízstatisztikától | FR-10, FR-28 | ✅ **kész** (G-06 csoport: T-306, T-308, 2026-11-12) – a `LearnCardsViewModel` `onKnew()`/`onNeedsPractice()`-je a `ProgressRepository.recordStudyReview`-n keresztül ment, majd automatikusan továbblép; a `LearnCardsScreen` két új gombja csak felfedés után aktív, letiltva mindig-látható indoklással (TalkBack). **Fázis 5 lezárva, M4 elérve.** |
 
 ## Fázis 6 – Kvíz UI
 
@@ -166,8 +166,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-306** – `feature/learn`: önértékelés (FR-10, FR-28). Függőségei (T-301, T-304)
-   készen állnak (G-05 csoport lezárva).
+1. **T-403** – `feature/quiz`: beállító ViewModel (FR-11…FR-13, FR-22). Függőségei
+   (T-111, T-402) készen állnak. Ezzel kezdődik a Fázis 6 (Kvíz UI) – a Fázis 5
+   (Tanulás) a G-06 csoporttal (T-306, T-308) lezárult, az **M4 mérföldkő elérve**.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -903,3 +904,26 @@ helyőrzőjének lecserélése).
   összesen (471 → 484, 0 hiba, `--rerun-tasks`-szal leellenőrizve); `assembleDebug` exit 0.
 
   Következő: T-306, `feature/learn`: önértékelés.
+
+- 2026-11-12 – **G-06 csoport kész** (T-306, T-308, `docs/backlog/GROUPS.md`,
+  `feature/learn`, Fázis 5 **lezárva, M4 mérföldkő elérve**). **T-306:** a
+  `LearnCardsViewModel` egy `progressRepository: ProgressRepository` paraméterrel bővült
+  (a `RepositoryModule` kötése már megvolt a G-01 csoport óta), és `onSelfRate(rating)` +
+  a rövidítései (`onKnew()`/`onNeedsPractice()`) mentik a `StudyReview`-t, majd a meglévő
+  `onNext()`-et hívják (az utolsó kártyán ez is a záróképernyőre vezet). Az időbélyeg
+  **nem** a ViewModelben, hanem a `RoomProgressRepository`-ban keletkezik az injektált
+  `Clock`-ból (NFR-07) – a ViewModel ezért szándékosan nem kapott saját `Clock`-ot. A UI
+  (`LearnCardSelfRatingRow` a `LearnCardsScreen.kt`-ban) a két gombot csak felfedés után
+  engedi, letiltva egy mindig-látható indoklással – ugyanaz a minta, mint a `learn/setup`
+  letiltott „Kártyák indítása" gombjánál –, hogy a TalkBack a letiltás okát is kimondja
+  (T-306 „Kész ha"). Védelmi háló (ADR-005 mintája): a `onSelfRate` a jelenlegi
+  `uiState.value` felfedettségét is ellenőrzi, egy fel nem fedett kártyán no-op.
+  **T-308:** a tanulási logika négy tételéből három már a T-303/T-305 tesztkészletében
+  lefedve volt (seedelt sorrend, felfedési állapot megőrzése, feliratos kép elrejtése) –
+  csak az önértékelés + automatikus továbblépés igényelt új tesztet: 5 eset a
+  `LearnCardsViewModelTest`-ben, egy új `FakeLearnProgressRepository` tesztdublőrrel
+  (`LearnTestFixtures.kt`; a kvízmenethez tartozó, itt nem várt tagjai kivételt dobnak).
+  5 új teszt összesen (484 → 489, 0 hiba, `--rerun-tasks`-szal leellenőrizve);
+  `assembleDebug` exit 0.
+
+  Következő: T-403, `feature/quiz`: beállító ViewModel (Fázis 6 kezdete).

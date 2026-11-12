@@ -3,10 +3,12 @@ package hu.kyokushin.trainer.feature.learn.cards
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.model.CategoryId
+import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.feature.learn.ALL_LEARN_TECHNIQUES
 import hu.kyokushin.trainer.feature.learn.CATEGORY_DACHI
 import hu.kyokushin.trainer.feature.learn.CATEGORY_TSUKI
+import hu.kyokushin.trainer.feature.learn.FakeLearnProgressRepository
 import hu.kyokushin.trainer.feature.learn.FakeLearnTechniqueRepository
 import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.TECHNIQUE_CHUDAN
@@ -231,6 +233,127 @@ class LearnCardsViewModelTest {
         job.cancel()
     }
 
+    // ----------------------------------------------------------- önértékelés / FR-10, FR-28
+
+    @Test
+    fun learnCards_onKnew_whenRevealed_recordsStudyReviewAndAdvances_FR10() = runTest {
+        val progressRepository = FakeLearnProgressRepository()
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
+            progressRepository = progressRepository,
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val firstTechniqueId = (viewModel.uiState.value as LearnCardsUiState.Content).card.techniqueId
+        viewModel.onReveal()
+        advanceUntilIdle()
+
+        viewModel.onKnew()
+        advanceUntilIdle()
+
+        assertThat(progressRepository.recordedReviews)
+            .containsExactly(firstTechniqueId to SelfRating.KNEW)
+        // Automatikus továbblépés (FUNCTIONAL_SPEC 4.2/4.).
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).position).isEqualTo(1)
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_onNeedsPractice_whenRevealed_recordsStudyReviewAndAdvances_FR10() = runTest {
+        val progressRepository = FakeLearnProgressRepository()
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
+            progressRepository = progressRepository,
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val firstTechniqueId = (viewModel.uiState.value as LearnCardsUiState.Content).card.techniqueId
+        viewModel.onReveal()
+        advanceUntilIdle()
+
+        viewModel.onNeedsPractice()
+        advanceUntilIdle()
+
+        assertThat(progressRepository.recordedReviews)
+            .containsExactly(firstTechniqueId to SelfRating.NEEDS_PRACTICE)
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).position).isEqualTo(1)
+        job.cancel()
+    }
+
+    /**
+     * Védelmi háló (ADR-005 mintája): a UI (T-304) felfedésig letiltva tartja a két
+     * gombot, de a ViewModel maga is ellenőrzi az állapotot – egy fel nem fedett
+     * kártyán érkező hívás nem ír `StudyReview`-t és nem lép tovább.
+     */
+    @Test
+    fun learnCards_onKnew_whenNotRevealed_isNoOp_FR10() = runTest {
+        val progressRepository = FakeLearnProgressRepository()
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
+            progressRepository = progressRepository,
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).card.revealed).isFalse()
+
+        viewModel.onKnew()
+        advanceUntilIdle()
+
+        assertThat(progressRepository.recordedReviews).isEmpty()
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).position).isEqualTo(0)
+        job.cancel()
+    }
+
+    /**
+     * Önértékelés nélküli továbblépés is megengedett (T-306 Teendők 3. pontja): a sima
+     * „Következő" gomb (nem az önértékelés) nem ír `StudyReview`-t.
+     */
+    @Test
+    fun learnCards_onNext_withoutSelfRating_doesNotRecordStudyReview_FR10() = runTest {
+        val progressRepository = FakeLearnProgressRepository()
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))),
+            progressRepository = progressRepository,
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onReveal()
+        viewModel.onNext()
+        advanceUntilIdle()
+
+        assertThat(progressRepository.recordedReviews).isEmpty()
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).position).isEqualTo(1)
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_onKnew_onLastCard_advancesToFinishedScreen_FR10() = runTest {
+        val categories = setOf(CategoryId.of("dachi"), CategoryId.of("tsuki"))
+        val progressRepository = FakeLearnProgressRepository()
+        val viewModel = viewModel(savedStateHandle = handleFor(categories), progressRepository = progressRepository)
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val total = (viewModel.uiState.value as LearnCardsUiState.Content).total
+        repeat(total - 1) {
+            viewModel.onNext()
+            advanceUntilIdle()
+        }
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).hasNext).isFalse()
+
+        viewModel.onReveal()
+        advanceUntilIdle()
+        viewModel.onKnew()
+        advanceUntilIdle()
+
+        assertThat(progressRepository.recordedReviews).hasSize(1)
+        assertThat(viewModel.uiState.value).isInstanceOf(LearnCardsUiState.Finished::class.java)
+        job.cancel()
+    }
+
     // ------------------------------------------------------------- kategórianév / FR-06
 
     @Test
@@ -299,10 +422,12 @@ class LearnCardsViewModelTest {
 
     private fun TestScope.viewModel(
         repository: FakeLearnTechniqueRepository = FakeLearnTechniqueRepository(),
+        progressRepository: FakeLearnProgressRepository = FakeLearnProgressRepository(),
         random: Random = Random(0),
         savedStateHandle: SavedStateHandle,
     ): LearnCardsViewModel = LearnCardsViewModel(
         repository = repository,
+        progressRepository = progressRepository,
         random = random,
         defaultDispatcher = UnconfinedTestDispatcher(testScheduler),
         savedStateHandle = savedStateHandle,

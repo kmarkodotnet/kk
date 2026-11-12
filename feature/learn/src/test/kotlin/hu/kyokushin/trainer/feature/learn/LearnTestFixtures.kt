@@ -3,12 +3,17 @@ package hu.kyokushin.trainer.feature.learn
 import hu.kyokushin.trainer.core.data.content.ContentImporter
 import hu.kyokushin.trainer.core.data.content.ImportResult
 import hu.kyokushin.trainer.core.data.repository.ContentState
+import hu.kyokushin.trainer.core.data.repository.NewAttempt
+import hu.kyokushin.trainer.core.data.repository.ProgressRepository
+import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
 import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
+import hu.kyokushin.trainer.core.model.SelfRating
+import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
@@ -150,6 +155,42 @@ internal class FakeLearnTechniqueRepository(
         throw UnsupportedOperationException("A tanulás nem kér kvízjelölteket.")
 
     override fun observeContentState(): Flow<ContentState> = contentStateFlow.asStateFlow()
+}
+
+/**
+ * A [ProgressRepository] tesztdublőre a `feature/learn` teszjeihez (T-306, T-308).
+ *
+ * A tanulás kizárólag [recordStudyReview]-t hívja (FR-10, FR-28) – a kvízmenethez tartozó
+ * tagok itt nem várt hívások, ezért kivételt dobnak, hogy egy véletlen felhasználásuk
+ * azonnal kiderüljön, ne csendben nullázzon valamit.
+ */
+internal class FakeLearnProgressRepository : ProgressRepository {
+
+    private val _recordedReviews = mutableListOf<Pair<TechniqueId, SelfRating>>()
+
+    /** Minden [recordStudyReview] hívás, a hívás sorrendjében. */
+    val recordedReviews: List<Pair<TechniqueId, SelfRating>> get() = _recordedReviews
+
+    override suspend fun startSession(requestedCount: Int, seed: Long): SessionId =
+        throw UnsupportedOperationException("A tanulás nem indít kvízmenetet.")
+
+    override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
+        throw UnsupportedOperationException("A tanulás nem rögzít kvízválaszt.")
+
+    override suspend fun finishSession(id: SessionId) {
+        throw UnsupportedOperationException("A tanulás nem zár le kvízmenetet.")
+    }
+
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+        _recordedReviews += techniqueId to rating
+    }
+
+    override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
+        throw UnsupportedOperationException("A tanulókártya ViewModel nem olvassa az összegzést.")
+
+    override suspend fun clearAllProgress() {
+        throw UnsupportedOperationException("A tanulás nem törli a haladást.")
+    }
 }
 
 /** A tartalomimport tesztdublőre; a kimenetét és a kivételét a teszt dönti el. */

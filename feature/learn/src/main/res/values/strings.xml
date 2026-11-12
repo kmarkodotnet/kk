@@ -41,6 +41,15 @@
     <string name="learn_cards_next">Következő</string>
 
     <!--
+        Önértékelés (T-306, FUNCTIONAL_SPEC 4.2/4., FR-10, FR-28). Csak felfedés után
+        aktívak; a letiltás indoklása mindig látható szöveg, hogy a TalkBack is
+        bejelentse (T-306 „Kész ha").
+    -->
+    <string name="learn_cards_self_rate_knew">Tudtam</string>
+    <string name="learn_cards_self_rate_needs_practice">Gyakorolnom kell</string>
+    <string name="learn_cards_self_rate_disabled_reason">Előbb fedd fel a kártyát, hogy önértékelést adhass.</string>
+
+    <!--
         T-305: a feliratos képeknél (`hideableOnStudyCard == false`) ez a magyarázat
         jelenik meg a kép helyén, felfedésig.
     -->

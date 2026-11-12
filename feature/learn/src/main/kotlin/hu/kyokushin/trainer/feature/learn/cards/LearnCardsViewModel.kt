@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.kyokushin.trainer.core.data.di.DefaultDispatcher
+import hu.kyokushin.trainer.core.data.repository.ProgressRepository
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
+import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.feature.learn.HideMode
 import javax.inject.Inject
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
  * A tanulókártya munkamenet állapotkezelése (T-303, FR-09, NFR-07, FUNCTIONAL_SPEC 4.2,
@@ -76,8 +79,28 @@ import kotlinx.coroutines.flow.stateIn
  * (már egyszer sorsolt) sorrenden megy újra végig a felhasználó, csak elölről és üres
  * felfedettséggel, hogy a kártyák ismét „kérdésként" hassanak.
  *
+ * ## Önértékelés és automatikus továbblépés (T-306, FR-10, FR-28)
+ *
+ * A [onSelfRate] ([onKnew]/[onNeedsPractice] rövidítéseivel) a [progressRepository]-n
+ * keresztül ment egy `StudyReview` rekordot, majd a mentés után a meglévő [onNext]-et
+ * hívja – ugyanaz a nyers pozíciólépés, mint a sima „Következő" gombnál, tehát az utolsó
+ * kártyán az önértékelés is a [LearnCardsUiState.Finished] záróképernyőre vezet. A
+ * mentés időbélyege az **injektált** `Clock`-ból jön, de **nem** ebben a ViewModelben:
+ * a [ProgressRepository] egyetlen megvalósítása ([hu.kyokushin.trainer.core.data.repository.RoomProgressRepository])
+ * olvassa ki a saját `Clock`-ját (NFR-07) – ez a ViewModel ezért szándékosan nem kap
+ * külön `Clock`-ot, mert nincs saját időfüggő döntése (CONVENTIONS 4.1: „Nem injektálunk,
+ * amire nincs szükség").
+ *
+ * A letiltás ([LearnCardUiModel.revealed] `false`) a UI (T-304) felelőssége, de csak
+ * **elsődleges** védelem, ugyanúgy, mint a kvíz egyszeri válasza (ADR-005): a
+ * [onSelfRate] maga is ellenőrzi a jelenlegi [uiState] felfedettségét, és no-op, ha a
+ * kártya még nincs felfedve – sem `StudyReview` nem íródik, sem továbblépés nem
+ * történik.
+ *
  * @property repository a tudástár olvasási felülete; innen jön a kijelölt kategóriák
  *   technikalistája (a visszavontak már kiszűrve, ADR-004).
+ * @property progressRepository az önértékelés írási felülete (FR-10) – kizárólag a
+ *   `study_review` táblát érinti, a kvízstatisztikától függetlenül (FR-28).
  * @property random az alkalmazás egyetlen véletlenforrása, csak a [seed] sorsolására
  *   (NFR-07).
  * @property defaultDispatcher CPU-kötött háttérmunka dispatchere (a rendezés és a
@@ -87,6 +110,7 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class LearnCardsViewModel @Inject constructor(
     private val repository: TechniqueRepository,
+    private val progressRepository: ProgressRepository,
     private val random: Random,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
     private val savedStateHandle: SavedStateHandle,
@@ -139,6 +163,30 @@ class LearnCardsViewModel @Inject constructor(
             savedStateHandle[KEY_REVEALED] = ArrayList(revealed + position.toString())
         }
     }
+
+    /**
+     * Önértékelés mentése, majd automatikus továbblépés (T-306, FR-10, FR-28,
+     * FUNCTIONAL_SPEC 4.2/4.: „Megnyomás után: `StudyReview` rekord mentése … automatikus
+     * továbblépés a következő kártyára").
+     *
+     * No-op, ha az aktuális kártya nincs felfedve – lásd az osztály KDoc-ja. A UI (T-304)
+     * ezért a két gombot felfedésig letiltva tartja, de ez csak elsődleges védelem.
+     */
+    fun onSelfRate(rating: SelfRating) {
+        val state = uiState.value
+        if (state !is LearnCardsUiState.Content || !state.card.revealed) return
+        val techniqueId = state.card.techniqueId
+        viewModelScope.launch {
+            progressRepository.recordStudyReview(techniqueId, rating)
+            onNext()
+        }
+    }
+
+    /** A „Tudtam" gomb (FUNCTIONAL_SPEC 4.2/4., [SelfRating.KNEW]). */
+    fun onKnew() = onSelfRate(SelfRating.KNEW)
+
+    /** A „Gyakorolnom kell" gomb (FUNCTIONAL_SPEC 4.2/4., [SelfRating.NEEDS_PRACTICE]). */
+    fun onNeedsPractice() = onSelfRate(SelfRating.NEEDS_PRACTICE)
 
     /**
      * A következő kártyára lépés (FUNCTIONAL_SPEC 4.2/5.).
