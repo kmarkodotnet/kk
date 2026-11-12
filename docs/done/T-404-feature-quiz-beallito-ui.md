@@ -57,7 +57,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-12 |
-| Commit | lásd a következő commit hash-t a `docs/IMPLEMENTATION_PLAN.md`-ben (T-404 bejegyzés) |
+| Commit | `5b1b0e9` |
 
 **Futtatott parancsok** (Bash, `export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`):
 
