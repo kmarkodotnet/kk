@@ -120,7 +120,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403 ViewModel + T-404 UI, 2026-11-12) – `QuizSetupViewModel` + `QuizSetupScreen` (Compose) |
-| 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ⬜ – a kérdés-UI (T-407/T-408) és a visszajelzés (T-409) még hátravan; az állapotgép (6.3) alatta már kész |
+| 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | 🔄 **részben kész** (G-08 csoport: T-407, T-409, 2026-11-12) – a szöveges (A)/(B) kérdés UI-ja és a válasz-visszajelzés (`QuizRunScreen.kt`) elkészült; a (C)/(D) képes típus UI-ja (T-408) még hátravan |
 | 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ✅ **kész** (G-07 csoport: T-405, T-406, T-410, 2026-11-12) – `QuizRunViewModel` |
 | 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként | FR-20, FR-21 | ⬜ |
 | 6.5 | Akadálymentesség a kvízben (szemantika, a (D) opciók nem fedik fel a választ) | NFR-04 | ⬜ |
@@ -166,11 +166,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-407** – `feature/quiz`: az (A) és (B) kérdéstípus UI-ja (G-08 csoport T-409-cel).
-   Függősége (T-406) kész. A `quiz/run` kérdés-UI-ja és a `quiz/setup`/`quiz/run` közötti
-   tényleges navigáció (a `QuizPlan` és a seed a `QuizRunViewModel` `SavedStateHandle`-jébe
-   írása) még nincs bekötve a `navigation` modulban – lásd a `QuizRunViewModel` KDoc-ja és
-   `docs/CONVENTIONS.md` 5. szakasz új sorát.
+1. **T-408** – `feature/quiz`: a (C) és (D) kérdéstípus UI-ja. Függősége (T-407, T-204)
+   kész. A `quiz/setup`/`quiz/run` közötti tényleges navigáció (a `QuizPlan` és a seed a
+   `QuizRunViewModel` `SavedStateHandle`-jébe írása) továbbra sincs bekötve a
+   `navigation` modulban – lásd a `QuizRunViewModel` KDoc-ja és `docs/CONVENTIONS.md`
+   5. szakasz új sorát.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -1023,3 +1023,28 @@ helyőrzőjének lecserélése).
   (a `SavedStateHandle`-be mentett komplex állapot kódolásának mintája).
 
   Következő: T-407, `feature/quiz`: az (A)/(B) kérdéstípus UI-ja (G-08 csoport).
+
+- 2026-11-12 – **G-08 csoport kész** (T-407, T-409, `docs/backlog/GROUPS.md`,
+  `feature/quiz`, Fázis 6.4 – az (A)/(B) kérdés UI és a válasz-visszajelzés). A két
+  feladat egy menetben készült, mert ugyanazt a képernyőt adja. A G-07 állapotgépe
+  (T-405/T-406/T-410) fölött a `QuizRunViewModel` egy harmadik függőséget kapott
+  (`TechniqueRepository`): az `uiState`-et építő `combine` egy harmadik forrással
+  bővült (`observeTechniques()`), és a `QuizRunUiState.Content` egy új
+  `options: List<QuizOptionDisplay>` mezőt kapott – a kérdés opcióinak romaji/magyar/ábra
+  adatai, **ugyanabban a sorrendben**, mint a `question.optionTechniqueIds` (ADR-007). Ha
+  egy opció technikája nem oldható fel, `QuizRunUiState.Empty` (NFR-06), nem kivétel.
+  Új `QuizRunScreen.kt`: `QuizRunRoute`/`QuizRunScreen`, `QuizRunTopBar`
+  (progresszszöveg + bezárás (×) + lineáris jelző), `QuizTextQuestion` ((A)/(B), a (C)/(D)
+  ág szándékosan üres – T-408 tárgya), `QuizOptionRow` (a válasz-visszajelzés: ikon+szöveg+
+  szín+`stateDescription`, a mindig kiemelt helyes opció **ugyanazt** a jelzést kapja,
+  mint a kiválasztott helyes opció), `QuizExplanationCard` (romaji+magyar+ábra, kattintható,
+  `onOpenTechnique` kifelé adott lambda, US-14/3.), és egy `BackHandler`+`AlertDialog` a
+  megszakítás megerősítésére (a `QuizRunViewModel` KDoc-ja ezt kifejezetten ide, a
+  kérdés-UI-t adó feladatra hagyta). Új, emulátor nélkül tesztelhető tiszta logika:
+  `QuizOptionFeedback` enum + `QuizOptionFeedbackResolver`. Két új, a version catalogban
+  már szereplő függőség a `feature/quiz`-ben: `androidx.activity:activity-compose`
+  (`BackHandler`) és a `material-icons-extended` (ikonok). 7 új teszt (528 → 535, 0 hiba,
+  `--rerun-tasks`-szal leellenőrizve); `assembleDebug` exit 0. Lásd
+  `docs/CONVENTIONS.md` 4.1 szakasz öt új sora.
+
+  Következő: T-408, `feature/quiz`: a (C)/(D) kérdéstípus UI-ja.

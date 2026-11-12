@@ -65,4 +65,49 @@
 
     <string name="quiz_setup_start">Kvíz indítása</string>
 
+    <!-- Futó kvíz (`quiz/run`, FUNCTIONAL_SPEC 5.2, FR-16, FR-17, FR-18, FR-19, T-407, T-409). -->
+
+    <!-- Felső sáv: „{index} / {összes}" (FUNCTIONAL_SPEC 5.2/1.). %1$d az 1-alapú pozíció. -->
+    <string name="quiz_run_progress">%1$d / %2$d</string>
+
+    <!-- A bezárás (×) gomb akadálymentes leírása. -->
+    <string name="quiz_run_close_a11y">Kvíz megszakítása</string>
+
+    <!-- (A) típus: „Mit jelent: {romaji}?" (FUNCTIONAL_SPEC 5.2/2.). A kérdés tárgya
+         (romaji) külön, nagyobb/kiemelt szövegként jelenik meg - lásd `quiz_run_prompt_value`. -->
+    <string name="quiz_run_prompt_jp_to_hu_prefix">Mit jelent:</string>
+    <!-- (B) típus: „Melyik a japán neve: {magyar}?" (FUNCTIONAL_SPEC 5.2/2.). -->
+    <string name="quiz_run_prompt_hu_to_jp_prefix">Melyik a japán neve:</string>
+    <!-- A kérdés tárgya (a kiemelt romaji/magyar érték) + a mondatvégi kérdőjel. -->
+    <string name="quiz_run_prompt_value">%1$s?</string>
+
+    <!-- Válasz-visszajelzés (FUNCTIONAL_SPEC 5.2/4., FUNCTIONAL_SPEC 8. szó szerint). -->
+    <string name="quiz_run_answer_correct">Helyes</string>
+    <string name="quiz_run_answer_wrong">Helytelen</string>
+    <!-- TalkBack `stateDescription` – FUNCTIONAL_SPEC 9. szándékosan kisbetűs, eltérően a
+         fent látható, nagybetűs felirattól. -->
+    <string name="quiz_run_option_state_correct">helyes</string>
+    <string name="quiz_run_option_state_incorrect">helytelen</string>
+
+    <!-- Magyarázó kártya a helyes megoldással (FUNCTIONAL_SPEC 5.2/4., FR-17, US-14). -->
+    <string name="quiz_run_explanation_title">Helyes megoldás</string>
+    <string name="quiz_run_open_detail">Megnyitás a Tudástárban</string>
+
+    <!-- „Következő" gomb, az utolsó kérdésnél „Eredmény" (FUNCTIONAL_SPEC 5.2/4.). -->
+    <string name="quiz_run_next">Következő</string>
+    <string name="quiz_run_result">Eredmény</string>
+
+    <!-- Megszakítást megerősítő párbeszéd (FUNCTIONAL_SPEC 5.2/5., FUNCTIONAL_SPEC 8.
+         szó szerint: `quiz.abort.title`/`quiz.abort.message`). A gombfeliratok
+         („Megszakítás"/„Folytatás") az 5.2 leíró szövegéből jönnek szó szerint. -->
+    <string name="quiz_run_abort_title">Megszakítod a kvízt?</string>
+    <string name="quiz_run_abort_message">Az eddigi válaszaid megmaradnak.</string>
+    <string name="quiz_run_abort_confirm">Megszakítás</string>
+    <string name="quiz_run_abort_dismiss">Folytatás</string>
+
+    <!-- Védelmi háló (NFR-06): a terv sérült/üres, vagy egy opció technikája nem
+         található. A `quiz/setup` normál esetben nem engedi ide eljutni a felhasználót. -->
+    <string name="quiz_run_empty_message">A kvízhez nem sikerült betölteni a kérdéseket.</string>
+    <string name="quiz_run_empty_action">Vissza a beállításokhoz</string>
+
 </resources>

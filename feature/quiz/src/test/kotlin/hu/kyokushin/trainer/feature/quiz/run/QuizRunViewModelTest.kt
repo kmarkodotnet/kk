@@ -2,6 +2,7 @@ package hu.kyokushin.trainer.feature.quiz.run
 
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
+import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.SessionId
@@ -10,6 +11,11 @@ import hu.kyokushin.trainer.core.quiz.generator.QuizPlan
 import hu.kyokushin.trainer.core.quiz.generator.QuizQuestion
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
 import hu.kyokushin.trainer.feature.quiz.FakeQuizRunProgressRepository
+import hu.kyokushin.trainer.feature.quiz.FakeQuizTechniqueRepository
+import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_CHUDAN
+import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_FUDO
+import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_HEISOKU
+import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_MUSUBI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -70,6 +76,51 @@ class QuizRunViewModelTest {
         assertThat(content.selectedTechniqueId).isNull()
         assertThat(content.isLastQuestion).isFalse()
         assertThat(content.closeConfirmationVisible).isFalse()
+        job.cancel()
+    }
+
+    /**
+     * T-407 „Kész ha": a kérdés-UI a `TechniqueRepository`-ból feloldott nevekkel kap
+     * opciót, **ugyanabban a sorrendben**, mint a [QuizQuestion.optionTechniqueIds]
+     * (a seedelt keverés sorrendje, ADR-007 – nem rendezi át).
+     */
+    @Test
+    fun quizRun_content_resolvesOptionDisplayFromTechniqueRepository_FR16() = runTest {
+        val plan = threeQuestionPlan()
+        val viewModel = viewModel(savedStateHandle = handleFor(plan))
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as QuizRunUiState.Content
+        assertThat(content.options.map { it.techniqueId })
+            .isEqualTo(content.question.optionTechniqueIds)
+        assertThat(content.options.map { it.romaji })
+            .isEqualTo(listOf(TECHNIQUE_HEISOKU, TECHNIQUE_FUDO, TECHNIQUE_MUSUBI, TECHNIQUE_CHUDAN).map { it.romaji })
+        assertThat(content.options.map { it.hungarian })
+            .isEqualTo(listOf(TECHNIQUE_HEISOKU, TECHNIQUE_FUDO, TECHNIQUE_MUSUBI, TECHNIQUE_CHUDAN).map { it.hungarian })
+        job.cancel()
+    }
+
+    /**
+     * NFR-06 védelmi háló: ha egy opció technikája nem található a tudástárban (pl. egy
+     * régi mentett állapot egy közben eltávolított technikára hivatkozna), a ViewModel
+     * nem omlik össze és nem ad hiányos (4-nél kevesebb opciós) állapotot – [QuizRunUiState.Empty]-t ad.
+     */
+    @Test
+    fun quizRun_content_missingOptionTechnique_showsEmpty_NFR06() = runTest {
+        val plan = threeQuestionPlan()
+        // Csak az első kérdés helyes technikáját adja vissza – a többi opció feloldatlan marad.
+        val incompleteTechniqueRepository = FakeQuizTechniqueRepository(
+            techniques = listOf(TECHNIQUE_HEISOKU),
+        )
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(plan),
+            techniqueRepository = incompleteTechniqueRepository,
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value).isEqualTo(QuizRunUiState.Empty)
         job.cancel()
     }
 
@@ -386,9 +437,11 @@ class QuizRunViewModelTest {
 
     private fun TestScope.viewModel(
         progressRepository: FakeQuizRunProgressRepository = FakeQuizRunProgressRepository(),
+        techniqueRepository: TechniqueRepository = FakeQuizTechniqueRepository(),
         savedStateHandle: SavedStateHandle,
     ): QuizRunViewModel = QuizRunViewModel(
         progressRepository = progressRepository,
+        techniqueRepository = techniqueRepository,
         savedStateHandle = savedStateHandle,
     )
 

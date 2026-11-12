@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.kyokushin.trainer.core.data.repository.NewAttempt
 import hu.kyokushin.trainer.core.data.repository.ProgressRepository
+import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizPlan
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
@@ -73,12 +75,26 @@ import kotlinx.coroutines.launch
  * eredményképernyő, `ProgressRepository.finishSession`) a G-09 csoport (T-411) tárgya: az
  * [onNext] ezért az utolsó kérdésen szándékosan **no-op** marad – lásd ott a KDoc-ot.
  *
+ * ## A G-08 csoport (T-407/T-409) kiegészítése: [QuizRunUiState.Content.options]
+ *
+ * A fenti bekezdés szándékosan úgy fogalmaz, hogy az IDk feloldását „azok" (a kérdés-UI és
+ * a visszajelzés) végzik – ez **nem** jelenti azt, hogy a Compose rétegnek repository-t
+ * kellene látnia (az L5 rétegszabályt sértené). A feloldás itt, ebben a ViewModelben
+ * történik a [techniqueRepository]-n keresztül: az [uiState] a [QuizRunState.questions]
+ * aktuális kérdésének [QuizQuestion.optionTechniqueIds]-jét `Technique`-re oldja, és a
+ * kész [QuizOptionDisplay] listát adja a [QuizRunUiState.Content.options]-ban – a Compose
+ * UI (T-407/T-409) ezt fogyasztja, sosem a `TechniqueRepository`-t közvetlenül. Ha egy
+ * opció technikája nem található (pl. retired/törölt rekord egy régi mentett állapotban),
+ * az eredmény [QuizRunUiState.Empty] (NFR-06 védelmi háló), nem kivétel.
+ *
  * @property progressRepository a válasz rögzítésének írási felülete (FR-18).
+ * @property techniqueRepository a kérdés opcióinak megjelenítési adatait adja (T-407/T-409).
  * @property savedStateHandle a teljes [QuizRunState] hordozója.
  */
 @HiltViewModel
 class QuizRunViewModel @Inject constructor(
     private val progressRepository: ProgressRepository,
+    private val techniqueRepository: TechniqueRepository,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -115,11 +131,19 @@ class QuizRunViewModel @Inject constructor(
         )
     }
 
+    /**
+     * A tudástár aktív technikái, az opciófeloldás forrása (lásd az osztály KDoc-ja).
+     * `Flow`, nem egyszeri lekérdezés: ugyanaz a mintázat, mint a `QuizSetupViewModel`-nél
+     * – ha a tartalom frissül, a futó kvíz a friss nevekkel/ábrákkal jelenik meg.
+     */
+    private val techniquesFlow: Flow<List<Technique>> = techniqueRepository.observeTechniques()
+
     val uiState: StateFlow<QuizRunUiState> = combine(
         runStateFlow,
         closeConfirmationFlow,
-    ) { state, closeConfirmationVisible ->
-        buildUiState(state, closeConfirmationVisible)
+        techniquesFlow,
+    ) { state, closeConfirmationVisible, techniques ->
+        buildUiState(state, closeConfirmationVisible, techniques)
     }
         .stateIn(
             scope = viewModelScope,
@@ -218,12 +242,30 @@ class QuizRunViewModel @Inject constructor(
      * A [QuizRunState] (a mentett igazság) leképezése a képernyő [QuizRunUiState]-jére.
      *
      * `null` bemenetre vagy üres kérdéslistára [QuizRunUiState.Empty] (NFR-06 védelmi
-     * háló) – lásd [readInitialInput] KDoc-ja.
+     * háló) – lásd [readInitialInput] KDoc-ja. Ugyanez az ág jár, ha az aktuális kérdés
+     * bármely opciójának technikája **nem** található a [techniques] listában (pl. egy
+     * régi mentett állapot egy közben visszavont/törölt technikára hivatkozna) – a
+     * gyakorlatban nem várt eset, de a válasz nem omlik össze (NFR-06).
      */
-    private fun buildUiState(state: QuizRunState?, closeConfirmationVisible: Boolean): QuizRunUiState {
+    private fun buildUiState(
+        state: QuizRunState?,
+        closeConfirmationVisible: Boolean,
+        techniques: List<Technique>,
+    ): QuizRunUiState {
         if (state == null || state.questions.isEmpty()) return QuizRunUiState.Empty
 
         val question = state.questions[state.currentIndex]
+        val techniqueById = techniques.associateBy { it.id }
+        val options = question.optionTechniqueIds.map { id ->
+            val technique = techniqueById[id] ?: return QuizRunUiState.Empty
+            QuizOptionDisplay(
+                techniqueId = id,
+                romaji = technique.romaji,
+                hungarian = technique.hungarian,
+                illustration = technique.illustration,
+            )
+        }
+
         return QuizRunUiState.Content(
             sessionId = state.sessionId,
             question = question,
@@ -233,6 +275,7 @@ class QuizRunViewModel @Inject constructor(
             selectedTechniqueId = state.answers[question.id],
             isLastQuestion = state.currentIndex == state.questions.lastIndex,
             closeConfirmationVisible = closeConfirmationVisible,
+            options = options,
         )
     }
 

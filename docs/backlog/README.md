@@ -23,9 +23,7 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-407](T-407-feature-quiz-a-es-b-kerdes-ui.md) | feature/quiz: (A) és (B) kérdés UI | E4 | `feature/quiz` | M | T-405 |
 | [T-408](T-408-feature-quiz-c-es-d-kerdes-ui.md) | feature/quiz: (C) és (D) kérdés UI | E4 | `feature/quiz` | L | T-407, T-204 |
-| [T-409](T-409-feature-quiz-valasz-visszajelzes.md) | feature/quiz: válasz-visszajelzés | E4 | `feature/quiz` | M | T-407 |
 | [T-411](T-411-feature-quiz-eredmenykepernyo.md) | feature/quiz: eredményképernyő | E4 | `feature/quiz` | L | T-113, T-410 |
 | [T-412](T-412-feature-quiz-hibak-ujragyakorlasa.md) | feature/quiz: hibák újragyakorlása | E4 | `feature/quiz` | M | T-411 |
 | [T-413](T-413-feature-quiz-akadalymentesseg.md) | feature/quiz: akadálymentesség | E4 | `feature/quiz` | M | T-408, T-409 |

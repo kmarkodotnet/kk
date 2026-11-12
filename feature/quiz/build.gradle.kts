@@ -50,6 +50,9 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
+    // Pipa/kereszt ikon a válasz-visszajelzéshez (T-409, FR-17, NFR-04) – ugyanaz a
+    // katalógusbejegyzés, mint a `navigation` modulban.
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
 
@@ -57,6 +60,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.navigation.compose)
+    // A rendszer vissza-gombja a bezárás (×) megerősítő párbeszédét nyitja meg, nem lép
+    // ki közvetlenül (FUNCTIONAL_SPEC 5.2/5., T-407/T-410).
+    implementation(libs.androidx.activity.compose)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

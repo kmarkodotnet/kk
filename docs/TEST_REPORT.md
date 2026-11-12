@@ -2476,3 +2476,130 @@ csoport nem ad Compose UI-t (lásd alább).
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | Compose UI / `@Preview` / `contentDescription` / ≥48 dp | **NEM ALKALMAZHATÓ** – a G-07 csoport (T-405/T-406/T-410) szándékosan kizárólag az állapotgépet adja, Compose UI nélkül (ugyanaz a kettéválasztás, mint T-303 → T-304 a `feature/learn`-ben). A kérdés-UI a T-407/T-408, a visszajelzés a T-409, a progresszsáv/`AlertDialog`/`BackHandler` tényleges Compose rajzolása egy még hátralévő UI-feladat tárgya. |
 | `navigation` modul bekötése (`QuizStartResult` eljuttatása a `QuizRunViewModel.SavedStateHandle`-jébe) | **NEM KÉSZÜLT EL** – szándékosan, lásd a „Mi készült" szakasz és `docs/CONVENTIONS.md` 5. szakasz új sora: a bemenet nem route-argumentumként, hanem a cél `NavBackStackEntry.savedStateHandle`-jébe írva jut majd el, amikor a navigációs bekötés elkészül. |
+
+---
+
+## 2026-11-12 – G-08 csoport kész (T-407, T-409, `docs/backlog/GROUPS.md`, `feature/quiz`, Fázis 6.4 – az (A)/(B) kérdés UI és a válasz-visszajelzés)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle
+wrapper 9.9.1 (`./gradlew.bat`).
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:quiz:compileDebugKotlin` | 0 | `BUILD SUCCESSFUL in 14s` – csak a már ismert, nem blokkoló `hiltViewModel()` deprecation figyelmeztetés (CONVENTIONS 4.1). |
+| `./gradlew.bat :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 24s` – a `feature/quiz` modul 41 tesztje, 0 hiba. |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 44s`, 294 actionable task (294 executed). **Teljes projekt: 535 teszt, 0 hiba** (528 → 535). |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 6s`, 300 actionable task; `app/build/outputs/apk/debug/app-debug.apk` elkészült. |
+
+A 535 az összes `build/test-results/**/TEST-*.xml` `tests` attribútumának összege (nem
+becslés); a `feature/quiz` modulon belüli bontás a JUnit XML-ekből:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.quiz.run.QuizOptionFeedbackResolverTest` (új) | **5** | 0 |
+| `…feature.quiz.run.QuizRunViewModelTest` (14 → **16**) | 16 | 0 |
+| `…feature.quiz.setup.QuizSetupMessagesTest` | 4 | 0 |
+| `…feature.quiz.setup.QuizSetupViewModelTest` | 16 | 0 |
+
+### Mi készült
+
+Ez a csoport (G-08) a `docs/backlog/GROUPS.md` szerint egy menetben készült, mert a két
+feladat **ugyanazt** a képernyőt adja (`QuizRunScreen.kt`): a szöveges (A)/(B) kérdés UI
+(T-407) és a rá adott válasz-visszajelzés (T-409).
+
+**`QuizRunViewModel` kiegészítése (a G-07 állapotgépe fölött, nem helyette):** a G-07
+csoport (T-405/T-406/T-410, lásd fentebb) szándékosan nem oldotta fel a
+`QuizQuestion.optionTechniqueIds` azonosítóit megjelenítendő adatra – ezt a saját KDoc-ja
+kifejezetten a kérdés-UI-t adó feladatra (ez a csoport) hagyta. A feloldás a
+ViewModelben készült el, nem a Compose rétegben (hogy az L5 rétegszabály ne sérüljön): a
+`QuizRunViewModel` egy harmadik konstruktorparamétert kapott (`TechniqueRepository`), az
+`uiState`-et építő `combine` egy harmadik forrással bővült
+(`techniqueRepository.observeTechniques()`), és a `QuizRunUiState.Content` egy új
+`options: List<QuizOptionDisplay>` mezőt kapott – a `question.optionTechniqueIds`
+**ugyanabban a sorrendben** (ADR-007, a seedelt keverés sorrendje, nem rendezve újra)
+feloldott romaji/magyar/ábra hármasa. Ha egy opció technikája nem oldható fel (védelmi
+háló, NFR-06), az eredmény `QuizRunUiState.Empty`, nem kivétel és nem hiányos opciólista.
+
+**`QuizRunScreen.kt` (új, `feature/quiz/run`):** `QuizRunRoute` (Hilt ViewModel +
+`closeEvent` figyelése) + stateless `QuizRunScreen`. Felépítés:
+- `QuizRunTopBar` – „`{index}` / `{összes}`" szöveg + bezárás (×) `IconButton` + lineáris
+  `LinearProgressIndicator` (FUNCTIONAL_SPEC 5.2/1.).
+- `QuizTextQuestion` – (A)/(B) kiemelt kérdéstárgy (prefix + félkövér érték, két
+  `Text`-ben, lásd `docs/CONVENTIONS.md` 4.1 új sora) + a négy `QuizOptionRow`. A (C)/(D)
+  típus (`IMAGE_TO_JP`/`JP_TO_IMAGE`) ága szándékosan `Unit` – a T-408 tárgya.
+- `QuizOptionRow` – a válasz-visszajelzés (T-409): `Modifier.selectable` (`selected`
+  szemantika, FUNCTIONAL_SPEC 9.) + feltételes `Modifier.semantics { stateDescription }`;
+  az ikon (pipa/kereszt) + szöveg („Helyes"/„Helytelen") + szín hármasa minden kiemelt
+  opción (a kiválasztott ÉS a mindig kiemelt helyes opción is – lásd lent).
+- `QuizExplanationCard` – a helyes technika romaji + magyar + ábra hármasa, kattintható
+  (`onOpenTechnique(techniqueId)` kifelé adott lambda, L5 – a Tudástár részletezőjére
+  navigálás a hívó dolga, US-14/3. kritérium).
+- A „Következő"/„Eredmény" gomb (a válasz megadása után jelenik meg; a tényleges
+  befejezés a G-09/T-411 tárgya, itt az `onNext()` az utolsó kérdésen dokumentáltan no-op).
+- `BackHandler` + `AlertDialog` a megszakítás megerősítésére (FUNCTIONAL_SPEC 5.2/5.) – a
+  `QuizRunViewModel` KDoc-ja (T-410 lezárása) ezt kifejezetten ide, a kérdés-UI-t adó
+  feladatra utalta.
+
+**Új, `@Composable`-mentes, sima JUnit-tal tesztelt döntési logika**
+(`QuizOptionFeedback.kt`, `run` csomag): `QuizOptionFeedback` enum
+(`UNANSWERED`/`SELECTED_CORRECT`/`SELECTED_INCORRECT`/`CORRECT_UNSELECTED`/`NEUTRAL`) +
+`QuizOptionFeedbackResolver.resolve(optionId, correctTechniqueId, selectedTechniqueId)` –
+Robolectric/Compose-renderelés nélkül bizonyítja, melyik opció melyik ágat kapja.
+
+**Függőségek (`feature/quiz/build.gradle.kts`):** két új, már a version catalogban
+szereplő, de a modulban korábban nem használt tétel: `libs.androidx.activity.compose`
+(`BackHandler` – a T-410 lezárása már előre jelezte, hogy ez lesz az első
+előfordulása a modulban) és `libs.compose.material.icons.extended` (pipa/kereszt/nyíl
+ikon, ugyanaz a katalógusbejegyzés, mint a `navigation` modulban).
+
+**`strings.xml` (`feature/quiz`):** 19 új bejegyzés a „Futó kvíz" szakaszban – a
+progresszszöveg, a prompt prefix/érték (A/B), a „Helyes"/„Helytelen" felirat (FUNCTIONAL_
+SPEC 8. `quiz.answer.correct`/`wrong` szó szerint), a **külön**, kisbetűs
+`stateDescription` szövegek (FUNCTIONAL_SPEC 9.), a magyarázó kártya felirata, a
+„Következő"/„Eredmény" gomb, a megszakítás-megerősítés (FUNCTIONAL_SPEC 8.
+`quiz.abort.title`/`message` szó szerint + az 5.2 leíró szövegéből a „Megszakítás"/
+„Folytatás" gombfelirat), és a védelmi háló (`Empty`) üzenete.
+
+### Új tesztek (7)
+
+**`QuizOptionFeedbackResolverTest` (`feature/quiz`, 5 teszt, sima JUnit, Robolectric nélkül):**
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `resolve_beforeAnswer_everyOptionIsUnanswered_FR17` | válasz előtt minden opció `UNANSWERED` |
+| `resolve_selectedTheCorrectOption_isSelectedCorrect_FR17` | a kiválasztott helyes opció `SELECTED_CORRECT` |
+| `resolve_selectedAWrongOption_thatOptionIsSelectedIncorrect_FR17` | a kiválasztott hibás opció `SELECTED_INCORRECT` |
+| `resolve_wrongSelected_correctOptionIsStillHighlighted_NFR04` | hibás válasz mellett is a helyes opció `CORRECT_UNSELECTED` (mindig kiemelve) |
+| `resolve_wrongSelected_otherUnselectedWrongOptionsAreNeutral_FR17` | a harmadik, nem kiválasztott hibás opció `NEUTRAL` |
+
+**`QuizRunViewModelTest` bővítése (`feature/quiz`, 2 új teszt, Robolectric `@Config(sdk = [34])`):**
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `quizRun_content_resolvesOptionDisplayFromTechniqueRepository_FR16` | az opciók romaji/magyar neve a `TechniqueRepository`-ból jön, **ugyanabban a sorrendben**, mint a `QuizQuestion.optionTechniqueIds` |
+| `quizRun_content_missingOptionTechnique_showsEmpty_NFR06` | ha egy opció technikája nem oldható fel, az eredmény `Empty`, nem egy hiányos `Content` |
+
+### Rétegszabály, akadálymentesség
+
+A `feature/quiz` továbbra is kizárólag `core:model`/`core:ui`/`core:quiz`/`core:data`
+(repository-interfész) típusokat lát – a `QuizRunScreen.kt` sosem hivatkozik Room
+entitásra/DAO-ra/DTO-ra, a `TechniqueRepository`-t is csak a ViewModel látja (ADR-001,
+L3/L4). Nincs közvetlen `Clock`/`Random` hívás. Akadálymentesség: minden kiemelt opció
+ikon+szöveg+szín hármasával jelez (nem csak színnel, NFR-04), a `selectable` adja a
+`selected` szemantikát, a `stateDescription` a FUNCTIONAL_SPEC 9. szerinti kisbetűs
+„helyes"/„helytelen", minden gomb/opció ≥48 dp (`heightIn(min = …)`), `@Preview` világos
++ sötét témára nyolc állapotra (betöltés, üres, (A) válasz előtt/helyes/helytelen, (B)
+válasz előtt, megszakítás-megerősítés, hosszú magyar név).
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| (C)/(D) képes kérdéstípus UI-ja | **NEM KÉSZÜLT EL** – szándékosan, a T-408 tárgya; a `QuizRunScreen` ága üres `Unit`. |
+| `quiz/setup` → `quiz/run` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; ez nem ennek a csoportnak (G-08) a tárgya. |
+| Kvíz **normál** befejezése (eredményképernyőre lépés, `finishSession`) | **NEM KÉSZÜLT EL** – szándékosan, a G-09 csoport (T-411) tárgya; az `onNext()` az utolsó kérdésen dokumentáltan no-op marad. |
