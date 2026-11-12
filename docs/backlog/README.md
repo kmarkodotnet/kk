@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-301](T-301-core-data-progressrepository-tanulasi-resz.md) | core/data: ProgressRepository – tanulási rész | E3 | `core/data` | M | T-116 |
 | [T-302](T-302-feature-learn-tanulas-beallitasa.md) | feature/learn: tanulás beállítása | E3 | `feature/learn` | M | T-203, T-206 |
 | [T-303](T-303-feature-learn-kartyaallapot.md) | feature/learn: kártyaállapot | E3 | `feature/learn` | M | T-302 |
 | [T-304](T-304-feature-learn-kartya-ui.md) | feature/learn: kártya UI | E3 | `feature/learn` | L | T-303, T-204 |
@@ -31,8 +30,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 | [T-306](T-306-feature-learn-onertekeles.md) | feature/learn: önértékelés | E3 | `feature/learn` | M | T-301, T-304 |
 | [T-307](T-307-feature-learn-zarokepernyo.md) | feature/learn: záróképernyő | E3 | `feature/learn` | S | T-304 |
 | [T-308](T-308-feature-learn-viewmodel-tesztek.md) | feature/learn: ViewModel tesztek | E3 | `feature/learn` | M | T-306 |
-| [T-401](T-401-core-data-progressrepository-kvizresz.md) | core/data: ProgressRepository – kvízrész | E4 | `core/data` | M | T-116 |
-| [T-402](T-402-core-data-kvizjeloltek-lekerdezese.md) | core/data: kvízjelöltek lekérdezése | E4 | `core/data` | M | T-201 |
 | [T-403](T-403-feature-quiz-beallito-viewmodel.md) | feature/quiz: beállító ViewModel | E4 | `feature/quiz` | L | T-111, T-402 |
 | [T-404](T-404-feature-quiz-beallito-ui.md) | feature/quiz: beállító UI | E4 | `feature/quiz` | L | T-403 |
 | [T-405](T-405-feature-quiz-quizrunstate.md) | feature/quiz: QuizRunState | E4 | `feature/quiz` | M | T-403 |
@@ -47,7 +44,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 | [T-414](T-414-feature-quiz-viewmodel-tesztek.md) | feature/quiz: ViewModel tesztek | E4 | `feature/quiz` | L | T-412 |
 | [T-415](T-415-feature-quiz-lektoralatlan-tartalom-jelzese.md) | feature/quiz: lektorálatlan tartalom jelzése | E4 | `feature/quiz` | S | T-404, T-411 |
 | [T-501](T-501-core-data-aggregalt-statisztika-lekerdezesek.md) | core/data: aggregált statisztika lekérdezések | E5 | `core/data` | L | T-401 |
-| [T-502](T-502-core-data-elorehaladas-torlese.md) | core/data: előrehaladás törlése | E5 | `core/data` | S | T-401 |
 | [T-503](T-503-feature-progress-attekinto-kepernyo.md) | feature/progress: áttekintő képernyő | E5 | `feature/progress` | L | T-501, T-206 |
 | [T-504](T-504-feature-progress-gyakorlast-igenylo-lista.md) | feature/progress: gyakorlást igénylő lista | E5 | `feature/progress` | M | T-503 |
 | [T-505](T-505-feature-progress-onertekelesi-blokk.md) | feature/progress: önértékelési blokk | E5 | `feature/progress` | S | T-503 |

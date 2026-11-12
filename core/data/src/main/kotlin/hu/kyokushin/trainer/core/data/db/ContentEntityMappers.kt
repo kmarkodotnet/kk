@@ -14,8 +14,13 @@ import hu.kyokushin.trainer.core.quiz.validation.CategoryInput
  *
  * Ez a réteg az, ami miatt a Room entitás nem szivárog ki a `core/data`-ból: a
  * repository (T-201) és a tartalomimport (T-117) ugyanezt a néhány függvényt használja,
- * és minden típus `internal`. A felhasználói oldali leképezés (`quiz_attempt`,
- * `study_review`) a T-301/T-401 tárgya, szándékosan nincs itt.
+ * és minden típus `internal`. A felhasználói oldali entitás ↔ domain leképezés
+ * (`quiz_attempt`, `study_review`) szándékosan nincs itt: a `ProgressRepository` (T-301,
+ * T-401) írásra épül, és nem olvas vissza domain alakra (`startSession` csak egy
+ * `SessionId`-t ad, a `recordAttempt` bemenete a T-401-es `NewAttempt`, nem a domain
+ * `QuizAttempt`) – egy ilyen mapper csak akkor kell, ha egy olvasó metódus domain
+ * `QuizAttempt`/`StudyReview` listát ad vissza. Ez a T-501 aggregált statisztikájának
+ * tárgya lesz.
  *
  * Három szabály, amit a leképezés betart:
  *

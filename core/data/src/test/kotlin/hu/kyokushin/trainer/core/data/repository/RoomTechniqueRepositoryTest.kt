@@ -373,6 +373,45 @@ class RoomTechniqueRepositoryTest {
         assertThat((illustration as IllustrationRef.Asset).quizUsable).isFalse()
     }
 
+    // --- FR-13 / T-402: illusztráció-ujjlenyomat a (D) típus kizárásához --------
+
+    @Test
+    fun getQuizCandidates_fillsIllustrationDigestsForTechniquesSharingThePackagedFile_FR13() =
+        repositoryTest {
+            seedCategories()
+            database.techniqueDao().upsertAll(
+                listOf(
+                    technique(
+                        id = "KY-0001",
+                        romaji = "Seiken Chudan Tsuki",
+                        illustrationKind = IllustrationKind.ASSET,
+                    ).copy(illustrationFileName = "shared.webp", illustrationRef = "images/shared.webp"),
+                    // Más technika, de **ugyanaz** a csomagolt fájl: a felhasználó a két
+                    // opciónál szó szerint ugyanazt a képet látná (D típus, FR-13).
+                    technique(
+                        id = "KY-0002",
+                        romaji = "Gyaku Zuki",
+                        illustrationKind = IllustrationKind.ASSET,
+                    ).copy(illustrationFileName = "shared.webp", illustrationRef = "images/shared.webp"),
+                    technique(id = "KY-0003", romaji = "Mae Geri", illustrationKind = IllustrationKind.ASSET),
+                    // Nincs illusztráció: nem kaphat bejegyzést a térképben.
+                    technique(id = "KY-0004", romaji = "Zenkutsu Dachi"),
+                ),
+            )
+
+            val candidates = repository.getQuizCandidates()
+
+            val ky1 = TechniqueId.of("KY-0001")
+            val ky2 = TechniqueId.of("KY-0002")
+            val ky3 = TechniqueId.of("KY-0003")
+            val ky4 = TechniqueId.of("KY-0004")
+
+            assertThat(candidates.illustrationDigestOf(ky1)).isNotNull()
+            assertThat(candidates.illustrationDigestOf(ky1)).isEqualTo(candidates.illustrationDigestOf(ky2))
+            assertThat(candidates.illustrationDigestOf(ky3)).isNotEqualTo(candidates.illustrationDigestOf(ky1))
+            assertThat(candidates.illustrationDigestOf(ky4)).isNull()
+        }
+
     // --- FR-31 / FR-32: a tartalomállapot ---------------------------------------
 
     @Test

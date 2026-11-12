@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import hu.kyokushin.trainer.core.model.QuestionId
+import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +48,19 @@ internal interface QuizSessionDao {
 
     @Query("SELECT COUNT(*) FROM quiz_session")
     suspend fun count(): Int
+
+    /**
+     * Minden munkamenet ürítése (FR-35, T-502).
+     *
+     * A rá hivatkozó `quiz_attempt` sorok a `CASCADE` idegen kulcs miatt ezzel együtt
+     * törlődnek – a `ProgressRepository.clearAllProgress()` ezért csak ezt és a
+     * [StudyReviewDao.deleteAll] hívást futtatja egy tranzakcióban, nem mindhárom
+     * felhasználói táblát külön. A tartalomtáblákhoz ez a lekérdezés nem nyúl.
+     *
+     * @return a törölt sorok száma.
+     */
+    @Query("DELETE FROM quiz_session")
+    suspend fun deleteAll(): Int
 }
 
 @Dao
@@ -102,4 +116,25 @@ internal interface StudyReviewDao {
 
     @Query("SELECT COUNT(*) FROM study_review")
     suspend fun count(): Int
+
+    /**
+     * Hány önértékelés született az adott besorolással, megfigyelhetően (FR-28, T-301).
+     *
+     * **Minden önértékelés sor önmagáért számít** – nem a technikánkénti legutóbbi ítélet
+     * összegzése. A `study_review` tábla append-only (lásd a fájl fejdokumentációját), és a
+     * Haladás képernyő „Tudtam: `{n}` · Gyakorolnom kell: `{m}`" sora
+     * (FUNCTIONAL_SPEC 6.1/5.) a leadott önértékelések összes darabszámát mutatja, nem a
+     * technikák darabszámát. A „gyakorlást igénylő" lista (FR-25/26, T-501) ezzel szemben a
+     * kvízsikerarányra épül, nem erre a számra – a kettő szándékosan nem keveredik (FR-28).
+     */
+    @Query("SELECT COUNT(*) FROM study_review WHERE selfRating = :rating")
+    fun observeCountByRating(rating: SelfRating): Flow<Int>
+
+    /**
+     * Minden önértékelés ürítése (FR-35, T-502). A technikatáblákhoz nem nyúl.
+     *
+     * @return a törölt sorok száma.
+     */
+    @Query("DELETE FROM study_review")
+    suspend fun deleteAll(): Int
 }

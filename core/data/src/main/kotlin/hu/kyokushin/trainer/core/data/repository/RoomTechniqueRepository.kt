@@ -9,6 +9,7 @@ import hu.kyokushin.trainer.core.data.db.toTechnique
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
+import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
@@ -54,12 +55,21 @@ import kotlinx.coroutines.withContext
  * írnia („Egyezés: `{alias}`"), és egy Kotlin oldali újbóli mintaillesztés ugyanazt a
  * feltételt írná le másodszor.
  *
- * ## Mi tartozik a következő feladatokhoz
+ * ## Az illusztráció-ujjlenyomat forrása (T-402, FR-13)
  *
- * - Az [QuizCandidateSet.illustrationDigests] feltöltése a T-402 tárgya: a képek tartalmi
- *   ujjlenyomatához **nincs oszlop** a sémában, tehát a mező itt üres. Üres térkép
- *   mellett a `JP_TO_IMAGE` típus nem tud vizuálisan azonos képpárt kizárni – ezt a
- *   hiányt a T-402 pótolja, nem egy itt kitalált, becsült ujjlenyomat.
+ * A [QuizCandidateSet.illustrationDigests] a csomagolt fájl **nevét** adja ujjlenyomatként,
+ * nem a kép bájttartalmának SHA-256 hashét: a sémában nincs oszlop a bájt-szintű hashre
+ * (azt csak a `knowledgebase_transfer` konverter számolja ki, I003 diagnosztikára), és
+ * becsült vagy kitalált ujjlenyomatot nem gyártunk (CLAUDE.md „Tartalmi integritás"). A
+ * fájlnév ehhez elegendő és **korrekt** azonosítóhasonlóság: a
+ * [hu.kyokushin.trainer.core.model.IllustrationRef.Asset] kizárólag a csomagban tényleg
+ * létező fájlra hivatkozik (V005), tehát két technika, amely ugyanarra a fájlnévre
+ * hivatkozik, szó szerint ugyanazt a képfájlt, ugyanazokkal a bájtokkal jeleníti meg a
+ * felhasználónak – a (D) `JP_TO_IMAGE` típus distraktorszűrése pontosan ezt az egyezést
+ * akarja kizárni (`DistractorSelector.visualDigestOf`). Amit ez **nem** fog el: két
+ * *különböző* fájlnevű, de bitre azonos kép (a konverter I003 figyelmeztetése) – ez
+ * tartalomszerkesztési hiba, amit a `knowledgebase_transfer` pipeline jelent, nem a
+ * futásidejű kvízmotor feladata kiszűrni.
  *
  * @property database az adatbázis; a DAO-k rajta keresztül érhetők el.
  * @property ioDispatcher a háttér-I/O dispatcher; a kötést a `di` modul adja (T-203).
@@ -133,8 +143,7 @@ internal class RoomTechniqueRepository @Inject constructor(
             QuizCandidateSet(
                 techniques = techniques,
                 synonymGroups = synonymGroups(techniques.mapTo(HashSet()) { it.id }),
-                // Nincs ujjlenyomat-oszlop a sémában – a feltöltés a T-402 dolga.
-                illustrationDigests = emptyMap(),
+                illustrationDigests = illustrationDigests(techniques),
             )
         }
 
@@ -183,6 +192,21 @@ internal class RoomTechniqueRepository @Inject constructor(
                     .filterTo(LinkedHashSet()) { it in knownIds }
             }
             .filter { it.size >= 2 }
+
+    /**
+     * Az illusztráció-ujjlenyomatok a jelöltkészlethez (FR-13, T-402) – lásd az osztály
+     * fejdokumentációját a fájlnév-alapú választás indokáért.
+     *
+     * Csak a validált, valódi képpel rendelkező ([IllustrationRef.Asset]) technikák
+     * kapnak bejegyzést; a [IllustrationRef.Placeholder] és a hiányzó hivatkozás nélkül
+     * marad – a [QuizCandidateSet] konstruktora csak ezekre engedi a kulcsot.
+     */
+    private fun illustrationDigests(techniques: List<Technique>): Map<TechniqueId, String> =
+        techniques.mapNotNull { technique ->
+            (technique.illustration as? IllustrationRef.Asset)?.let { asset ->
+                technique.id to asset.fileName
+            }
+        }.toMap()
 
     /**
      * A normalizált keresőszövegből **kész `LIKE` minta** (FR-03, ADR-012).

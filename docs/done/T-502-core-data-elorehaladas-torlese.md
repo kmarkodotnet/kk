@@ -46,3 +46,33 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-12 |
+| Commit | *(a következő commit rögzíti)* |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | 451 teszt, 0 hiba (10 új, a G-01 csoport egészére) |
+| `./gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL, `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:**
+
+- `clearAllProgress()` egy `withTransaction` blokkban üríti a `quiz_session` és a
+  `study_review` táblát. Nincs harmadik, külön `DELETE FROM quiz_attempt` hívás: a
+  `quiz_attempt.sessionId` `CASCADE` idegen kulcsa (a `quiz_session`-re, felhasználói →
+  felhasználói irányban, ADR-004) automatikusan viszi a próbálkozásokat is, amikor a
+  menet törlődik.
+- A tartalomtáblák (`category`, `technique`, `technique_alias`, `synonym_group`) és a
+  `content_state` nem szerepelnek a tranzakcióban – teszt bizonyítja, hogy törlés után a
+  `technique`/`category` sorok száma változatlan (FR-35, NFR-09).
+- Lásd a T-301 és a T-401 lezárását a `recordStudyReview`/`observeStudyReviewSummary`
+  illetve a `startSession`/`recordAttempt`/`finishSession` részletekért – ugyanaz a
+  fájlpár (`ProgressRepository.kt`, `RoomProgressRepository.kt`) hordozza mindegyiket.

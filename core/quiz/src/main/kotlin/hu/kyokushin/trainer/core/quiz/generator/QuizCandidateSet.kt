@@ -14,8 +14,15 @@ import hu.kyokushin.trainer.core.model.TechniqueId
  * - a [synonymGroups] a V006 kölcsönös kizárási csoportok: azonos jelentésű kifejezések
  *   nem lehetnek egymás distraktorai (CR-07). Ez a validátor kimenete
  *   (`ValidationReport.synonymGroups`) – ugyanaz a csatolási pont, nem új igazságforrás.
- * - az [illustrationDigests] a képek tartalmi ujjlenyomata, amiből a `JP_TO_IMAGE` típus
- *   el tudja dönteni, hogy két opció **vizuálisan azonos** képet mutatna-e (T-109).
+ * - az [illustrationDigests] a képek **azonosságának** ujjlenyomata, amiből a
+ *   `JP_TO_IMAGE` típus el tudja dönteni, hogy két opció **vizuálisan azonos** képet
+ *   mutatna-e (T-109). A `TechniqueRepository.getQuizCandidates` megvalósítása (T-402) ezt
+ *   a csomagolt illusztrációfájl nevéből tölti – nem a kép bájttartalmának hasheléséből,
+ *   mert a sémában nincs ilyen oszlop, és becsült ujjlenyomatot nem gyártunk. Az egyenlőség
+ *   emiatt elegendő, de nem feltétlenül bitre pontos SHA-256: ugyanaz a fájlnév garantáltan
+ *   ugyanazt a csomagolt bájtsorozatot jelenti, de két *eltérő* fájlnevű, bitre azonos kép
+ *   (tartalomszerkesztési hiba) ezzel a kulccsal nem ismerhető fel – ez a
+ *   `knowledgebase_transfer` konverter I003 diagnosztikájának hatóköre, nem a motoré.
  *
  * A készlet **nem** dönt kvízképességről: azt kérdéstípusonként a jogosultsági kapu
  * (`QuizEligibility`, ADR-010) mondja meg a bizalmi szint ismeretében (T-108). Ez a típus
@@ -25,9 +32,10 @@ import hu.kyokushin.trainer.core.model.TechniqueId
  *   végül egyetlen típusban sem lesz jogosult – a szűrés a motor dolga, nem a hívóé.
  * @property synonymGroups legalább két elemű, a [techniques] halmazán belüli
  *   azonosítócsoportok. Egy technika több csoportban is szerepelhet.
- * @property illustrationDigests technikaazonosító – a hozzá tartozó illusztráció tartalmi
- *   ujjlenyomata (SHA-256 hex). Csak azokra a technikákra van bejegyzés, amelyeknek van
- *   képfájluk; a `Placeholder` nem kap ujjlenyomatot.
+ * @property illustrationDigests technikaazonosító – a hozzá tartozó illusztráció
+ *   azonosságának ujjlenyomata (ma: a csomagolt fájl neve, lásd fent). Csak azokra a
+ *   technikákra van bejegyzés, amelyeknek valódi, validált képfájluk van; a
+ *   `Placeholder` nem kap ujjlenyomatot.
  */
 data class QuizCandidateSet(
     val techniques: List<Technique> = emptyList(),

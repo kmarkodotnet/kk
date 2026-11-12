@@ -297,6 +297,7 @@ interface ProgressRepository {
     suspend fun recordAttempt(attempt: NewAttempt): Boolean   // false = már válaszolt
     suspend fun finishSession(id: SessionId)
     suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating)
+    fun observeStudyReviewSummary(): Flow<StudyReviewSummary>   // "Tudtam" / "Gyakorolnom kell" (FR-28, T-301)
     fun observeOverallProgress(): Flow<OverallProgress>
     fun observeCategoryProgress(): Flow<List<CategoryProgress>>
     fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress>

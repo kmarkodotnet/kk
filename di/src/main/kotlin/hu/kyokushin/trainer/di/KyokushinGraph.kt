@@ -6,6 +6,7 @@ import dagger.hilt.components.SingletonComponent
 import hu.kyokushin.trainer.core.data.content.ContentImporter
 import hu.kyokushin.trainer.core.data.di.DefaultDispatcher
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
+import hu.kyokushin.trainer.core.data.repository.ProgressRepository
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.quiz.generator.QuizGenerator
 import hu.kyokushin.trainer.core.quiz.validation.KnowledgeValidator
@@ -39,6 +40,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 interface KyokushinGraph {
 
     fun techniqueRepository(): TechniqueRepository
+
+    fun progressRepository(): ProgressRepository
 
     fun contentImporter(): ContentImporter
 

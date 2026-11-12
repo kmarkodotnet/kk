@@ -7,6 +7,7 @@ import dagger.hilt.android.testing.HiltTestApplication
 import hu.kyokushin.trainer.core.data.content.ContentImporter
 import hu.kyokushin.trainer.core.data.di.DefaultDispatcher
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
+import hu.kyokushin.trainer.core.data.repository.ProgressRepository
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.quiz.generator.DefaultQuizGenerator
 import hu.kyokushin.trainer.core.quiz.generator.QuizGenerator
@@ -57,6 +58,9 @@ class HiltGraphTest {
     lateinit var techniqueRepository: TechniqueRepository
 
     @Inject
+    lateinit var progressRepository: ProgressRepository
+
+    @Inject
     lateinit var contentImporter: ContentImporter
 
     @Inject
@@ -91,12 +95,14 @@ class HiltGraphTest {
     @Test
     fun hiltGraph_providesRepositoryAndImporterBehindInterfaces_NFR03() {
         assertThat(techniqueRepository).isNotNull()
+        assertThat(progressRepository).isNotNull()
         assertThat(contentImporter).isNotNull()
 
         // A konkrét típus a `core/data` modulon belül marad: a név ellenőrzése itt azt
         // igazolja, hogy a `@Binds` a Room-implementációra mutat, miközben a tesztnek
         // (mint minden `core/data`-n kívüli kódnak) az osztály nem is importálható.
         assertThat(techniqueRepository.javaClass.simpleName).isEqualTo("RoomTechniqueRepository")
+        assertThat(progressRepository.javaClass.simpleName).isEqualTo("RoomProgressRepository")
         assertThat(contentImporter.javaClass.simpleName).isEqualTo("RoomContentImporter")
     }
 

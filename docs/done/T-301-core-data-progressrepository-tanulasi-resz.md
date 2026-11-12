@@ -47,3 +47,36 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-12 |
+| Commit | *(a következő commit rögzíti)* |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | 451 teszt, 0 hiba (10 új, a G-01 csoport egészére) |
+| `./gradlew.bat assembleDebug` | 0 | BUILD SUCCESSFUL, `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:**
+
+- A `ProgressRepository` interfész és az `internal RoomProgressRepository` megvalósítás
+  a `hu.kyokushin.trainer.core.data.repository` csomagban (`ProgressRepository.kt`,
+  `RoomProgressRepository.kt`) a G-01 csoport (T-301, T-401, T-402, T-502) közös munkája –
+  ez a task a `recordStudyReview` és `observeStudyReviewSummary` tagokat adja.
+- `observeStudyReviewSummary()` **darabszámot** ad, nem technikánkénti utolsó ítéletet: a
+  `study_review` minden sora önmagáért számít (FUNCTIONAL_SPEC 6.1/5. „Tudtam: `{n}` ·
+  Gyakorolnom kell: `{m}`"). Új DAO-metódus: `StudyReviewDao.observeCountByRating`.
+- Az elválasztás (FR-28) tesztekkel bizonyított: `recordStudyReview` és
+  `observeStudyReviewSummary` sosem ír/olvas a `quiz_session`/`quiz_attempt` táblákból.
+- A kötést a `RepositoryModule` (`core/data`) adja (`@Binds`), és a `KyokushinGraph` +
+  `HiltGraphTest` is bővült egy `progressRepository()` taggal, ugyanúgy, mint a
+  `TechniqueRepository`-nál (T-203 mintája).
+- Lásd a T-401 és a T-502 lezárását a `startSession`/`recordAttempt`/`finishSession`
+  illetve a `clearAllProgress` részletekért – ugyanaz a fájlpár hordozza mindegyiket.

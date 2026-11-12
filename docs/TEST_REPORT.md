@@ -1974,3 +1974,51 @@ ellenőrzi, ugyanúgy, mint a T-206 óta.
 | `@Preview` **tényleges kirenderelése** (világos/sötét, mind a négy állapot) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a nyolc előnézet-függvény (négy állapot × világos/sötét) lefordul. |
 | „Már gyakoroltam" összegzés tesztje | **NEM ALKALMAZHATÓ** – a funkció maga nincs megírva, mert nincs `ProgressRepository` (T-301/T-401 hátra); lásd `docs/CONVENTIONS.md` 8. és az `IMPLEMENTATION_PLAN.md` 4.4 sora. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-12 – G-01 csoport · `core/data`: `ProgressRepository` (T-301, T-401, T-402, T-502)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **451 teszt, 0 hiba, 0 kihagyott** (441 → 451), minden task frissen futtatva (0 `UP-TO-DATE`) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` (20 426 186 bájt) |
+
+A futtatás Bash-ből történt (`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`,
+`./gradlew.bat …`). A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések
+`tests` attribútumainak modulonkénti összegzése adta: `core/data` 109, `app` 4,
+`core/quiz` 227, `core/model` 35, `core/ui` 28, `feature/library` 33, `navigation` 15 –
+összesen 451, mindenhol 0 hiba/0 error.
+
+### Új tesztek (10) – `RoomProgressRepositoryTest` (9) + `RoomTechniqueRepositoryTest` (1)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `startSession_usesInjectedClockAndSeedNotSystemCalls_NFR07` | a `startedAt`, a `requestedCount` és a `seed` az injektált `Clock`/paraméterekből kerül a `quiz_session` sorba, nem rendszerhívásból |
+| `startSession_differentSeedsProduceDifferentSessionIds_ADR007` | két menetindítás különböző seeddel különböző `SessionId`-t kap |
+| `recordAttempt_firstAnswerIsRecordedAndIncrementsAnsweredCount_FR18` | az első válasz rögzül, az `answeredAt` az injektált `Clock`-ból jön, és a menet `answeredCount`-ja nő |
+| `recordAttempt_secondAnswerToSameQuestionReturnsFalseAndDoesNotIncrement_TR04` | gyors dupla koppintás: a második hívás `false`, az első ítélet megmarad, a számláló nem nő duplán |
+| `finishSession_unfinishedSessionKeepsNullFinishedAtUntilClosed_FR19` | a menet `finishedAt`-ja `null` marad `finishSession` hívásáig, majd az injektált `Clock` időbélyegére áll |
+| `recordStudyReview_isStoredWithInjectedTimestamp_FR10` | az önértékelés `reviewedAt`-ja az injektált `Clock`-ból jön |
+| `observeStudyReviewSummary_countsEachRatingSeparatelyAndNeverTouchesQuizData_FR28` | a „Tudtam"/„Gyakorolnom kell" darabszám helyesen bontott, és az önértékelés sosem ír a kvízmunkamenet-táblákba |
+| `clearAllProgress_removesUserDataButKeepsContentUntouched_FR35` | a törlés után a felhasználói táblák üresek, a tartalom (`technique`, `category`) változatlan |
+| `progressRepository_publicApiExposesNoRoomOrDatabaseTypes_NFR03` | a `ProgressRepository` publikus API-ja (visszatérési és paramétertípusok) nem hivatkozik Room entitásra/DAO-ra (TR-07, reflexiós teszt, a `TechniqueRepository` megfelelőjének mintájára) |
+| `getQuizCandidates_fillsIllustrationDigestsForTechniquesSharingThePackagedFile_FR13` | két technika, amely ugyanarra a csomagolt fájlnévre hivatkozik, egyező ujjlenyomatot kap; eltérő fájlnév eltérőt, illusztráció nélküli technika nem kap bejegyzést |
+
+### Két szándékos eltérés a T-402 „Teendők" szó szerinti szövegétől
+
+1. **`quiz_excluded`/`INCOMPLETE` szűrés nincs a repositoryban.** A `QuizCandidateSet`
+   dokumentált szerződése szerint a készlet nem dönt kvízképességről – azt a
+   `QuizEligibility.isEligible` egyetlen kapuja végzi kérdéstípusonként (ADR-010). Egy
+   második szűrés itt duplikálná ezt a szabályt. A `retired` kizárás marad (SQL-ben,
+   T-201 óta): az tartalom-életciklus kérdés (ADR-004), nem kvízjogosultság.
+2. **`illustrationDigests` fájlnév-alapú, nem SHA-256 hex.** A sémában nincs bájt-szintű
+   hash-oszlop, és becsültet nem gyártunk (CLAUDE.md „Tartalmi integritás"). A fájlnév
+   egyenlőség elegendő és korrekt: lásd `docs/CONVENTIONS.md` 1. szakasz új sora.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
