@@ -37,3 +37,6 @@ Ez a mappa a projekt elvégzett munkájának naplója. A hátralévő munka a
 | [T-203](T-203-di-hilt-modulok.md) | di: Hilt modulok | E2 | `di` | 2026-11-11 |
 | [T-204](T-204-core-ui-techniqueillustration.md) | core/ui: TechniqueIllustration | E2 | `core/ui` | 2026-11-11 |
 | [T-205](T-205-core-ui-jelolok-es-allapotkomponensek.md) | core/ui: jelölők és állapotkomponensek | E2 | `core/ui` | 2026-11-11 |
+| [T-206](T-206-navigation-navhost-es-bottom-navigation.md) | navigation: NavHost és alsó navigáció | E2 | `navigation` | 2026-11-11 |
+| [T-207](T-207-feature-library-lista-viewmodel.md) | feature/library: lista ViewModel | E2 | `feature/library` | 2026-11-12 |
+| [T-211](T-211-feature-library-viewmodel-tesztek.md) | feature/library: ViewModel tesztek | E2 | `feature/library` | 2026-11-12 |

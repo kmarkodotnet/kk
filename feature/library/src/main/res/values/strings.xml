@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A Tudástár képernyők felhasználói szövegei.
+    Minden szöveg magyar és KIZÁRÓLAG itt él (NFR-02, FUNCTIONAL_SPEC 8.).
+-->
+<resources>
+
+    <!-- Keresősáv (FUNCTIONAL_SPEC 3.1 és 8.: `library.search.hint`). -->
+    <string name="library_search_hint">Keresés romaji vagy magyar név szerint</string>
+    <string name="library_search_clear">Keresés törlése</string>
+
+    <!--
+        Kategóriaszűrő. Az „Összes" chip a kijelölésmentes állapot – a ViewModelben ez az
+        üres halmaz, nem egy külön kategória (FR-02).
+    -->
+    <string name="library_filter_all">Összes</string>
+    <!-- A chip találatszáma: a kategória magyar neve mellett zárójelben. -->
+    <string name="library_filter_count">%1$s (%2$d)</string>
+
+    <!--
+        Alias alapú találat jelzése (US-06 3. kritérium, FUNCTIONAL_SPEC 3.1).
+
+        Csak akkor jelenik meg, ha a repository megmondta, melyik alias illeszkedett
+        (`TechniqueMatch.matchedAlias`) – a UI ezt nem találja ki.
+    -->
+    <string name="library_matched_alias">Egyezés: %1$s</string>
+
+</resources>

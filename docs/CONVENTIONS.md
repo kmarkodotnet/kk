@@ -43,6 +43,9 @@ Ez a lap nem helyettesíti őket, hanem a *gyakorlati* tudást gyűjti.
 | **Valós tartalom tesztben** | A `knowledgebase_transfer/` elérése a `kyo.repoRoot` rendszertulajdonságon át megy (a modul `build.gradle.kts`-ében `tasks.withType<Test>`). Új modulnál ugyanígy. |
 | **Őszinte teljes futás** | `.\gradlew.bat test testDebugUnitTest --rerun-tasks` – a `UP-TO-DATE` task nem bizonyít semmit. |
 | **Hilt gráf teszt** | `@HiltAndroidTest` + `HiltTestApplication` + Robolectric – a teljes `SingletonComponent` felépíthető **emulátor nélkül** (lásd `HiltGraphTest`). |
+| **`SavedStateHandle` unit tesztben** | Robolectric kell hozzá (`@Config(sdk = [34])`): a handle Android `Bundle` fölött validálja a tárolt értékeket. A modulnak `testImplementation(libs.robolectric)` + `libs.androidx.test.core` és `isIncludeAndroidResources = true` kell. |
+| **`StateFlow` + `WhileSubscribed` tesztje** | Aktív feliratkozó nélkül **nem számol állapotot**, és a `.value` örökre a kezdőérték marad. Kell egy `launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect() }`, és a végén `job.cancel()`. A `viewModelScope`-hoz `Dispatchers.setMain(UnconfinedTestDispatcher())` a `@Before`-ban. |
+| **`Loading` állapot őszinte mérése** | Ha a tesztdublőr azonnal visszatér, a `Loading` csak a `stateIn` kezdőértéke – a teszt nem azt méri, amit állít. Kapuzott dublőr kell (`Job.join()`), és a kapu kinyitása utáni állapotot is ellenőrizni kell. |
 | **Teszt vs. kód** | Ha teszt bukik, alapból a **kódot** javítsd. Eddig háromszor fordult elő, hogy a teszt elvárása volt hibás – ilyenkor írd le, **miért** volt hibás. |
 
 ## 4. Compose és akadálymentesség
@@ -57,6 +60,19 @@ Ez a lap nem helyettesíti őket, hanem a *gyakorlati* tudást gyűjti.
 | **Érintési célpont** | ≥ 48 dp. A Material 3 alapértelmezett gombmagassága 40 dp – `heightIn(min = 48.dp)` kell. |
 | **`@Preview`** | Világos **és** sötét (`UI_MODE_NIGHT_YES`), plusz a hiányos/üres adatállapot. |
 | **Szöveg** | Minden magyar szöveg `strings.xml`-ben. A `core/ui` és a `navigation` modulnak saját `strings.xml`-e van. A pontos szövegeket a `FUNCTIONAL_SPEC.md` 8. fejezete adja – ne találj ki újakat. |
+
+### 4.1 ViewModel és UiState (feature modulok)
+
+| Tudnivaló | Részlet |
+|---|---|
+| **A képernyő kerete a sealed interfész közös tulajdonsága** | A `Loading`/`Empty`/`Content`/`Error` a *lista helyén* zárja ki egymást, de a keresősáv és a szűrőchipek **mind a négy** állapotban látszanak. Ha a keresőszöveg csak a `Content` ágon élne, az üres állapotban eltűnne a vezérlő, amivel a felhasználó visszavonhatja a saját szűkítését. Lásd `LibraryListUiState`. |
+| **`SavedStateHandle` listaérték** | `ArrayList`-et kell tárolni, nem a `plus`/`minus` adta tetszőleges `List`-et, és a `getStateFlow` kezdőértéke se `emptyList()` legyen – a `Bundle` validálása az `java.util.Collections$EmptyList`-et nem fogadja el. |
+| **Debounce-mentes törlés** | `debounce { if (query.isBlank()) 0L else 200L }`: a „×" megnyomása **visszavonás**, nem újabb keresés, ezért nem vár 200 ms-ot. A sima `debounce(200)` az első (kezdő) emissziót is késlelteti. |
+| **Keresőszöveg és találat egy csomagban** | `flatMapLatest { q -> repo.observe(q).map { Snapshot(q, it) } }`, nem két `Flow` `combine`-ja: különben a „nincs találat a(z) …" üzenet egy pillanatra a *régi* találatokhoz az *új* kifejezést idézi. |
+| **Az importot a képernyő ViewModelje indítja** | Nem az `Application` – csak így tud a UI valódi `Loading`-ot mutatni (FUNCTIONAL_SPEC 7.1). Az `ImportResult.Rejected` **nem** `Error`: olyankor a korábbi tartalom érvényben marad (FR-31). `Error` kizárólag kivételre jár. |
+| **Szűrő találatszáma** | A chipek számát a **kijelölést figyelmen kívül hagyva** kell számolni, különben minden nem kijelölt chip nullát mutat, és épp arra a kérdésre nem válaszol, amire használják. Ebből következik, hogy egy szűrés nélküli lekérdezés elég, és a kategóriaszűrés memóriában fut. |
+| **`@DefaultDispatcher`** | Rendezés, összegzés, normalizálás → `flowOn(defaultDispatcher)`. Az `@IoDispatcher` készlete blokkoló lemezműveletekhez van méretezve. |
+| **Nem injektálunk, amire nincs szükség** | `Clock`/`Random` csak oda, ahol tényleg van időfüggő vagy véletlen logika. Egy nem használt függőség azt sugallná, hogy van. |
 
 ## 5. Navigáció
 

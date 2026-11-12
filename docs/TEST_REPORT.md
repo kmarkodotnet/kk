@@ -1828,3 +1828,49 @@ függősége, és nem is kellett hozzáadni.
 | Compose UI teszt a bottom nav elrejtésére (koppintás-bejárás) | **NEM FUTOTT** – B-03. A döntést a fenti három `TR06` teszt fedi le a tényleges döntési ponton. |
 | `@Preview` **tényleges kirenderelése** (világos/sötét) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a négy előnézet-függvény (`PlaceholderScreen` és `KyokushinBottomBar`, világos + sötét) **lefordul** (`:navigation:compileDebugKotlin` exit 0). |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-12 – T-207 + T-211 · `feature/library`: lista ViewModel és tesztjei (G-02)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:library:testDebugUnitTest` | 0 | `BUILD SUCCESSFUL` – 17 új teszt zöld |
+| `./gradlew.bat testDebugUnitTest` | 0 | `BUILD SUCCESSFUL` |
+| `./gradlew.bat test testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 1m 16s`, 259 task mind végrehajtva – **425 teszt, 0 hiba, 0 kihagyott** (408 → 425) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` (20 424 842 byte) |
+
+A futtatás Bash-ből történt (`export JAVA_HOME=".../jdk-17.0.21.9-hotspot"`,
+`./gradlew.bat …`): a PowerShell ebben a session-ben le volt tiltva. A tesztszámot a
+`*/build/test-results/**/TEST-*.xml` jelentések `tests` és `failures` attribútumainak
+összegzése adta.
+
+### Új tesztek (17) – `LibraryListViewModelTest`
+
+A tételes lista a [`docs/done/T-211-feature-library-viewmodel-tesztek.md`](done/T-211-feature-library-viewmodel-tesztek.md)
+„Elkészült" szakaszában van. Lefedett követelmények: FR-01 (kategóriákba szervezett
+lista, tartalomból jövő kategórianév, `retired` kizárás, `datasetTrust`), FR-02
+(kategóriaszűrés több kategóriával, `SavedStateHandle` forgatásra, szűrők törlése), FR-03
+(ékezet- és kisbetű-érzéketlen rész-szó keresés, alias-találat jelzése, debounce).
+
+### Miért Robolectric, ha a ViewModel Android-mentes?
+
+Két pont miatt, és mindkettő a **tényleges** viselkedést méri:
+
+1. a `SavedStateHandle` Android `Bundle` fölött validálja a tárolt értékeket – ezért
+   derült ki, hogy a kategóriakijelölést `ArrayList`-ként kell tárolni, nem a `plus`/`minus`
+   adta tetszőleges `List`-ként;
+2. az üres állapot magyar üzenete a `core/ui` **valódi** `strings.xml`-jéből oldódik fel,
+   tehát a teszt a specifikált szöveget ellenőrzi, nem egy kódba írt másolatát.
+
+`@Config(sdk = [34])` – a `compileSdk = 37`-hez nincs `android-all` csomag.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt a Tudástár listájára | **NEM FUTOTT** – ebben a taskban **nincs** Compose kód: a T-207 kizárólag az állapotkezelés, a képernyő helyén a T-206 helyőrzője áll. A lista UI és a UI tesztje a T-208, illetve T-606 tárgya. |
+| `@Preview` világos + sötét témára | **NEM ALKALMAZHATÓ** ebben a taskban – a ViewModel nem rajzol. A globális DoD „UI esetén" kikötése a T-208-nál esedékes. |
+| Tényleges képernyőforgatás eszközön | **NEM FUTOTT** – B-03. Ami igazolt: ugyanabból a `SavedStateHandle`-ből újraépített ViewModel visszakapja a keresőszöveget és a kategóriakijelölést (`libraryList_savedStateHandle_restoresQueryAndCategories_FR02`) – ez az a mechanizmus, amin a forgatás túlélése áll. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

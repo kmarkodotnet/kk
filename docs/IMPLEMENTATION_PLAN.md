@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Verzió | 1.0 |
-| Utolsó frissítés | 2026-11-11 |
+| Utolsó frissítés | 2026-11-12 |
 | Alapja | `docs/REQUIREMENTS.md`, `docs/FUNCTIONAL_SPEC.md`, `docs/ARCHITECTURE.md` |
 
 Ez a dokumentum az **egyetlen** hely, ahol a projekt tényleges állása követhető.
@@ -103,7 +103,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|---|
 | 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | ✅ **kész** – T-204: `TechniqueIllustration` (mindhárom `IllustrationRef` eset, 6+4 teszt); T-205: `VerificationBadge`, `UnreviewedBanner` (a „DemoBanner" tényleges, ADR-010 szerinti alakja), `EmptyState(EmptyStateReason)`, `ErrorState` (+18 teszt) |
 | 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | NFR-03, TR-06 | ✅ **kész** – T-206: a FUNCTIONAL_SPEC 1. tíz útvonala, négy fül magyar felirattal és ikonnal, a bottom nav a `quiz/run` és `quiz/result` képernyőn elrejtve (+15 teszt). A képernyők még megjelölt helyőrzők (T-207-től cserélődnek) |
-| 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | ⬜ |
+| 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | 🟨 **állapotkezelés kész** – T-207: `LibraryListUiState` (`Loading`/`Empty(reason)`/`Content`/`Error`) és `LibraryListViewModel` (200 ms debounce, kategóriahalmaz, `SavedStateHandle`, kategóriánkénti találatszám, az importot a ViewModel indítja); T-211: 17 ViewModel teszt (+425 összesen). A **Compose lista** még a T-208 tárgya, a képernyő helyén addig a T-206 helyőrzője áll |
 | 4.4 | Tudástár részletező | FR-04, FR-05 | ⬜ |
 | 4.5 | Üres/hiba állapotok a funkcionális spec 2.4 és 10. pontja szerint | NFR-06 | ⬜ |
 
@@ -733,3 +733,19 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
     kulcsok az `app` modulból a `navigation` modulba kerültek, mert a bottom nav is ott
     van. Így az erőforrás-összefűzés nem írja felül csendben az egyiket a másikkal.
   Következő: T-207, a `feature/library` lista ViewModelje.
+
+- 2026-11-12 – **T-207 + T-211 kész** (Fázis 4.3 állapotkezelő fele, G-02 csoport). A
+  `feature/library` első kódja: `LibraryListUiState` sealed négy állapottal, és a
+  keresőszöveg, a chipek, a kijelölés és a `datasetTrust` a sealed interfész **közös**
+  tulajdonsága – az üres állapotban sem tűnhet el a keresősáv, amivel a felhasználó
+  visszavonhatja a saját szűkítését (US-06 4.). A `LibraryListViewModel` indítja a
+  tartalomimportot (nem az `Application`), ezért a `Loading` valódi állapot; a `Rejected`
+  import **nem** `Error`, mert olyankor a korábbi kiadás érvényben marad (FR-31). A
+  keresés 200 ms debounce-szal fut, de az **üres** keresőszó késleltetés nélkül jut át (a
+  „×" visszavonás, nem újabb keresés). A chipek találatszáma a kategóriakijelölést
+  figyelmen kívül hagyva számolt, így egy lekérdezés elég, és a nem kijelölt chip száma
+  sem nulla. Ez a `@DefaultDispatcher` első fogyasztója: az összegzés és a kétszintű
+  rendezés CPU-munka, nem I/O. 17 új teszt (425 teszt, 0 hiba);
+  `assembleDebug` exit 0. A Compose lista a T-208 tárgya.
+
+Következő: T-208, a Tudástár lista Compose felülete (a T-206 helyőrzőjének lecserélése).

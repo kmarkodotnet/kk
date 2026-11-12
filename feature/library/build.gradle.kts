@@ -25,6 +25,15 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            // A ViewModel teszt a TÉNYLEGES `strings.xml` fölött ellenőrzi az üres
+            // állapot magyar üzenetét (NFR-02, NFR-06): ehhez a teszt JVM-nek látnia
+            // kell az Android erőforrásokat. Ugyanaz a konvenció, mint a `core/ui`-ban.
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
@@ -56,4 +65,9 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
+    // A `SavedStateHandle` Android `Bundle` fölött validálja a tárolt értékeket, az üres
+    // állapot üzenete pedig a `core/ui` erőforrásaiból oldódik fel – mindkettőhöz
+    // Android runtime kell, emulátor nélkül (CONVENTIONS 3.: `@Config(sdk = [34])`).
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }
