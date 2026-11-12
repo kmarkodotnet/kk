@@ -12,6 +12,7 @@ import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
+import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.Technique
@@ -223,6 +224,56 @@ internal class FakeQuizProgressRepository(
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A kvízbeállító nem törli a haladást.")
+    }
+}
+
+/**
+ * A [ProgressRepository] tesztdublőre a `feature/quiz/run` tesztjeihez (T-405, T-406,
+ * T-410).
+ *
+ * A [recordAttempt] alapértelmezésben a valódi `UNIQUE(sessionId, questionId)` kényszert
+ * tükrözi: ugyanarra a (menet, kérdés) párra a második hívás `false`-t ad, és nem írja
+ * felül a korábban rögzített próbálkozást (ADR-005, T-406 „Teendők" 2.). A
+ * [forceRecordResult] ettől függetlenül minden hívásra ugyanazt az értéket adja vissza –
+ * ezzel szimulálható a DB-szintű elutasítás (`false`) olyan helyzetben is, amikor a
+ * ViewModel saját (`answers` map-alapú) ellenőrzése még nem látná ütközőnek a kérdést.
+ */
+internal class FakeQuizRunProgressRepository(
+    private val forceRecordResult: Boolean? = null,
+) : ProgressRepository {
+
+    private val _allAttempts = mutableListOf<NewAttempt>()
+
+    /** Minden [recordAttempt] hívás, a hívás sorrendjében – a visszatérési értéktől függetlenül. */
+    val allAttempts: List<NewAttempt> get() = _allAttempts
+
+    private val recordedKeys = mutableSetOf<Pair<SessionId, QuestionId>>()
+
+    override suspend fun startSession(requestedCount: Int, seed: Long): SessionId =
+        throw UnsupportedOperationException("A futó kvíz nem nyit új menetet (ez a `quiz/setup` felelőssége).")
+
+    override suspend fun recordAttempt(attempt: NewAttempt): Boolean {
+        _allAttempts += attempt
+        forceRecordResult?.let { return it }
+        return recordedKeys.add(attempt.sessionId to attempt.questionId)
+    }
+
+    override suspend fun finishSession(id: SessionId) {
+        throw UnsupportedOperationException(
+            "A G-07 csoport (T-405/T-406/T-410) szándékosan nem zár le menetet – lásd " +
+                "QuizRunViewModel.onConfirmClose KDoc-ja.",
+        )
+    }
+
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+        throw UnsupportedOperationException("A futó kvíz nem rögzít önértékelést.")
+    }
+
+    override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
+        throw UnsupportedOperationException("A futó kvíz nem olvassa az önértékelés-összegzést.")
+
+    override suspend fun clearAllProgress() {
+        throw UnsupportedOperationException("A futó kvíz nem törli a haladást.")
     }
 }
 

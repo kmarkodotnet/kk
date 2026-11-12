@@ -120,11 +120,11 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403 ViewModel + T-404 UI, 2026-11-12) – `QuizSetupViewModel` + `QuizSetupScreen` (Compose) |
-| 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ⬜ |
-| 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ⬜ |
+| 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ⬜ – a kérdés-UI (T-407/T-408) és a visszajelzés (T-409) még hátravan; az állapotgép (6.3) alatta már kész |
+| 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ✅ **kész** (G-07 csoport: T-405, T-406, T-410, 2026-11-12) – `QuizRunViewModel` |
 | 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként | FR-20, FR-21 | ⬜ |
 | 6.5 | Akadálymentesség a kvízben (szemantika, a (D) opciók nem fedik fel a választ) | NFR-04 | ⬜ |
-| 6.6 | **ViewModel tesztek** (dupla válasz, forgatás, megszakítás) | TR-04 | ⬜ |
+| 6.6 | **ViewModel tesztek** (dupla válasz, forgatás, megszakítás) | TR-04 | ✅ **kész** (G-07 csoport, lásd 6.3) – `QuizRunViewModelTest`, 14 eset |
 
 ## Fázis 7 – Haladás és beállítások
 
@@ -166,11 +166,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-405** – `feature/quiz`: `QuizRunState` – a kérdéslista, seed, index és válaszok
-   `SavedStateHandle`-ben (FR-18, FR-19). Függősége (T-404) kész. A `quiz/run` és
-   `quiz/setup` közötti tényleges navigáció és a `QuizPlan` átadása még nincs bekötve a
-   `navigation` modulban – lásd a T-404 lezárását és `docs/CONVENTIONS.md` 5. szakasz
-   új sorát.
+1. **T-407** – `feature/quiz`: az (A) és (B) kérdéstípus UI-ja (G-08 csoport T-409-cel).
+   Függősége (T-406) kész. A `quiz/run` kérdés-UI-ja és a `quiz/setup`/`quiz/run` közötti
+   tényleges navigáció (a `QuizPlan` és a seed a `QuizRunViewModel` `SavedStateHandle`-jébe
+   írása) még nincs bekötve a `navigation` modulban – lásd a `QuizRunViewModel` KDoc-ja és
+   `docs/CONVENTIONS.md` 5. szakasz új sorát.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -980,3 +980,46 @@ helyőrzőjének lecserélése).
   letiltva) + `Loading`/`Error`. Lásd `docs/CONVENTIONS.md` 4.1 és 5. szakasz új sorai.
 
   Következő: T-405, `feature/quiz`: `QuizRunState` (`SavedStateHandle`, FR-18, FR-19).
+
+- 2026-11-12 – **G-07 csoport kész** (T-405, T-406, T-410, `docs/backlog/GROUPS.md`,
+  `feature/quiz`, Fázis 6.3/6.6 – a futó kvíz állapotgépe). **T-405:** új
+  `QuizRunStateCodec` a `core/quiz`-ben – ez az **első** hely, ahol a modul `main`
+  forráskészlete tényleges `Json`-t használ (a `QuizPlan`/`QuizQuestion` már a T-107 óta
+  `@Serializable`, de kódolatlanul), mert a `feature/quiz` `build.gradle.kts`-e kifejezetten
+  tiltja a `kotlinx.serialization` típusokat (ADR-001, L3) – a ViewModel ezért csak
+  `encodePlan`/`decodePlan`/`encodeAnswers`/`decodeAnswers` néven kap/ad sima `String`-et.
+  Az új `feature/quiz/run` csomagban `QuizRunState` (sessionId, seed, questions,
+  currentIndex, answers, shortfall – pontosan az ARCHITECTURE 6.2 alakja, de **nem**
+  `@Serializable`, lásd fent), `QuizRunUiState` (`Loading`/`Empty`/`Content`) és a
+  `QuizRunViewModel`. **T-406:** `onAnswer` két védelmi vonala – a ViewModel saját
+  `answers`-map-ellenőrzése (első, no-op, mielőtt a `ProgressRepository`-t elérné) és a
+  `recordAttempt` `false` válasza (második, DB-szintű ütközés – nem módosítja az
+  állapotot); a helyesség mindig `selected == question.correctTechniqueId`
+  azonosító-összehasonlítás (DR-03). **T-410:** `onNext` (előre, nincs `onPrevious`, az
+  utolsó kérdésen no-op – a kvíz **normál** befejezése a G-09 csoport (T-411) tárgya,
+  szándékosan dokumentált hiány) és a megszakítás három metódusa (`onRequestClose`/
+  `onCancelClose`/`onConfirmClose`): a bezárás (×) és a rendszer vissza-gombja
+  **ugyanazt** a `onRequestClose`-t hívja majd (a tényleges `BackHandler`/ikongomb egy
+  UI-t adó feladat tárgya), az `onConfirmClose` szándékosan **nem** hív
+  `finishSession`-t, mert a megszakított menet `finishedAt`-ja `null` marad
+  (FUNCTIONAL_SPEC 5.2) – az addig rögzített válaszok automatikusan megmaradnak, nincs
+  mit visszavonni.
+  **Ez a csoport szándékosan nem ad Compose UI-t** (sem a kérdés-UI-t, sem a
+  progresszsáv/megerősítő-párbeszéd pixeleit) – a G-07 cím szerint is „a futó kvíz
+  állapotgépe", a tényleges rajzolás a T-407/T-408 (kérdéstípusok), T-409 (visszajelzés)
+  és egy még hátralévő `BackHandler`/`AlertDialog` feladat dolga, ugyanaz a mintázat, mint
+  a T-303 (ViewModel) → T-304 (UI) a `feature/learn`-ben. A `QuizRunViewModel` bemenete
+  (sessionId/seed/terv) ezért ma még kézzel összerakott `SavedStateHandle`-ből jön a
+  tesztekben – a tényleges `navigation` bekötés (hogyan jut el a `QuizStartResult` a
+  `quiz/run` képernyő `SavedStateHandle`-jébe) is dokumentált, nyitott ügy, lásd a
+  `QuizRunViewModel` KDoc-ja és `docs/CONVENTIONS.md`.
+  A `QuizStartResult` (`feature/quiz/setup`) egy `seed: Long` mezővel bővült, hogy a
+  `QuizRunState.seed` is megkapja az eredeti, injektált RNG-ből sorsolt magot (a
+  `QuizSetupViewModel.onStartQuiz` már sorsolta, csak eddig nem adta tovább) – a
+  `QuizSetupViewModelTest` egy sora frissült, kódmódosítás nélkül mást nem érintett.
+  19 új teszt (509 → 528, 0 hiba, `--rerun-tasks`-szal leellenőrizve): 5 a
+  `QuizRunStateCodecTest`-ben (`core/quiz`) és 14 a `QuizRunViewModelTest`-ben
+  (`feature/quiz`); `assembleDebug` exit 0. Lásd `docs/CONVENTIONS.md` 1. szakasz új sora
+  (a `SavedStateHandle`-be mentett komplex állapot kódolásának mintája).
+
+  Következő: T-407, `feature/quiz`: az (A)/(B) kérdéstípus UI-ja (G-08 csoport).

@@ -396,6 +396,8 @@ class QuizSetupViewModelTest {
         assertThat(result.sessionId).isEqualTo(SessionId.of("session-1"))
         // T-403 "Kész ha" 2.: a kiírt kérdésszám megegyezik a tényleges kvíz kérdésszámával.
         assertThat(result.plan.questionCount).isEqualTo(before.expectedQuestionCount)
+        // T-405: a seed is kijut az eseményben, a `QuizRunState` ebből (is) épül.
+        assertThat(result.seed).isEqualTo(expectedSeed)
         stateJob.cancel()
         eventJob.cancel()
     }

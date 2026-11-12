@@ -2388,3 +2388,91 @@ kérdés letiltva) + `Loading`/`Error`.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `navigation` modul bekötése (`QUIZ_SETUP` composable, `learn/cards → quiz/setup` kategória-átadás) | **NEM KÉSZÜLT EL** – szándékosan, lásd a „Mi készült" szakasz és `docs/CONVENTIONS.md` 5. szakasz új sora. Nem T-404 „Teendők" tárgya; a `quiz/run` oldali bekötés a T-405 utáni, önálló lépés. |
+
+---
+
+## 2026-11-12 – G-07 csoport (T-405, T-406, T-410: a futó kvíz állapotgépe)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat :core:quiz:test --rerun-tasks` | 0 | `BUILD SUCCESSFUL` |
+| `./gradlew.bat :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – `QuizRunViewModelTest` (14 teszt) + a meglévő `QuizSetupMessagesTest` (4) és `QuizSetupViewModelTest` (16), 0 hiba |
+| `./gradlew.bat test testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **528 teszt, 0 hiba** (509 → 528) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL`, `app/build/outputs/apk/debug/app-debug.apk` |
+
+### Mi készült
+
+**`core/quiz`:** `QuizRunStateCodec` (`generator` csomag) – `encodePlan`/`decodePlan`/
+`encodeAnswers`/`decodeAnswers`, a `QuizPlan` és a `Map<QuestionId, TechniqueId>` JSON
+kódolása/visszafejtése. Ez az **első** hely, ahol a modul `main` forráskészlete tényleges
+`Json`-t használ (a `QuizPlan`/`QuizQuestion` a T-107 óta `@Serializable`, de eddig nem
+volt kódoló/dekódoló függvény) – a `feature/quiz` ugyanis a `build.gradle.kts`-ében
+kifejezetten tiltja a `kotlinx.serialization` típusokat (ADR-001, L3), ezért a ViewModel
+csak ezt a négy, `String`-et be/kiadó függvényt hívja.
+
+**`feature/quiz/run` (új csomag):**
+- `QuizRunState` – `sessionId, seed, questions, currentIndex, answers, shortfall`
+  (ARCHITECTURE 6.2 alakja), plain Kotlin `internal data class` (nem `@Serializable`).
+- `QuizRunUiState` – `Loading`/`Empty`/`Content` (pozíció, összes, megválaszoltszám,
+  az aktuális kérdésre adott válasz, utolsó kérdés-e, megerősítő párbeszég látható-e).
+- `QuizRunViewModel` – `onAnswer` (T-406: ViewModel-szintű `answers`-map ellenőrzés mint
+  első, `recordAttempt` `false` válasza mint második védelmi vonal; azonosító-alapú
+  helyesség), `onNext` (T-410: csak előre, az utolsó kérdésen no-op – a normál befejezés
+  a G-09/T-411 tárgya), `onRequestClose`/`onCancelClose`/`onConfirmClose` (T-410: a
+  megerősítő párbeszég állapota; a megszakítás **nem** hív `finishSession`-t, a
+  `finishedAt` a FUNCTIONAL_SPEC 5.2 szerint `null` marad).
+
+**`feature/quiz/setup`:** a `QuizStartResult` egy `seed: Long` mezővel bővült (a
+`QuizSetupViewModel.onStartQuiz` már sorsolta, csak eddig nem adta tovább) – ez kell a
+`QuizRunState.seed`-hez. A meglévő `QuizSetupViewModelTest` egyik tesztje egy
+`assertThat(result.seed)...` sorral bővült, kódmódosítás más helyen nem történt.
+
+### Új tesztek (19)
+
+**`QuizRunStateCodecTest` (`core/quiz`, 5 teszt, sima JUnit):**
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `encodePlan_thenDecode_restoresIdenticalPlan_FR19` | a teljes `QuizPlan` (kérdések, `skippedTypes`, `shortfall`) bitre visszaáll |
+| `encodePlan_thenDecode_preservesOptionOrder_FR19` | az opciósorrend is a kódolt állapot része (ADR-005/006) |
+| `encodeAnswers_thenDecode_restoresIdenticalMap_FR18` | a `Map<QuestionId, TechniqueId>` bitre visszaáll |
+| `encodeAnswers_emptyMap_roundTrips_FR19` | az üres válasz-map is érvényes kör |
+| `decodePlan_rejectsManipulatedEmptyIdentifier` | egy manipulált, üres azonosítót hordozó mentett állapot kivételt dob, nem jut be a domainbe |
+
+**`QuizRunViewModelTest` (`feature/quiz`, 14 teszt, Robolectric `@Config(sdk = [34])`):**
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `quizRun_withValidPlan_showsFirstQuestion_FR16` | az első kérdés és a kezdő progresszállapot helyes |
+| `quizRun_missingInput_showsEmpty_NFR06` | hiányzó bemenetre `Empty`, nem omlik össze, nem ragad `Loading`-ban |
+| `quizRun_afterRecreateWithSameSavedStateHandle_sameQuestionSameOptionOrder_FR19` | forgatás után ugyanaz a kérdés, ugyanaz az opciósorrend (T-405 „Kész ha") |
+| `quizRun_answersSurviveRecreateWithSameSavedStateHandle_FR19` | a rögzített válasz is túléli az újraépülést |
+| `quizRun_onAnswer_correctness_isIdentifierBased_notTextual_FR18` | a helyesség `selected == correctTechniqueId`, nem szöveg |
+| `quizRun_onAnswer_wrongOption_recordsIncorrectById_FR18` | hibás válasz azonosító alapon `correct = false`-ot rögzít |
+| `quizRun_onAnswer_rapidDoubleTapOnSameQuestion_recordsOnlyFirstAttempt_FR18` | gyors dupla koppintásra egyetlen próbálkozás, az első válasz marad érvényben |
+| `quizRun_onAnswer_whenRepositoryRejects_doesNotChangeState_FR18` | a `recordAttempt` `false` válasza nem módosítja az állapotot (T-406 „Teendők" 2.) |
+| `quizRun_onAnswer_unknownQuestionId_isNoOp` | ismeretlen kérdésazonosítóra no-op, nincs rögzítés |
+| `quizRun_onNext_advancesPosition_FR16` | a „Következő" előre lép |
+| `quizRun_onNext_atLastQuestion_isNoOp` | az utolsó kérdésen túl nem megy (T-410 „nincs visszalépés", a befejezés T-411 tárgya) |
+| `quizRun_onRequestClose_showsConfirmation_FUNCTIONAL_SPEC_5_2` | a bezárás megnyitja a megerősítő párbeszéget |
+| `quizRun_onCancelClose_hidesConfirmationAndStaysOnQuiz` | a „Folytatás" becsukja a párbeszéget, a kvíz folytatódik |
+| `quizRun_onConfirmClose_keepsRecordedAnswersAndEmitsCloseEvent_FR19` | a megszakítás megtartja a rögzített válaszokat, **nem** hív `finishSession`-t, és egyszeri eseményt küld |
+
+### Rétegszabály, determinizmus
+
+A `feature/quiz/run` csomag kizárólag `core:model` és `core:quiz` (generátor) típusokat
+lát, a `ProgressRepository` interfészen keresztül ír – nincs Room entitás, DAO, DTO vagy
+`kotlinx.serialization` típus a `feature/quiz`-ben (ADR-001, L3 – a tiltást a modul saját
+`build.gradle.kts` fejkommentje is kimondja). Nincs közvetlen `Clock`/`Random` hívás: az
+időbélyeget a `ProgressRepository` adja (NFR-07), a seed már a bemenet része (nem itt
+sorsolt). Minden felhasználói szöveg: **nincs új szöveg** ebben a körben, mert ez a
+csoport nem ad Compose UI-t (lásd alább).
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| Compose UI / `@Preview` / `contentDescription` / ≥48 dp | **NEM ALKALMAZHATÓ** – a G-07 csoport (T-405/T-406/T-410) szándékosan kizárólag az állapotgépet adja, Compose UI nélkül (ugyanaz a kettéválasztás, mint T-303 → T-304 a `feature/learn`-ben). A kérdés-UI a T-407/T-408, a visszajelzés a T-409, a progresszsáv/`AlertDialog`/`BackHandler` tényleges Compose rajzolása egy még hátralévő UI-feladat tárgya. |
+| `navigation` modul bekötése (`QuizStartResult` eljuttatása a `QuizRunViewModel.SavedStateHandle`-jébe) | **NEM KÉSZÜLT EL** – szándékosan, lásd a „Mi készült" szakasz és `docs/CONVENTIONS.md` 5. szakasz új sora: a bemenet nem route-argumentumként, hanem a cél `NavBackStackEntry.savedStateHandle`-jébe írva jut majd el, amikor a navigációs bekötés elkészül. |

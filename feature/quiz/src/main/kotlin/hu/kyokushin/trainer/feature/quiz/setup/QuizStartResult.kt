@@ -16,8 +16,14 @@ import hu.kyokushin.trainer.core.quiz.generator.QuizPlan
  *   ([hu.kyokushin.trainer.core.data.repository.ProgressRepository.startSession]).
  * @property plan a menethez tartozó, a friss [sessionId]-vel egyidejűleg sorsolt seedből
  *   generált kvízterv.
+ * @property seed a [plan] generálásához sorsolt, injektált RNG-ből jövő mag (ADR-007).
+ *   A `QuizPlan` már hordozza a kész kérdéssorrendet, tehát ez önmagában nem kell a
+ *   kvíz lejátszásához – a `QuizRunState` (T-405, ARCHITECTURE 6.2) tárgya mégis
+ *   explicit módon tartalmazza, ezért innen is tovább kell adni, nem csak a
+ *   `QuizSetupViewModel.onStartQuiz` lokális változójában elveszni.
  */
 data class QuizStartResult(
     val sessionId: SessionId,
     val plan: QuizPlan,
+    val seed: Long,
 )

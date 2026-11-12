@@ -241,7 +241,7 @@ class QuizSetupViewModel @Inject constructor(
                 datasetTrust = inputs.datasetTrust,
             )
             val plan = quizGenerator.generate(request)
-            _startEvent.send(QuizStartResult(sessionId, plan))
+            _startEvent.send(QuizStartResult(sessionId, plan, seed))
         }
     }
 
