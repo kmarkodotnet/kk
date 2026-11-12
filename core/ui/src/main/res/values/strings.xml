@@ -14,6 +14,13 @@
     -->
     <string name="illustration_a11y_technique">%1$s – %2$s illusztrációja</string>
     <string name="illustration_a11y_quiz_option">%1$d. válaszlehetőség illusztrációja</string>
+    <!--
+        A kvíz (C) típusának kérdésábrája (T-408): a kép maga a kérdés – a felhasználónak
+        ebből kell kitalálnia a technika nevét, tehát ez a leírás SEM nevezheti meg a
+        technikát (az a helyes válasz lenne). Szándékosan más szöveg, mint a
+        `illustration_a11y_quiz_option`: nincs pozíciója, egyetlen kép a kérdésben.
+    -->
+    <string name="illustration_a11y_quiz_prompt">A kvízkérdés ábrája</string>
     <string name="illustration_a11y_placeholder">Ehhez a technikához még nincs ábra</string>
 
     <!-- Helyőrző és állapotjelzés -->

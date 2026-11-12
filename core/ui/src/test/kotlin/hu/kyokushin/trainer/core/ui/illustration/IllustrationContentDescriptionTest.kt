@@ -90,6 +90,52 @@ class IllustrationContentDescriptionTest {
     }
 
     @Test
+    fun assetDescription_forQuizPrompt_omitsTechniqueName_NFR04() {
+        // T-408: a (C) típus kérdésábrája maga a kérdés – a leírás nem árulhatja el,
+        // melyik technikáról van szó, mert az maga a helyes válasz lenne.
+        val technique = "kiba dachi"
+        val hungarian = "lovagló állás"
+
+        val description = IllustrationContentDescription.forAsset(
+            resources = resources,
+            label = IllustrationLabel.QuizPrompt,
+        )
+
+        assertThat(description).isNotNull()
+        assertThat(description).doesNotContain(technique)
+        assertThat(description).doesNotContain(hungarian)
+    }
+
+    @Test
+    fun assetDescription_forQuizPrompt_differsFromQuizOptionDescription_NFR04() {
+        // A (C) kérdésábra nem válaszlehetőség (nincs pozíciója) – a leírása ezért nem
+        // keverhető össze a (D) típus pozíció alapú opcióleírásával.
+        val promptDescription = IllustrationContentDescription.forAsset(
+            resources = resources,
+            label = IllustrationLabel.QuizPrompt,
+        )
+        val optionDescription = IllustrationContentDescription.forAsset(
+            resources = resources,
+            label = IllustrationLabel.QuizOption(position = 1),
+        )
+
+        assertThat(promptDescription).isNotEqualTo(optionDescription)
+    }
+
+    @Test
+    fun placeholderDescription_forQuizPrompt_omitsTechniqueNameAndMatchesAsset_NFR04() {
+        val placeholderDescription = IllustrationContentDescription.forPlaceholder(
+            resources = resources,
+            label = IllustrationLabel.QuizPrompt,
+        )
+
+        assertThat(placeholderDescription).isEqualTo(
+            IllustrationContentDescription.forAsset(resources = resources, label = IllustrationLabel.QuizPrompt),
+        )
+        assertThat(placeholderDescription).doesNotContain("kiba dachi")
+    }
+
+    @Test
     fun decorativeLabel_hasNoDescription_NFR04() {
         assertThat(
             IllustrationContentDescription.forAsset(resources, IllustrationLabel.Decorative),

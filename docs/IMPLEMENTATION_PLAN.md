@@ -120,7 +120,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403 ViewModel + T-404 UI, 2026-11-12) – `QuizSetupViewModel` + `QuizSetupScreen` (Compose) |
-| 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | 🔄 **részben kész** (G-08 csoport: T-407, T-409, 2026-11-12) – a szöveges (A)/(B) kérdés UI-ja és a válasz-visszajelzés (`QuizRunScreen.kt`) elkészült; a (C)/(D) képes típus UI-ja (T-408) még hátravan |
+| 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ✅ **kész** (G-08 csoport: T-407, T-409, 2026-11-12; majd T-408, 2026-11-12) – mind a négy kérdéstípus megjelenítése (`QuizRunScreen.kt`): az (A)/(B) szöveges és a (C)/(D) képes, a válasz-visszajelzéssel együtt |
 | 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ✅ **kész** (G-07 csoport: T-405, T-406, T-410, 2026-11-12) – `QuizRunViewModel` |
 | 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként | FR-20, FR-21 | ⬜ |
 | 6.5 | Akadálymentesség a kvízben (szemantika, a (D) opciók nem fedik fel a választ) | NFR-04 | ⬜ |
@@ -166,11 +166,11 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-408** – `feature/quiz`: a (C) és (D) kérdéstípus UI-ja. Függősége (T-407, T-204)
-   kész. A `quiz/setup`/`quiz/run` közötti tényleges navigáció (a `QuizPlan` és a seed a
-   `QuizRunViewModel` `SavedStateHandle`-jébe írása) továbbra sincs bekötve a
-   `navigation` modulban – lásd a `QuizRunViewModel` KDoc-ja és `docs/CONVENTIONS.md`
-   5. szakasz új sorát.
+1. **T-411** – `feature/quiz`: a `quiz/result` eredményképernyő (G-09 csoport első tagja,
+   T-411/T-412/T-415). Függősége (T-113, T-410) kész. A `quiz/setup`/`quiz/run` közötti
+   tényleges navigáció (a `QuizPlan` és a seed a `QuizRunViewModel`
+   `SavedStateHandle`-jébe írása) továbbra sincs bekötve a `navigation` modulban – lásd a
+   `QuizRunViewModel` KDoc-ja és `docs/CONVENTIONS.md` 5. szakasz új sorát.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -1048,3 +1048,35 @@ helyőrzőjének lecserélése).
   `docs/CONVENTIONS.md` 4.1 szakasz öt új sora.
 
   Következő: T-408, `feature/quiz`: a (C)/(D) kérdéstípus UI-ja.
+
+- 2026-11-12 – **T-408 kész** (`docs/backlog/GROUPS.md` szerint szándékosan **önálló**,
+  nem csoporttag – „a képes kérdéstípusok akadálymentessége önálló gondolkodást kíván").
+  A `QuizRunScreen.kt`-ban eddig üres `Unit` ág (`IMAGE_TO_JP`/`JP_TO_IMAGE`, G-08
+  lezárása) megkapta a tényleges Compose UI-t: `QuizImageToJpQuestion` ((C): „Melyik
+  technika ez?" + a helyes opció illusztrációja + 4 `QuizOptionRow` romaji felirattal –
+  a meglévő (A)/(B) opciógomb újrahasznosítva) és `QuizJpToImageQuestion` ((D): „Melyik
+  ábra: **`{romaji}`**?" + 2×2 képrács `QuizImageOptionCard`-dal, a meglévő
+  `QuizOptionFeedbackResolver`/ikon+szöveg+szín visszajelzés-logika újrahasznosítva kép
+  alatti felirattal).
+  **Akadálymentesség (NFR-04, a feladat valódi súlypontja):** a (C) kérdésábra a HELYES
+  opció illusztrációja – ha a leírása a technika nevét mondaná ki, a TalkBack idő előtt
+  elárulná a választ. Erre a `core/ui` `IllustrationLabel` sealed típusa (T-204) még nem
+  adott ágat (csak `Technique`, `QuizOption`, `Decorative` – ebből `Technique` elárulná a
+  nevet, `Decorative` pedig a FUNCTIONAL_SPEC szerint kvízben nem használható, mert a kép
+  itt információt hordoz). Új ág: `IllustrationLabel.QuizPrompt` – pozíció nélküli,
+  harmadik, semleges leírás („A kvízkérdés ábrája", `illustration_a11y_quiz_prompt`),
+  amit az `IllustrationContentDescription.forAsset`/`forPlaceholder` old fel; a (D) rács
+  változatlanul a már T-204-ben elkészült `IllustrationLabel.QuizOption(position)`-t
+  használja (pozíció alapú, a technika nevét nem tartalmazza).
+  **Új, `@Composable`-mentes, sima JUnit-tal tesztelt logika:** `QuizImageOptionGrid`
+  (`feature/quiz/run`) – a 2×2 rács pozíció-hozzárendelése (1-alapú, az `options` lista
+  EREDETI sorrendjéből, nem rendezi újra), ugyanaz a „Compose döntési logika tesztelése
+  emulátor nélkül" minta, mint a `QuizOptionFeedbackResolver`.
+  4 új teszt a `feature/quiz`-ben (`QuizImageOptionGridTest`) + 3 új teszt a `core/ui`-ban
+  (`IllustrationContentDescriptionTest`, a `QuizPrompt` ág), 535 → **542**, 0 hiba
+  (`--rerun-tasks`-szal leellenőrizve, teljes projekt); `assembleDebug` exit 0. Négy új
+  `@Preview` pár (világos/sötét, (C) és (D), válasz előtt/után) + egy `widthDp = 400`
+  pár a (D) rácshoz (a „Kész ha": „Keskeny képernyőn (≈400 dp) is használható a rács").
+  Lásd `docs/CONVENTIONS.md` 4. és 4.1 szakasz új sorai.
+
+  Következő: T-411, `feature/quiz`: a `quiz/result` eredményképernyő (G-09 csoport).

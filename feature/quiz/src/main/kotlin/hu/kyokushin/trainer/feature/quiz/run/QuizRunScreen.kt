@@ -221,9 +221,19 @@ private fun QuizRunContent(
                     onSelect = { techniqueId -> onAnswer(content.question.id, techniqueId) },
                 )
 
-                // T-408 tárgya: a (C)/(D) képes kérdéstípusok UI-ja itt készül majd el –
-                // ez a csoport (G-08, T-407/T-409) csak az (A)/(B) szöveges típust adja.
-                QuestionType.IMAGE_TO_JP, QuestionType.JP_TO_IMAGE -> Unit
+                QuestionType.IMAGE_TO_JP -> QuizImageToJpQuestion(
+                    question = content.question,
+                    options = content.options,
+                    selectedTechniqueId = content.selectedTechniqueId,
+                    onSelect = { techniqueId -> onAnswer(content.question.id, techniqueId) },
+                )
+
+                QuestionType.JP_TO_IMAGE -> QuizJpToImageQuestion(
+                    question = content.question,
+                    options = content.options,
+                    selectedTechniqueId = content.selectedTechniqueId,
+                    onSelect = { techniqueId -> onAnswer(content.question.id, techniqueId) },
+                )
             }
 
             if (content.selectedTechniqueId != null) {
@@ -338,6 +348,189 @@ private fun QuizTextQuestion(
                     feedback = feedback,
                     onClick = { onSelect(option.techniqueId) },
                 )
+            }
+        }
+    }
+}
+
+/**
+ * (C) ábra → japán név kérdés: a kérdés tárgya a kép maga, az opciók szöveges romaji
+ * gombok (FUNCTIONAL_SPEC 5.2/2.: „Melyik technika ez?" + illusztráció, T-408, FR-12).
+ *
+ * A kérdésábra a HELYES opció illusztrációja – ezt a felhasználónak ki kell találnia,
+ * ezért a leírása [IllustrationLabel.QuizPrompt] (nem [IllustrationLabel.Technique]):
+ * a technika neve itt maga lenne a válasz, tehát a `contentDescription` nem árulhatja
+ * el (NFR-04, ugyanaz a csapda, mint a `LearnCardIllustrationLabelPolicy`-nál, lásd
+ * `docs/CONVENTIONS.md`). Az opciógombok a meglévő [QuizOptionRow]-t használják, ugyanazt
+ * a visszajelzést kapva, mint az (A)/(B) típus.
+ */
+@Composable
+private fun QuizImageToJpQuestion(
+    question: QuizQuestion,
+    options: List<QuizOptionDisplay>,
+    selectedTechniqueId: TechniqueId?,
+    onSelect: (TechniqueId) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val correctOption = options.first { it.techniqueId == question.correctTechniqueId }
+
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Text(
+            text = stringResource(R.string.quiz_run_prompt_image_to_jp),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+        )
+
+        TechniqueIllustration(
+            illustration = correctOption.illustration,
+            label = IllustrationLabel.QuizPrompt,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            options.forEach { option ->
+                val feedback = QuizOptionFeedbackResolver.resolve(
+                    optionId = option.techniqueId,
+                    correctTechniqueId = question.correctTechniqueId,
+                    selectedTechniqueId = selectedTechniqueId,
+                )
+                QuizOptionRow(
+                    label = option.romaji,
+                    feedback = feedback,
+                    onClick = { onSelect(option.techniqueId) },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * (D) japán név → ábra kérdés: a kérdés tárgya a kiemelt romaji név, az opciók egy 2×2
+ * képrács (FUNCTIONAL_SPEC 5.2/2.: „Melyik ábra: **`{romaji}`**?", T-408, FR-12).
+ *
+ * A [QuizImageOptionCard] minden opció leírását [IllustrationLabel.QuizOption]-nal adja –
+ * ez **pozíció alapú**, a technika nevét nem tartalmazza (FUNCTIONAL_SPEC 9., T-408 „Kész
+ * ha"). A sorrend **ugyanaz**, mint az [options] lista sorrendje (ADR-007 seedelt
+ * keverés) – a 2×2 rács csak vizuálisan bontja két sorra, nem rendezi újra.
+ */
+@Composable
+private fun QuizJpToImageQuestion(
+    question: QuizQuestion,
+    options: List<QuizOptionDisplay>,
+    selectedTechniqueId: TechniqueId?,
+    onSelect: (TechniqueId) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val correctOption = options.first { it.techniqueId == question.correctTechniqueId }
+
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(R.string.quiz_run_prompt_jp_to_image_prefix),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = stringResource(R.string.quiz_run_prompt_value, correctOption.romaji),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            QuizImageOptionGrid.rows(options).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    row.forEach { cell ->
+                        val feedback = QuizOptionFeedbackResolver.resolve(
+                            optionId = cell.option.techniqueId,
+                            correctTechniqueId = question.correctTechniqueId,
+                            selectedTechniqueId = selectedTechniqueId,
+                        )
+                        QuizImageOptionCard(
+                            position = cell.position,
+                            illustration = cell.option.illustration,
+                            feedback = feedback,
+                            onClick = { onSelect(cell.option.techniqueId) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Egy (D) típusú képopció kártyája: a [TechniqueIllustration] + a visszajelzés ikonja és
+ * szövege a kép alatt (FUNCTIONAL_SPEC 5.2/4., NFR-04 „ikon + szöveg, nem csak szín" –
+ * ugyanaz a visszajelzés-logika, mint a [QuizOptionRow]-nál, csak a felirat helyén kép
+ * áll). A teljes kártya (kép + felirat) a kattintható/`selectable` felület, ezért az
+ * érintési célpont messze meghaladja a 48 dp-t (FUNCTIONAL_SPEC 9., NFR-04).
+ */
+@Composable
+private fun QuizImageOptionCard(
+    position: Int,
+    illustration: IllustrationRef?,
+    feedback: QuizOptionFeedback,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val isSelectedSemantics = feedback == QuizOptionFeedback.SELECTED_CORRECT ||
+        feedback == QuizOptionFeedback.SELECTED_INCORRECT
+    val enabled = feedback == QuizOptionFeedback.UNANSWERED
+    val stateDescriptionText = quizOptionStateDescriptionRes(feedback)?.let { stringResource(it) }
+
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = quizOptionContainerColor(feedback),
+        contentColor = quizOptionContentColor(feedback),
+        modifier = modifier
+            .heightIn(min = MIN_TOUCH_TARGET)
+            .selectable(
+                selected = isSelectedSemantics,
+                enabled = enabled,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+            .then(
+                if (stateDescriptionText != null) {
+                    Modifier.semantics { this.stateDescription = stateDescriptionText }
+                } else {
+                    Modifier
+                },
+            ),
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TechniqueIllustration(
+                illustration = illustration,
+                label = IllustrationLabel.QuizOption(position = position),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            val icon = quizOptionIcon(feedback)
+            val feedbackTextRes = quizOptionFeedbackTextRes(feedback)
+            if (icon != null || feedbackTextRes != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (icon != null) {
+                        Icon(
+                            imageVector = icon,
+                            // A szöveg (lásd lent) kimondja a „Helyes"/„Helytelen"
+                            // jelentést – az ikon itt dekoratív (ugyanaz a minta, mint
+                            // a QuizOptionRow-ban).
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                    if (feedbackTextRes != null) {
+                        Text(text = stringResource(feedbackTextRes), style = MaterialTheme.typography.labelMedium)
+                    }
+                }
             }
         }
     }
@@ -604,6 +797,40 @@ private val PREVIEW_CONTENT_B_UNANSWERED = PREVIEW_CONTENT_A_UNANSWERED.copy(que
 
 private val PREVIEW_CONTENT_CLOSE_CONFIRMATION = PREVIEW_CONTENT_A_UNANSWERED.copy(closeConfirmationVisible = true)
 
+// (C)/(D) képes kérdéstípusok (T-408). A `Placeholder` hivatkozás az előnézetben ugyanúgy
+// renderelhető, mint a `TechniqueIllustrationPlaceholderPreview` – a tényleges csomagolt
+// képet (`Asset`) az előnézet-renderelő nem tudja megnyitni (nincs `AssetManager`), lásd
+// `TechniqueIllustration.kt` dokumentációja.
+private val PREVIEW_QUESTION_C = PREVIEW_QUESTION_A.copy(type = QuestionType.IMAGE_TO_JP)
+private val PREVIEW_QUESTION_D = PREVIEW_QUESTION_A.copy(type = QuestionType.JP_TO_IMAGE)
+
+private val PREVIEW_OPTIONS_WITH_IMAGES = PREVIEW_OPTIONS.map { it.copy(illustration = IllustrationRef.Placeholder) }
+
+private val PREVIEW_CONTENT_C_UNANSWERED = PREVIEW_CONTENT_A_UNANSWERED.copy(
+    question = PREVIEW_QUESTION_C,
+    options = PREVIEW_OPTIONS_WITH_IMAGES,
+)
+
+private val PREVIEW_CONTENT_C_CORRECT = PREVIEW_CONTENT_C_UNANSWERED.copy(
+    selectedTechniqueId = TechniqueId.of("KY-0001"),
+    answeredCount = 3,
+)
+
+private val PREVIEW_CONTENT_D_UNANSWERED = PREVIEW_CONTENT_A_UNANSWERED.copy(
+    question = PREVIEW_QUESTION_D,
+    options = PREVIEW_OPTIONS_WITH_IMAGES,
+)
+
+private val PREVIEW_CONTENT_D_CORRECT = PREVIEW_CONTENT_D_UNANSWERED.copy(
+    selectedTechniqueId = TechniqueId.of("KY-0001"),
+    answeredCount = 3,
+)
+
+private val PREVIEW_CONTENT_D_INCORRECT = PREVIEW_CONTENT_D_UNANSWERED.copy(
+    selectedTechniqueId = TechniqueId.of("KY-0002"),
+    answeredCount = 3,
+)
+
 private val PREVIEW_CONTENT_LONG_NAME = PREVIEW_CONTENT_A_UNANSWERED.copy(
     position = 9,
     total = 10,
@@ -765,6 +992,144 @@ private fun QuizRunScreenLongNamePreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
         QuizRunScreen(
             uiState = PREVIEW_CONTENT_LONG_NAME,
+            onAnswer = { _, _ -> },
+            onNext = {},
+            onRequestClose = {},
+            onCancelClose = {},
+            onConfirmClose = {},
+            onOpenTechnique = {},
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------------------
+// (C)/(D) képes kérdéstípusok (T-408 „Kész ha"): válasz előtt/után, és egy ~400 dp-es
+// keskeny képernyő a (D) 2×2 rácshoz (T-408 „Kész ha": „Keskeny képernyőn (≈400 dp) is
+// használható a rács").
+// ---------------------------------------------------------------------------------------
+
+@Preview(name = "(C) típus – válasz előtt – világos", showBackground = true)
+@Preview(
+    name = "(C) típus – válasz előtt – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun QuizRunScreenTypeCUnansweredPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        QuizRunScreen(
+            uiState = PREVIEW_CONTENT_C_UNANSWERED,
+            onAnswer = { _, _ -> },
+            onNext = {},
+            onRequestClose = {},
+            onCancelClose = {},
+            onConfirmClose = {},
+            onOpenTechnique = {},
+        )
+    }
+}
+
+@Preview(name = "(C) típus – helyes válasz – világos", showBackground = true)
+@Preview(
+    name = "(C) típus – helyes válasz – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun QuizRunScreenTypeCCorrectPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        QuizRunScreen(
+            uiState = PREVIEW_CONTENT_C_CORRECT,
+            onAnswer = { _, _ -> },
+            onNext = {},
+            onRequestClose = {},
+            onCancelClose = {},
+            onConfirmClose = {},
+            onOpenTechnique = {},
+        )
+    }
+}
+
+@Preview(name = "(D) típus – válasz előtt – világos", showBackground = true)
+@Preview(
+    name = "(D) típus – válasz előtt – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun QuizRunScreenTypeDUnansweredPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        QuizRunScreen(
+            uiState = PREVIEW_CONTENT_D_UNANSWERED,
+            onAnswer = { _, _ -> },
+            onNext = {},
+            onRequestClose = {},
+            onCancelClose = {},
+            onConfirmClose = {},
+            onOpenTechnique = {},
+        )
+    }
+}
+
+@Preview(name = "(D) típus – helyes válasz – világos", showBackground = true)
+@Preview(
+    name = "(D) típus – helyes válasz – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun QuizRunScreenTypeDCorrectPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        QuizRunScreen(
+            uiState = PREVIEW_CONTENT_D_CORRECT,
+            onAnswer = { _, _ -> },
+            onNext = {},
+            onRequestClose = {},
+            onCancelClose = {},
+            onConfirmClose = {},
+            onOpenTechnique = {},
+        )
+    }
+}
+
+@Preview(name = "(D) típus – helytelen válasz – világos", showBackground = true)
+@Preview(
+    name = "(D) típus – helytelen válasz – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun QuizRunScreenTypeDIncorrectPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        QuizRunScreen(
+            uiState = PREVIEW_CONTENT_D_INCORRECT,
+            onAnswer = { _, _ -> },
+            onNext = {},
+            onRequestClose = {},
+            onCancelClose = {},
+            onConfirmClose = {},
+            onOpenTechnique = {},
+        )
+    }
+}
+
+/**
+ * Keskeny (~400 dp) képernyő – a (D) 2×2 rács (T-408 „Kész ha": „Keskeny képernyőn
+ * (≈400 dp) is használható a rács"). A `widthDp` az előnézet vászonát szűkíti, nem a
+ * tényleges eszközt – ez a bevett Compose-mód egy kis telefon szimulálására.
+ */
+@Preview(name = "(D) típus – keskeny (400 dp) – világos", showBackground = true, widthDp = 400)
+@Preview(
+    name = "(D) típus – keskeny (400 dp) – sötét",
+    showBackground = true,
+    widthDp = 400,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun QuizRunScreenTypeDNarrowPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        QuizRunScreen(
+            uiState = PREVIEW_CONTENT_D_UNANSWERED,
             onAnswer = { _, _ -> },
             onNext = {},
             onRequestClose = {},

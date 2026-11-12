@@ -48,6 +48,16 @@ sealed interface IllustrationLabel {
     }
 
     /**
+     * Kvíz (C) típus kérdésábrája (T-408): a kép **a kérdés tárgya** – a felhasználónak
+     * ebből kell kitalálnia a technika japán nevét. A leírás ezért, [QuizOption]-hoz
+     * hasonlóan, **nem nevezheti meg a technikát** (az maga a helyes válasz lenne), de a
+     * [QuizOption]-tól eltérően nincs pozíciója – ez a kérdés egyetlen, nem
+     * válaszlehetőségként szereplő képe. A leírás emiatt egy harmadik, semleges szöveg
+     * (nem a [Technique] neve, nem a [QuizOption] pozíciója): „a kvízkérdés ábrája".
+     */
+    data object QuizPrompt : IllustrationLabel
+
+    /**
      * A kép tisztán dekoratív: a TalkBack átugorja (`contentDescription = null`).
      *
      * Kvízben **nem** használható: ott a kép hordozza a kérdés vagy a válasz
@@ -78,6 +88,8 @@ object IllustrationContentDescription {
             label.position,
         )
 
+        IllustrationLabel.QuizPrompt -> resources.getString(R.string.illustration_a11y_quiz_prompt)
+
         IllustrationLabel.Decorative -> null
     }
 
@@ -96,6 +108,8 @@ object IllustrationContentDescription {
             R.string.illustration_a11y_quiz_option,
             label.position,
         )
+
+        IllustrationLabel.QuizPrompt -> resources.getString(R.string.illustration_a11y_quiz_prompt)
 
         IllustrationLabel.Decorative -> null
     }

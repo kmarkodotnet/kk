@@ -81,6 +81,14 @@
     <!-- A kérdés tárgya (a kiemelt romaji/magyar érték) + a mondatvégi kérdőjel. -->
     <string name="quiz_run_prompt_value">%1$s?</string>
 
+    <!-- (C) típus: „Melyik technika ez?" + illusztráció (FUNCTIONAL_SPEC 5.2/2., T-408).
+         Fix mondat, nincs behelyettesített érték – a kérdés tárgya a kép maga. -->
+    <string name="quiz_run_prompt_image_to_jp">Melyik technika ez?</string>
+    <!-- (D) típus: „Melyik ábra: {romaji}?" (FUNCTIONAL_SPEC 5.2/2., T-408). A kiemelt
+         érték a `quiz_run_prompt_value`-val együtt (ugyanaz a kétrészes minta, mint az
+         (A)/(B) típusnál). -->
+    <string name="quiz_run_prompt_jp_to_image_prefix">Melyik ábra:</string>
+
     <!-- Válasz-visszajelzés (FUNCTIONAL_SPEC 5.2/4., FUNCTIONAL_SPEC 8. szó szerint). -->
     <string name="quiz_run_answer_correct">Helyes</string>
     <string name="quiz_run_answer_wrong">Helytelen</string>

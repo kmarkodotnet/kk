@@ -2600,6 +2600,102 @@ válasz előtt, megszakítás-megerősítés, hosszú magyar név).
 |---|---|
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
-| (C)/(D) képes kérdéstípus UI-ja | **NEM KÉSZÜLT EL** – szándékosan, a T-408 tárgya; a `QuizRunScreen` ága üres `Unit`. |
-| `quiz/setup` → `quiz/run` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; ez nem ennek a csoportnak (G-08) a tárgya. |
+| `quiz/setup` → `quiz/run` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; ez nem ennek a csoportnak (G-08) a tárgya, és a T-408 sem bővíti. |
 | Kvíz **normál** befejezése (eredményképernyőre lépés, `finishSession`) | **NEM KÉSZÜLT EL** – szándékosan, a G-09 csoport (T-411) tárgya; az `onNext()` az utolsó kérdésen dokumentáltan no-op marad. |
+
+---
+
+## 2026-11-12 – T-408 kész (`feature/quiz`, Fázis 6.2 – a (C)/(D) kérdéstípus UI-ja)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle
+wrapper 9.9.1 (`./gradlew.bat`).
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :core:ui:testDebugUnitTest :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 22s` – mindkét modul zöld. |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 37s`, 294 actionable task (294 executed). **Teljes projekt: 542 teszt, 0 hiba** (535 → 542). |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 4s`, 300 actionable task; `app/build/outputs/apk/debug/app-debug.apk` elkészült. |
+
+A 542 az összes `build/test-results/**/TEST-*.xml` `tests` attribútumának összege (nem
+becslés, a teljes modulfa feletti futásból). A két érintett modul bontása:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…core.ui.illustration.IllustrationContentDescriptionTest` (6 → **9**) | 9 | 0 |
+| `…feature.quiz.run.QuizImageOptionGridTest` (új) | **4** | 0 |
+
+### Mi készült
+
+A G-08 csoport (T-407/T-409) lezárásakor a `QuizRunScreen.kt`-ban a `IMAGE_TO_JP`/
+`JP_TO_IMAGE` kérdéstípus ága dokumentáltan üres `Unit` volt – ezt ez a feladat tölti ki.
+A `docs/backlog/GROUPS.md` szerint T-408 szándékosan **önálló** feladat (nem csoporttag):
+„a képes kérdéstípusok akadálymentessége önálló gondolkodást kíván".
+
+**`QuizRunScreen.kt` (bővítve, `feature/quiz/run`):**
+- `QuizImageToJpQuestion` – (C) típus: „Melyik technika ez?" + a HELYES opció
+  illusztrációja kérdésként, 4 `QuizOptionRow` romaji felirattal (a már meglévő
+  (A)/(B) opciógomb és `QuizOptionFeedbackResolver` újrahasznosítva).
+- `QuizJpToImageQuestion` + `QuizImageOptionCard` – (D) típus: „Melyik ábra:
+  **`{romaji}`**?" + 2×2 képrács (`Column` két `Row`-ja, `Modifier.weight(1f)`, nem
+  `LazyVerticalGrid` – 4 fix elemhez felesleges függőség). Minden kártya a már meglévő
+  visszajelzés-logikát (ikon+szöveg+szín+`stateDescription`) hívja, a felirat helyén
+  képpel.
+- `QuizImageOptionGrid` (új, `@Composable`-mentes `object`): a 2×2 rács pozíció-
+  hozzárendelése (1-alapú, az `options` lista EREDETI sorrendjéből – nem rendezi újra).
+
+**`core/ui` – `IllustrationLabel.QuizPrompt` (új sealed ág, bővítve a T-204-ben lezárt
+típuson):** a (C) kérdésábra a HELYES opció illusztrációja – ha a leírása a technika
+nevét mondaná ki, a TalkBack idő előtt elárulná a választ (NFR-04). A meglévő két ág
+(`Technique` – nevet mond, `QuizOption` – pozíciót mond) közül sem illett ide, és
+`Decorative` a dokumentáció szerint kvízben nem használható (a kép itt információt
+hordoz). Az új, pozíció nélküli `QuizPrompt` ág egy harmadik, semleges szöveget ad („A
+kvízkérdés ábrája", `illustration_a11y_quiz_prompt`) – a (D) rács változatlanul a
+T-204-ben már elkészült `IllustrationLabel.QuizOption(position)`-t használja.
+
+**`strings.xml`:** `feature/quiz` – 2 új bejegyzés (`quiz_run_prompt_image_to_jp`,
+`quiz_run_prompt_jp_to_image_prefix`; a `quiz_run_prompt_value` újrahasznosítva a (D)
+kiemelt romaji értékéhez). `core/ui` – 1 új bejegyzés
+(`illustration_a11y_quiz_prompt`).
+
+### Új tesztek (7)
+
+**`IllustrationContentDescriptionTest` bővítése (`core/ui`, 3 új teszt, Robolectric
+`@Config(sdk = [34])`, a tényleges `strings.xml` fölött):**
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `assetDescription_forQuizPrompt_omitsTechniqueName_NFR04` | a (C) kérdésábra leírása nem tartalmazza a technika nevét |
+| `assetDescription_forQuizPrompt_differsFromQuizOptionDescription_NFR04` | a kérdésábra leírása nem keverhető össze a (D) pozíció alapú opcióleírásával |
+| `placeholderDescription_forQuizPrompt_omitsTechniqueNameAndMatchesAsset_NFR04` | a helyőrző-ág is névmentes, és megegyezik a kép-ággal |
+
+**`QuizImageOptionGridTest` (`feature/quiz`, 4 új teszt, sima JUnit, Robolectric
+nélkül):**
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `rows_fourOptionsTwoColumns_splitsIntoTwoRowsOfTwo_FR12` | 4 opció, 2 oszlop → pontosan 2×2 |
+| `rows_assignsSequentialOneBasedPositions_inOriginalOrder_NFR04` | a pozíció 1-alapú és az `options` lista EREDETI sorrendjét követi |
+| `rows_notDivisibleByColumns_lastRowIsShorter_FR12` | nem kerek elemszámnál az utolsó sor rövidebb |
+| `rows_rejectsNonPositiveColumnCount_FR12` | 0 vagy negatív oszlopszám `require()`-rel elutasított |
+
+### Rétegszabály, akadálymentesség
+
+A `feature/quiz` továbbra is kizárólag `core:model`/`core:ui`/`core:quiz`/`core:data`
+(repository-interfész) típusokat lát, nincs új függőség. Nincs közvetlen `Clock`/
+`Random` hívás. A (D) minden képopciója ≥48 dp (`heightIn(min = …)`), a (C) kérdésábra
+leírása és a (D) opciók leírása egyaránt névmentes (NFR-04); 8 új `@Preview` pár
+(világos/sötét: (C) válasz előtt/helyes, (D) válasz előtt/helyes/helytelen) + 1 pár
+`widthDp = 400`-zal a (D) rácshoz (T-408 „Kész ha": „Keskeny képernyőn (≈400 dp) is
+használható a rács").
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `quiz/setup` → `quiz/run` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak a tárgya. |
+| Kvíz **normál** befejezése (eredményképernyőre lépés, `finishSession`) | **NEM KÉSZÜLT EL** – szándékosan, a G-09 csoport (T-411) tárgya. |
