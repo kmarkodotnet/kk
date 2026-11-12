@@ -119,7 +119,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ⬜ |
+| 6.1 | `quiz/setup`: kategóriák, kérdésszám, típusok, **élő készenléti összegzés** (`dryRun`) | FR-11…FR-13, FR-22 | ✅ **kész** (T-403, 2026-11-12) – `QuizSetupViewModel`; a UI a T-404 tárgya |
 | 6.2 | `quiz/run`: négy kérdéstípus megjelenítése, visszajelzés ikon+szöveg+szín | FR-16, FR-17 | ⬜ |
 | 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ⬜ |
 | 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként | FR-20, FR-21 | ⬜ |
@@ -166,9 +166,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-403** – `feature/quiz`: beállító ViewModel (FR-11…FR-13, FR-22). Függőségei
-   (T-111, T-402) készen állnak. Ezzel kezdődik a Fázis 6 (Kvíz UI) – a Fázis 5
-   (Tanulás) a G-06 csoporttal (T-306, T-308) lezárult, az **M4 mérföldkő elérve**.
+1. **T-404** – `feature/quiz`: beállító UI (FR-11…FR-13, FR-22, a `QuizSetupViewModel`
+   megjelenítése). Függősége (T-403) kész.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -927,3 +926,26 @@ helyőrzőjének lecserélése).
   `assembleDebug` exit 0.
 
   Következő: T-403, `feature/quiz`: beállító ViewModel (Fázis 6 kezdete).
+
+- 2026-11-12 – **T-403 kész** (`feature/quiz`: beállító ViewModel, Fázis 6 kezdete).
+  A `QuizSetupViewModel` a `TechniqueRepository`-ból egy, minden kategóriára szóló
+  jelöltkészletet tart életben, és **minden** kijelölésváltásra (kategória, kérdésszám,
+  típus) valódi `DefaultQuizGenerator.dryRun()`-t futtat – az `expectedQuestionCount`/
+  `shortfall`/`canStart` közvetlenül ennek a kimenete. A típusonkénti letiltás oka
+  (FR-13) egy minden-típus-engedélyezett **próba**-kéréssel készül, hogy a felhasználó
+  saját kapcsolóállása ne torzítsa el a tartalmi okot. Az indítás (`onStartQuiz`) az
+  injektált `Random`-ból (már a `di/QuizModule.kt`-ban, T-108 óta) sorsol seedet, megnyitja
+  a munkamenetet, legenerálja a tervet ugyanazzal a seeddel, és egy `Channel`/`Flow`
+  egyszeri eseményen adja ki (`QuizStartResult`, ARCHITECTURE 6.1). **Ez a feladat egy
+  korábbi, rate limit miatt félbeszakadt kör munkáját fejezte be** (a kód és a fixtúrák
+  már szó szerint egyeztek a `core/quiz`/`core/data` tényleges szerződésével); két
+  tényleges hibát javított: (1) a letiltott gomb alatti szöveg a korábbi körben három
+  kitalált `strings.xml` bejegyzésre épült, a FUNCTIONAL_SPEC 8. viszont egyetlen,
+  szó szerinti `quiz.notEnoughData` mondatot ad – átírva egyetlen
+  `notEnoughDataMessageRes`-re; (2) egy teszt elvárása hibás volt (3 technikából 3
+  kérdést várt egy kategóriaszűrésnél, de egy négyopciós kérdéshez legalább 4 technika
+  kell egy típuson belül – 0 a helyes, nem-optimista eredmény), a tesztet javítottam, a
+  kódot nem. 16 új teszt (489 → 505, 0 hiba, `--rerun-tasks`-szal leellenőrizve);
+  `assembleDebug` exit 0. Lásd `docs/CONVENTIONS.md` 1. és 4.1 szakasz új sorai.
+
+  Következő: T-404, `feature/quiz`: beállító UI.

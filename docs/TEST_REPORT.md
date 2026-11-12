@@ -2216,3 +2216,112 @@ azonnal kiderüljön).
 | Compose UI teszt (tényleges koppintás a „Tudtam”/„Gyakorolnom kell” gombon, TalkBack bejárás) | **NEM FUTOTT** – B-03. Ami igazolt: a meglévő `@Preview`-k (felfedés előtt/után) a két gombbal együtt lefordulnak, és a letiltási indoklás szövege a felfedés előtti állapotban megjelenik. |
 | `@Preview` **tényleges kirenderelése** | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+## 2026-11-12 – T-403 · `feature/quiz`: beállító ViewModel (Fázis 6 kezdete)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle wrapper 9.9.1.
+
+**Előzmény:** egy korábbi subagent megírta a `QuizSetupViewModel`/`QuizSetupUiState`/
+`QuizStartResult`/`QuizTestFixtures` kódot és a `feature/quiz/build.gradle.kts`
+kiegészítését, de a Claude API heti rate limitje miatt félbeszakadt a
+`QuizSetupViewModelTest.kt` írása közben, **commit előtt**. Ez a kör nem kezdte újra: a
+meglévő kódot a `core/quiz`/`core/data` tényleges szerződésével (`QuizGenerator`,
+`QuizReadiness`, `QuizRequest`, `QuizCandidateSet`, `QuizCandidateFilter`,
+`QuizEligibility`, `TechniqueRepository`, `ProgressRepository`, `ContentImporter`)
+összevetve ellenőrizte, befejezte a tesztfájlt, és csak az így talált két hibát javította.
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:quiz:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 14s` – `feature/quiz` **16 teszt, 0 hiba** (`QuizSetupViewModelTest`) |
+| `./gradlew.bat test testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 31s`, 294 actionable task (294 executed) – **505 teszt, 0 hiba, 0 kihagyott** (489 → 505) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 3s` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések `tests` attribútumainak
+modulonkénti összegzése adta (`core/model` 35, `core/quiz` 227, `core/data` 109,
+`core/ui` 28, `feature/learn` 36, `feature/library` 33, `feature/quiz` 16, `navigation`
+17, `app` 4 = 505), minden modulban `failures="0" errors="0"`.
+
+### Mi készült
+
+A `QuizSetupViewModel` (`feature/quiz/.../setup/QuizSetupViewModel.kt`) egy
+`candidateSetFlow`-ban tartja életben a **minden kategóriára szóló** jelöltkészletet
+(`repository.observeTechniques().map { repository.getQuizCandidates() }`), és a
+kategóriaszűrést a `QuizRequest.categoryFilter`-en keresztül memóriában végzi – így a
+`suspend getQuizCandidates()` nem fut újra minden jelölőnégyzet-kattintásra. **Minden**
+kijelölésváltásra (`combine(selectedCategoriesFlow, requestedCountFlow, selectedTypesFlow,
+candidateSetFlow, observeContentState())`) a `buildState` egy valódi
+`DefaultQuizGenerator.dryRun(liveRequest)`-et futtat; a `QuizSetupUiState.Content`
+`expectedQuestionCount`/`shortfall`/`canStart` mezői **közvetlenül** ennek a kimenete,
+nincs második, a motortól eltérő számítás (T-403 „Figyelj rá"). A típusonkénti letiltás
+oka (FR-13, `QuizQuestionTypeUiModel.disabledReasonRes`) egy **próba**-kéréssel készül,
+amelyben minden típus engedélyezett (`liveRequest.copy(enabledTypes =
+QuestionType.entries.toSet())`), hogy a felhasználó saját kapcsolóállása ne tudja
+elfedni a tartalmi okot (`QuizCandidateFilter.skipReasons`). Az indítás (`onStartQuiz`)
+az injektált `Random`-ból (a `di/QuizModule.kt` már T-108 óta biztosítja) sorsol egy
+seedet, megnyitja a munkamenetet (`ProgressRepository.startSession`), legenerálja a
+tervet (`QuizGenerator.generate`) **ugyanazzal** a seeddel, és egy `Channel`/`Flow`
+egyszeri eseményen (`startEvent`) adja ki a `QuizStartResult`-ot – a tényleges navigáció
+és a `QuizRunState` a T-404/T-405 tárgya.
+
+### A megszakított kör munkájában talált és javított két hiba
+
+1. **Kitalált `strings.xml` szöveg a FUNCTIONAL_SPEC 8. fejezete ellenében.** A korábbi
+   kör a letiltott „Kvíz indítása" gomb alá **három külön** bejegyzést
+   (`quiz_setup_suggestion_more_categories`/`_more_types`/`_fewer_questions`) és egy
+   `startDisabledSuggestions: List<Int>` mezőt tett be, de a FUNCTIONAL_SPEC 8. a
+   `quiz.notEnoughData` kulcs alatt **egyetlen, szó szerinti** mondatot ad, amely
+   mindhárom javaslatot egy mondatban hordozza. A CONVENTIONS 4. szabálya szerint ez a
+   kötelező forrás, nem szabad újat kitalálni, ahol a mesterforrás már pontos szöveget
+   ad. Javítva: `QuizSetupUiState.Content.notEnoughDataMessageRes: Int?` (egyetlen,
+   nullázható `@StringRes`), `strings.xml`-ben egyetlen
+   `quiz_setup_message_not_enough_data` bejegyzés a szó szerinti szöveggel, a három
+   kitalált bejegyzés törölve.
+2. **Bukó teszt, hibás elvárással.** A `quizSetup_toggleCategory_narrowsLiveRequest_FR11`
+   azt várta, hogy az „állások" kategóriára szűkítve (a fixtúra 3 technikájával) a
+   `dryRun` 3 kérdést ad. Valójában **0**-t adott: egy négyopciós kérdéshez (1 helyes +
+   3 distraktor) legalább **4** egymástól különböző, kvízképes technika kell egy
+   típuson belül (`QuizQuestion.OPTION_COUNT`, `DistractorSelector`), és a
+   `QuizCandidateFilter.optionPool` a disztraktorok forrását **is** a kategóriaszűrőn
+   belülre korlátozza – 3 technikával tehát egyetlen kérdés sem áll össze, ami pontosan
+   a motor dokumentált, nem-optimista viselkedése (T-403 „Figyelj rá"). A teszt
+   elvárása volt hibás, nem a kód (CONVENTIONS 3.): a fixtúrát bővítettem egy negyedik,
+   kvízképes „állások" technikával, hogy a szűkítés tényleges, nullától eltérő hatása
+   bizonyítható legyen.
+
+### Új tesztek (16) – `QuizSetupViewModelTest`
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `quizSetup_whileImportRunning_showsLoading_FR11` | import alatt `Loading` |
+| `quizSetup_importThrows_showsErrorAndRetryRecovers_FR11` | import-kivétel → `Error`, `onRetry()` helyreállít |
+| `quizSetup_defaultState_emptySelectionAllTypesTenQuestions_FR11` | alapállapot: üres kijelölés (= minden kategória), 10 kérdés, minden típus kijelölve |
+| `quizSetup_categoryCounts_quizEligibleCountExcludesIncomplete_totalCountDoesNot_FR11` | a kategóriánkénti „kvízképes / összes" szám: `INCOMPLETE` csak az előbbit csökkenti |
+| `quizSetup_retiredTechniqueIsNotCounted_FR11` | visszavont technika sem a kvízképes, sem a teljes számba nem számít |
+| `quizSetup_noImages_disablesBothImageTypesWithReason_FR13` | kép nélkül a (C)/(D) típus letiltva, tartalmi indoklással; (A)/(B) nem |
+| `quizSetup_enoughDistinctImages_enablesImageTypes_FR13` | 5 egyedi, kvízhasználható képpel a (D) típus engedélyezett |
+| `quizSetup_expectedQuestionCount_isNotEmptyWithDefaultContent_FR22` | alapállapotban `expectedQuestionCount = 5`, `canStart = true` |
+| `quizSetup_toggleCategory_narrowsLiveRequest_FR11` | kategóriakijelölés tényleges, nullától eltérő hatással szűkíti a `dryRun`-t |
+| `quizSetup_allTypesDisabled_cannotStartWithNotEnoughDataMessage_FR22` | minden típus kikapcsolva → `canStart = false` + a FUNCTIONAL_SPEC szó szerinti `quiz.notEnoughData` üzenete |
+| `quizSetup_canStart_hasNoNotEnoughDataMessage_FR22` | `canStart = true` esetén nincs indoklás |
+| `quizSetup_selectRequestedCount_onlyAllowsFiveTenTwenty_FR11` | csak 5/10/20 engedett, egyéb érték kivételt dob |
+| `quizSetup_toggleType_updatesSelection_FR12` | kérdéstípus ki/bekapcsolása |
+| `quizSetup_savedStateHandle_restoresSelectionAfterRecreate_FR11` | a kijelölés (kategória, kérdésszám, típus) túléli a `SavedStateHandle` újraépítését |
+| `quizSetup_onStartQuiz_drawsSeedFromInjectedRandom_startsSessionAndEmitsPlan_FR19` | seed az injektált `Random`-ból, `startSession` meghívva, a kiadott terv kérdésszáma egyezik a beállító képernyő ígéretével (T-403 „Kész ha" 2.) |
+| `quizSetup_onStartQuiz_noopWhenCannotStart_FR22` | `canStart = false` esetén az indítás no-op (védelmi háló, ADR-005 mintája) |
+
+### Rétegszabály
+
+A `QuizSetupViewModel` kizárólag `core:model`, `core:data` (repository interfészek) és
+`core:quiz` (generátor, jelöltszűrés, jogosultsági kapu) típusokat lát – nincs benne
+Room entitás, DAO vagy DTO (ADR-001 L3/L4). A `Random` konstruktorparaméter, a kötés a
+`di/QuizModule.kt`-ban (T-108 óta); nincs `Random.Default` vagy `Clock`-hívás az üzleti
+kódban (NFR-07).
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI / `@Preview` | **NEM ALKALMAZHATÓ** – a T-403 nem ad UI-t, csak ViewModelt (ugyanaz a kettéválasztás, mint T-207/T-208 és T-302/T-303 között); a UI a T-404 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

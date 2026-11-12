@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A Kvíz képernyők felhasználói szövegei.
+    Minden szöveg magyar és KIZÁRÓLAG itt él (NFR-02, FUNCTIONAL_SPEC 8.).
+-->
+<resources>
+
+    <!-- Beállítás (`quiz/setup`, FUNCTIONAL_SPEC 5.1, FR-11, FR-12, FR-13, FR-22, T-403). -->
+
+    <!--
+        A (C)/(D) képes típus letiltásának indoklása, ha nincs elég validált, kvízben
+        használható, egyedi illusztráció (FR-13). A FUNCTIONAL_SPEC 8. szó szerint ezt a
+        szöveget adja (`quiz.type.disabled.images`).
+    -->
+    <string name="quiz_setup_type_disabled_images">Ehhez legalább 4 egyedi, ellenőrzött ábra kell a kiválasztott kategóriákban (jelenleg: %1$d).</string>
+
+    <!--
+        Az (A)/(B) szöveges típus letiltásának indoklása, ha nincs elég kvízképes
+        technika a négy opcióhoz. A FUNCTIONAL_SPEC csak a képes esetet adja szó szerint
+        (fent); ez az analóg, szöveges megfelelője – szándékos kiegészítés, hogy minden
+        `SkipReason` kapjon indoklást (T-403 Teendők 3.).
+    -->
+    <string name="quiz_setup_type_disabled_candidates">Ehhez legalább 4 egyedi, kvízképes technika kell a kiválasztott kategóriákban (jelenleg: %1$d).</string>
+
+    <!--
+        A „Kvíz indítása" gomb letiltásának indoklása, ha 0 kérdés állítható össze
+        (FUNCTIONAL_SPEC 5.1/5., FR-22). A FUNCTIONAL_SPEC 8. a `quiz.notEnoughData`
+        kulcs alatt szó szerint ezt a szöveget adja – egyetlen mondat, amely mindhárom
+        javaslatot (kategória, kérdéstípus, kérdésszám) hordozza.
+    -->
+    <string name="quiz_setup_message_not_enough_data">A kiválasztott beállításokkal nem állítható össze kvíz. Válassz több kategóriát, engedélyezz több kérdéstípust, vagy csökkentsd a kérdésszámot.</string>
+
+</resources>
