@@ -1874,3 +1874,50 @@ Két pont miatt, és mindkettő a **tényleges** viselkedést méri:
 | `@Preview` világos + sötét témára | **NEM ALKALMAZHATÓ** ebben a taskban – a ViewModel nem rajzol. A globális DoD „UI esetén" kikötése a T-208-nál esedékes. |
 | Tényleges képernyőforgatás eszközön | **NEM FUTOTT** – B-03. Ami igazolt: ugyanabból a `SavedStateHandle`-ből újraépített ViewModel visszakapja a keresőszöveget és a kategóriakijelölést (`libraryList_savedStateHandle_restoresQueryAndCategories_FR02`) – ez az a mechanizmus, amin a forgatás túlélése áll. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-12 – T-208 + T-210 · `feature/library`: lista UI és üres/hiba állapotok (G-03)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:library:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 9 új teszt zöld |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **434 teszt, 0 hiba, 0 kihagyott** (425 → 434) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+A futtatás Bash-ből történt (`export JAVA_HOME=".../jdk-17.0.21.9-hotspot"`,
+`./gradlew.bat …`). A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések
+`tests` és `failures` attribútumainak összegzése adta (minden modulra).
+
+### Új tesztek (9)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `LibraryListAccessibilityTest.verifiedRecord_omitsTheStatusPart_FR05` | VERIFIED rekordnál a listatétel leírásából elmarad a státuszrész – ugyanaz a döntés, mint a `VerificationBadge` chipjénél |
+| `LibraryListAccessibilityTest.awaitingReview_appendsTheSpokenStatus_FR05` | AWAITING_REVIEW rekordnál a leírás „..., Ellenőrzésre vár"-ra végződik |
+| `LibraryListAccessibilityTest.incomplete_appendsTheSpokenStatus_FR05` | INCOMPLETE rekordnál a leírás „..., Hiányos"-ra végződik |
+| `LibraryListAccessibilityTest.aliasMatch_appendsTheMatchedAliasAsASeparateSentence_FR03` | alias-találatnál az „Egyezés: {alias}" külön mondatként zárja a leírást |
+| `LibraryListAccessibilityTest.nameMatch_hasNoAliasSentence_FR03` | saját névből jövő találatnál nincs „Egyezés" rész |
+| `LibraryEmptyStateActionTest.noResult_offersClearFilters_notDiagnostics` | „nincs találat" oknál a „Szűrők törlése" akció fut, a diagnosztika nem |
+| `LibraryEmptyStateActionTest.noContent_inDebugBuild_offersDiagnostics_FR32` | „nincs tartalom" oknál debug build mellett a diagnosztika akció fut |
+| `LibraryEmptyStateActionTest.noContent_inReleaseBuild_hasNoAction_FR32` | „nincs tartalom" oknál `onDiagnostics = null` (release) esetén nincs akció – az `EmptyState` emiatt nem rajzol gombot |
+| `LibraryEmptyStateActionTest.otherReasons_haveNoActionOnTheLibraryScreen` | a Tudástárhoz nem tartozó okok (`ProgressNoData` stb.) nem váltanak ki akciót |
+
+### Miért tiszta függvény teszt, és nem Compose UI teszt?
+
+A listatétel akadálymentes leírását ([`LibraryListItemAccessibility`](../feature/library/src/main/kotlin/hu/kyokushin/trainer/feature/library/list/LibraryListAccessibility.kt))
+és az üres állapot akció-leképezését ([`libraryEmptyStateAction`](../feature/library/src/main/kotlin/hu/kyokushin/trainer/feature/library/list/LibraryListScreen.kt))
+szándékosan `@Composable`-mentes, `Resources`-t fogadó (illetve sima) függvényként írtuk
+meg – ugyanaz a minta, mint a `core/ui` `VerificationBadgeText` és `IllustrationContentDescription`
+tesztjeinél. Így a FUNCTIONAL_SPEC 9. „egy bejárási egység" szabálya és a FR-32 debug
+kapuja a **tényleges** `strings.xml` fölött, emulátor nélkül, Robolectric unit teszttel
+bizonyítható – a tényleges kirenderelés/koppintás-bejárás emulátort kérne (lásd alább).
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt a listára (koppintás, TalkBack bejárás, tényleges 56×56 dp méret) | **NEM FUTOTT** – B-03. Ami igazolt: a leírás-összeállítás és az akció-leképezés logikája (fent), és hogy mind az öt `@Preview` függvény lefordul és render-hívás nélkül helyesen épül fel (`:feature:library:compileDebugKotlin` exit 0). |
+| `@Preview` **tényleges kirenderelése** (világos/sötét, mind a négy állapot) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a tíz előnézet-függvény (öt állapot × világos/sötét) lefordul. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

@@ -49,3 +49,34 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-12 |
+| Commit | lásd a T-210-zel közös commit (G-03 csoport) |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:library:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 9 új teszt zöld (`LibraryListAccessibilityTest` 5, `LibraryEmptyStateActionTest` 4) |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 434 teszt, 0 hiba, 0 kihagyott (425 → 434) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:** A Compose lista felépült (`LibraryListScreen.kt`, `LibraryListAccessibility.kt`
+a `feature/library/list` csomagban), és a `navigation` modulban a `library/list` útvonal
+helyőrzője lecserélve a valódi `LibraryListRoute`-ra (korábban csak dokumentálva volt, hogy
+ez a T-208 tárgya). A kategóriaszűrő „Összes" chipje nem önálló ViewModel-akció: a jelenleg
+kijelölt kategóriákat egyenként kapcsolja ki `onToggleCategory`-n keresztül (lásd
+CONVENTIONS.md 4.1 új sora). A `TechniqueIllustration` `null` hivatkozás esetén – a
+komponens dokumentált szerződése szerint – a listán **nem** rajzol helyőrzőt, csak a
+56 dp-es hely marad fenntartva, hogy a sorok egymáshoz igazodjanak. A pontos pixelesen
+négyzet alakú 56×56 dp méret nem garantált (a komponens a kép/placeholder saját
+képarányát tartja meg); ez nem automatizáltan tesztelt elvárás, csak vizuális irányadó a
+FUNCTIONAL_SPEC 3.1-ben. `@Preview` világos+sötét az összes állapotra (Loading, Empty ×2,
+Content, Error) elkészült. Compose UI teszt (tényleges renderelés/koppintás) nem futott –
+lásd TEST_REPORT.md, B-03.

@@ -103,9 +103,9 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|---|
 | 4.1 | `core/ui` megosztott komponensek: `TechniqueIllustration`, `VerificationBadge`, `EmptyState`, `DemoBanner` | CR-03, NFR-04 | ✅ **kész** – T-204: `TechniqueIllustration` (mindhárom `IllustrationRef` eset, 6+4 teszt); T-205: `VerificationBadge`, `UnreviewedBanner` (a „DemoBanner" tényleges, ADR-010 szerinti alakja), `EmptyState(EmptyStateReason)`, `ErrorState` (+18 teszt) |
 | 4.2 | Navigation Compose + bottom nav (4 cél), a kvíz futás közbeni elrejtése | NFR-03, TR-06 | ✅ **kész** – T-206: a FUNCTIONAL_SPEC 1. tíz útvonala, négy fül magyar felirattal és ikonnal, a bottom nav a `quiz/run` és `quiz/result` képernyőn elrejtve (+15 teszt). A képernyők még megjelölt helyőrzők (T-207-től cserélődnek) |
-| 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | 🟨 **állapotkezelés kész** – T-207: `LibraryListUiState` (`Loading`/`Empty(reason)`/`Content`/`Error`) és `LibraryListViewModel` (200 ms debounce, kategóriahalmaz, `SavedStateHandle`, kategóriánkénti találatszám, az importot a ViewModel indítja); T-211: 17 ViewModel teszt (+425 összesen). A **Compose lista** még a T-208 tárgya, a képernyő helyén addig a T-206 helyőrzője áll |
+| 4.3 | Tudástár lista: keresés (normalizált, aliasokra is), kategóriachipek, `SavedStateHandle` | FR-01…FR-03 | ✅ **kész** – T-207: `LibraryListUiState` (`Loading`/`Empty(reason)`/`Content`/`Error`) és `LibraryListViewModel` (200 ms debounce, kategóriahalmaz, `SavedStateHandle`, kategóriánkénti találatszám, az importot a ViewModel indítja); T-211: 17 ViewModel teszt; T-208: `LibraryListScreen` Compose UI (keresősáv, kategóriachip-sor „Összes” chippel, `LazyColumn` lista, listatétel egy TalkBack bejárási egységként), bekötve a `navigation` modul `library/list` útvonalára (+9 teszt, 434 összesen) |
 | 4.4 | Tudástár részletező | FR-04, FR-05 | ⬜ |
-| 4.5 | Üres/hiba állapotok a funkcionális spec 2.4 és 10. pontja szerint | NFR-06 | ⬜ |
+| 4.5 | Üres/hiba állapotok a funkcionális spec 2.4 és 10. pontja szerint | NFR-06 | ✅ **kész** – T-210: mind a négy állapot (`Loading`/`Empty` – nincs tartalom + debug „Diagnosztika” gomb/`Empty` – nincs találat + „Szűrők törlése”/`Error` + „Újra”) bekötve a `LibraryListScreen`-be, `@Preview`-vel mind a négy ágra (G-03 csoport T-208-cal) |
 
 ## Fázis 5 – Tanulás
 
@@ -164,11 +164,15 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 A maradék blokkolók **nem** állítják le a munkát: a Fázis 2.1–2.7 és 3.1–3.3 kódja és
 tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SDK-ra.
 
-## Következő három lépés
+## Következő lépés
 
-1. **T-207** – `feature/library`: lista ViewModel.
-2. **T-208** – `feature/library`: lista UI.
-3. **T-209** – `feature/library`: részletező képernyő.
+1. **T-209** – `feature/library`: részletező képernyő.
+
+(**A T-207, T-208, T-210 és T-211 kész:** a Tudástár lista Compose felülete –
+keresősáv, kategóriachipek, lista, mind a négy állapot – a `navigation` modul
+`library/list` útvonalára bekötve. A `library/detail/{techniqueId}` útvonalon még a
+T-206 helyőrzője áll; a T-209 ezt cseréli le, és az item-kattintásra már a valódi
+`TechniqueId`-t kapja a `LibraryListRoute.onOpenTechnique` paraméterén.)
 
 (**A T-206 kész:** a navigációs váz áll, a Fázis 1 helyőrző kezdőképernyő lecserélve.
 A képernyőket a `navigation` modul `KyokushinNavHost.kt`-ja köti be; a következő
@@ -748,4 +752,24 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
   rendezés CPU-munka, nem I/O. 17 új teszt (425 teszt, 0 hiba);
   `assembleDebug` exit 0. A Compose lista a T-208 tárgya.
 
-Következő: T-208, a Tudástár lista Compose felülete (a T-206 helyőrzőjének lecserélése).
+- 2026-11-12 – **T-208 + T-210 kész** (Fázis 4.3 lezárva, Fázis 4.5 kész, G-03 csoport).
+  A Tudástár lista Compose felülete: `LibraryListScreen.kt` a `feature/library/list`
+  csomagban. Keresősáv törlés ikonnal, vízszintesen görgethető kategóriachip-sor
+  „Összes" chippel (a kijelölt kategóriákat egyenként kapcsolja ki a meglévő
+  `onToggleCategory`-n keresztül – nem kellett új ViewModel-metódus), `LazyColumn` a
+  listával. Egy listatétel **egy** TalkBack bejárási egység: a `clearAndSetSemantics` +
+  `LibraryListItemAccessibility.describe` törli a gyermekek (illusztráció, két
+  szövegsor, hitelesítési chip) külön-külön felolvasását, és a FUNCTIONAL_SPEC 9. szerinti
+  „`{romaji}`, `{magyar}`, `{kategória}`, `{státusz}`" mintát adja (VERIFIED rekordnál a
+  státuszrész elmarad, ugyanúgy, mint a `VerificationBadge` látható chipjénél). Mind a
+  négy állapot (`Loading`/`Empty` – nincs tartalom + debug „Diagnosztika" gomb/`Empty` –
+  nincs találat + „Szűrők törlése"/`Error` + „Újra") bekötve, `@Preview`-val mindegyikre
+  világos és sötét témában. A „Diagnosztika" gomb kapuja `BuildConfig.DEBUG` (új
+  `buildFeatures.buildConfig = true` a `feature/library`-ban) – a tényleges célképernyő a
+  T-508 tárgya, itt csak a láthatóság a követelmény (FR-32). A `navigation` modulban a
+  `library/list` útvonal helyőrzője lecserélve a valódi `LibraryListRoute`-ra. 9 új teszt
+  – `LibraryListItemAccessibility` és `libraryEmptyStateAction` tiszta függvényként,
+  Compose fa nélkül tesztelve (434 teszt, 0 hiba); `assembleDebug` exit 0.
+
+Következő: T-209, a Tudástár részletező képernyő (a `library/detail/{techniqueId}`
+helyőrzőjének lecserélése).

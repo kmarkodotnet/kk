@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
+import hu.kyokushin.trainer.feature.library.list.LibraryListRoute
 
 /**
  * Helyőrző azonosítók a navigációs váz bejárásához.
@@ -174,9 +175,10 @@ private fun NavController.navigateToBottomNavDestination(destination: BottomNavD
 /**
  * A navigációs gráf: a FUNCTIONAL_SPEC 1. pontjának tíz útvonala.
  *
- * Minden cél egyelőre [PlaceholderScreen]-t mutat. A funkciómodulok képernyői
- * (T-207-től) egy-egy `composable` blokk tartalmát cserélik le; az útvonalak, az
- * argumentumnevek és a bottom nav viselkedése nem változik.
+ * A funkciómodulok képernyői sorban cserélik le az eredeti [PlaceholderScreen]-t;
+ * az útvonalak, az argumentumnevek és a bottom nav viselkedése nem változik. A
+ * `library/list` útvonal már a valódi képernyőt mutatja (T-208: [LibraryListRoute]),
+ * a többi cél egyelőre helyőrző.
  */
 @Composable
 private fun KyokushinNavGraph(
@@ -189,15 +191,10 @@ private fun KyokushinNavGraph(
         modifier = modifier,
     ) {
         composable(KyokushinScreen.LIBRARY_LIST.routePattern) {
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.LIBRARY_LIST.titleRes,
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_open_technique) {
-                        navController.navigate(
-                            KyokushinRoutes.libraryDetail(PLACEHOLDER_TECHNIQUE_ID),
-                        )
-                    },
-                ),
+            LibraryListRoute(
+                onOpenTechnique = { techniqueId ->
+                    navController.navigate(KyokushinRoutes.libraryDetail(techniqueId.value))
+                },
             )
         }
 

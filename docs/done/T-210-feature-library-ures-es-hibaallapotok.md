@@ -48,3 +48,34 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-12 |
+| Commit | lásd a T-208-cal közös commit (G-03 csoport) |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:library:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 9 új teszt zöld |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 434 teszt, 0 hiba, 0 kihagyott |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` |
+
+**Megjegyzés:** A négy állapot (`Loading`/`Empty` – nincs tartalom/`Empty` – nincs
+találat/`Error`) mind a `LibraryListScreen` stateless composable `when`-ágában dönt el –
+„kézzel kiváltható": a hozzájuk tartozó `@Preview` függvények mind a négy ágat valódi
+`LibraryListUiState` értékkel hívják meg, világos és sötét témában is. A „Diagnosztika"
+gomb debug kapuja `BuildConfig.DEBUG`-on áll (`feature/library/build.gradle.kts`:
+`buildFeatures.buildConfig = true` új sor); a gomb maga az `EmptyState` komponens már kész
+szerződése szerint jelenik meg/tűnik el (release buildben `onDiagnostics = null`). A gomb
+tényleges célja (a teljes validációs jelentés képernyője) a T-508 tárgya – ott még nem
+létezik út, ezért a kattintás jelenleg no-op. Az üres-állapot akció leképezését
+(„melyik okhoz melyik gomb tartozik") a `libraryEmptyStateAction` tiszta függvény végzi,
+ez a Compose fától függetlenül, JVM teszttel (`LibraryEmptyStateActionTest`) ellenőrzött.
+Compose UI teszt (tényleges koppintás-bejárás emulátoron) nem futott – lásd
+TEST_REPORT.md, B-03.

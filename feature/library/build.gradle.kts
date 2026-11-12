@@ -24,6 +24,9 @@ android {
 
     buildFeatures {
         compose = true
+        // `BuildConfig.DEBUG` dönti el a „Diagnosztika" gomb láthatóságát (FR-32, T-210) –
+        // kizárólag ehhez kell, nem a tartalmi logikának.
+        buildConfig = true
     }
 
     testOptions {
@@ -49,6 +52,8 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
+    // Keresés/törlés ikonok (`Icons.Default.Search` / `.Close`) a listaképernyőn (T-208).
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
 
