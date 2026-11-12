@@ -111,8 +111,8 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 5.1 | `learn/setup`: kategória- és elrejtésválasztás | FR-06, FR-07 | ⬜ |
-| 5.2 | `learn/cards`: felfedés, előző/következő, seedelt sorrend, pozíció mentése | FR-08, FR-09 | ⬜ |
+| 5.1 | `learn/setup`: kategória- és elrejtésválasztás | FR-06, FR-07 | ✅ **kész** (T-302, 2026-11-12) |
+| 5.2 | `learn/cards`: felfedés, előző/következő, seedelt sorrend, pozíció mentése | FR-08, FR-09 | 🔄 **részben** – T-303: a `LearnCardsViewModel` (seedelt sorrend, pozíció, kártyánkénti felfedettség) kész; a Compose UI (felfedés/előző/következő gombok) a T-304 tárgya |
 | 5.3 | Önértékelés → `StudyReview`, elkülönítve a kvízstatisztikától | FR-10, FR-28 | ⬜ |
 
 ## Fázis 6 – Kvíz UI
@@ -166,8 +166,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-302** – `feature/learn`: `learn/setup` ViewModel + UI (kategóriák, elrejtési mód,
-   utolsó választás megjegyzése). Függőségei (T-203, T-206) készen állnak.
+1. **T-304** – `feature/learn`: kártya UI (elrejtés/felfedés, előző/következő). Függőségei
+   (T-303, T-204) készen állnak.
 
 (**A G-01 csoport – T-301, T-401, T-402, T-502 – kész, ezzel a `ProgressRepository`
 írási/törlési felülete is megvan:** `startSession`/`recordAttempt`/`finishSession`
@@ -828,3 +828,41 @@ helyőrzőjének lecserélése).
   exit 0.
 
   Következő: T-302, `feature/learn`: `learn/setup` ViewModel + UI.
+
+- 2026-11-12 – **G-04 csoport kész** (T-302, T-303, `docs/backlog/GROUPS.md`,
+  `feature/learn`, Fázis 5.1 lezárva, 5.2 részben). **T-302:** `LearnSetupViewModel`
+  (`Loading`/`Content`/`Error`, az importot maga indítja, ugyanaz a mintázat, mint a
+  `LibraryListViewModel`-nél, csak keresés/debounce nélkül) és a hozzá tartozó Compose UI
+  (`LearnSetupScreen.kt`: `LearnSetupRoute` + stateless képernyő, kategória-jelölőnégyzet-
+  lista darabszámmal, elrejtésválasztó rádiógombpár, „Kártyák indítása" gomb letiltási
+  indoklással, 8 `@Preview`). A kijelölés itt **kötelező választás, nem szűrő** – szemben
+  a Tudástár/kvíz kategóriaszűrőjével, az üres kijelölés itt letiltja a gombot
+  (FUNCTIONAL_SPEC 4.1/4.). A kategóriánkénti darabszám **minden nem visszavont**
+  technikát számol, a hitelesítési státusztól függetlenül (a tanuláshoz nem kell
+  `VERIFIED`/`quizEligible`) – ez eltér a FUNCTIONAL_SPEC 4.1/2. szó szerinti („a
+  kvízképes és összes rekord száma") szövegétől, ami ellentmond a közvetlenül utána álló
+  mondatnak; dokumentált doksi-drift (`docs/CONVENTIONS.md` 8.). Az „utolsó választás
+  megjegyzése" `SavedStateHandle`-ben él (nincs DataStore a version catalogban, és az új
+  függőség bevezetése „korai bővítés" lenne) – forgatást és mentett állapotból történő
+  folyamat-újraindítást túlél, teljes app-bezárást nem.
+  **T-303:** `LearnCardsViewModel` (`feature/learn/cards`), Compose UI **nélkül** –
+  ugyanaz a kettéválasztás, mint T-207/T-208 között; a kártya UI a T-304 tárgya. A seedet
+  a konstruktor egyszer sorsolja az injektált `Random`-ból, és azonnal menti a
+  `SavedStateHandle`-be (ADR-007 mintája, mint a `DefaultQuizGenerator`); a sorrend
+  `techniques.sortedBy{id}.shuffled(Random(seed))`, kanonikusan rendezett bemeneten (a
+  `TechniqueRepository.observeTechniques` sorrendje nem specifikált szerződés). A
+  felfedettség **pozíció** szerint tárolt (nem technikaazonosító szerint – egy
+  munkameneten belül a kettő egyenértékű, mert a sorrend nem változik), `ArrayList<String>`
+  formában. Az „Előző"/„Következő" a nyers pozíciót írja, a `buildState` szorítja érvényes
+  tartományba (védelmi háló, NFR-06); a felső határ tényleges letiltását a UI végzi majd
+  `hasNext`/`hasPrevious`-ból. A bemenetet (`categoryIds`/`hideMode`) a `SavedStateHandle`
+  két kulcsán várja, ugyanazzal a mintával, mint a `LibraryDetailViewModel.techniqueId` –
+  a nevek csak a jövőbeli navigációs argumentummal egyeznek majd, a `navigation` modul
+  importálása nélkül (L5). **Szándékos eltérés mindkét feladatnál a `navigation`
+  modultól:** a `learn/setup` képernyő **nincs** bekötve a `KyokushinNavHost`-ba, és a
+  `learn/cards` útvonalminta nem kapott argumentumot – ez a T-304 tárgya, amikor a
+  célképernyő UI-ja is elkészül, és eldönthető, milyen alakban (route-argumentum vagy más)
+  kapja meg a bemenetet. 20 új teszt (471 teszt, 0 hiba, `--rerun-tasks`-szal is
+  leellenőrizve); `assembleDebug` exit 0.
+
+  Következő: T-304, `feature/learn`: kártya UI (elrejtés/felfedés, előző/következő).

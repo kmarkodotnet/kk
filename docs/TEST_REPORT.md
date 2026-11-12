@@ -2022,3 +2022,66 @@ A futtatás Bash-ből történt (`export JAVA_HOME="/c/Program Files/Eclipse Ado
 |---|---|
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+
+---
+
+## 2026-11-12 – G-04 csoport · `feature/learn`: `learn/setup` (T-302) és kártyaállapot (T-303)
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat :feature:learn:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – 20 új teszt (`LearnSetupViewModelTest` 13, `LearnCardsViewModelTest` 7), 0 hiba |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL` – **471 teszt, 0 hiba, 0 kihagyott** (451 → 471), minden task frissen futtatva (0 `UP-TO-DATE`) |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL` – `app/build/outputs/apk/debug/app-debug.apk` (20 429 638 bájt) |
+
+A futtatás Bash-ből történt (`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`,
+`./gradlew.bat …`). A tesztszámot a `*/build/test-results/**/TEST-*.xml` jelentések
+`tests` attribútumainak modulonkénti összegzése adta, és minden modulban
+`failures="0" errors="0"`.
+
+### Új tesztek (20) – `LearnSetupViewModelTest` (13) + `LearnCardsViewModelTest` (7)
+
+| Teszt | Mit bizonyít |
+|---|---|
+| `learnSetup_whileImportRunning_showsLoading_FR06` | gátolt import alatt `Loading`, utána `Content` (honest mérés, `Job` kapuval) |
+| `learnSetup_importThrows_showsErrorAndRetryRecovers_FR06` | kivétel esetén `Error` `@StringRes`-sel (nem a kivétel angol szövege), `onRetry()` helyreállít |
+| `learnSetup_categoryNamesAndCountsComeFromContent_FR06` | a kategórianév és a darabszám a tartalomból jön, a hitelesítési státusztól **függetlenül** (egy `AWAITING_REVIEW` technika is számít) |
+| `learnSetup_retiredTechniqueIsNotCounted_FR06` | a visszavont technika nem növeli a darabszámot |
+| `learnSetup_exposesDatasetTrustForUnreviewedBanner_FR06` | a `datasetTrust` a tartalom állapotából jön, nem felhasználói beállításból |
+| `learnSetup_noCategorySelected_cannotStartWithReason_FR06` | kijelölés nélkül `canStart = false`, a „válassz kategóriát" indoklással |
+| `learnSetup_selectingCategoryWithTechniquesEnablesStart_FR06` | kategória kijelölésével a gomb aktiválódik, indoklás nélkül |
+| `learnSetup_toggleCategoryTwiceClearsSelection_FR06` | ismételt kapcsolás visszaállítja a kijelölésmentes állapotot |
+| `learnSetup_multipleCategoriesSelectedTogether_FR06` | több kategória egyszerre kijelölhető (FR-06) |
+| `learnSetup_categoryWithoutDisplayableTechniques_cannotStartWithOtherReason_FR06` | technika nélküli kategória kijelölésekor a **másik** indoklás jelenik meg (nincs megjeleníthető technika, nem a „válassz kategóriát") |
+| `learnSetup_defaultHideModeIsHideJapanese_FR07` | az alapértelmezett elrejtési mód a japán név |
+| `learnSetup_selectingHideModeUpdatesState_FR07` | az elrejtési mód módosítható |
+| `learnSetup_savedStateHandle_restoresSelectionAndHideModeAfterRecreate_FR06` | ugyanazzal a `SavedStateHandle`-lel újraépített ViewModel visszaadja a kijelölést és az elrejtési módot (forgatás/mentett állapot) |
+| `learnCards_seedComesFromInjectedRandom_notSystemDefault_NFR07` | a sorrend pontosan a befecskendezett `Random`-ból sorsolt seedből adódik (két független `Random(1)` példány azonos eredményt ad) |
+| `learnCards_sameSeed_producesIdenticalOrderAfterRecreate_FR09` | ugyanaz a `SavedStateHandle` (már tartalmazza a mentett seedet) → azonos sorrend, akkor is, ha az újraépített ViewModel MÁSIK `Random`-ot kap |
+| `learnCards_positionSurvivesRecreateWithSameSavedStateHandle_FR09` | a pozíció túléli az újraépülést (forgatás/mentett állapot) |
+| `learnCards_nextAndPrevious_respectBounds_FR09` | az elején „Előző", a végén „Következő" no-op, a `hasPrevious`/`hasNext` helyesen jelez |
+| `learnCards_revealIsPerCard_notGlobal_FR09` | a felfedettség kártyánkénti: a következő kártya alapállapotban rejtett, a visszalépett korábbi kártya felfedve marad |
+| `learnCards_revealedStateSurvivesRecreateWithSameSavedStateHandle_FR09` | a felfedettség is túléli az újraépülést |
+| `learnCards_selectionWithoutTechniques_showsEmpty_FR09` | technika nélküli kategóriaválasztás `Empty` állapotot ad, nem omlik össze (NFR-06) |
+
+### Szándékos eltérés: a `navigation` modul nincs megváltoztatva
+
+A `learn/setup` képernyő **nincs** bekötve a `KyokushinNavHost`-ba (a placeholder marad),
+és a `learn/cards` útvonalminta nem kapott argumentumot a kijelölt kategóriák/elrejtési
+mód átadásához. A `LearnSetupScreen` a „Kártyák indítása" gombon már kiadja a szükséges
+adatot lambdaként (`onStartCards: (Set<CategoryId>, HideMode) -> Unit`), és a
+`LearnCardsViewModel` már kész elfogadni ugyanezt a bemenetet a `SavedStateHandle`
+`categoryIds`/`hideMode` kulcsain (a `LibraryDetailViewModel.techniqueId` mintájára) –
+de a tényleges route-bekötés (argumentumalak, `KyokushinNavHost` módosítása) a T-304
+feladat, amikor a `learn/cards` célképernyő UI-ja is elkészül, és eldönthető, pontosan
+milyen formában kell átadni az adatot. Lásd `docs/CONVENTIONS.md` 1. és 4.1 szakasz az
+új sorokért.
+
+### NEM FUTOTT
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| Compose UI teszt (tényleges renderelés/koppintás a `learn/setup` képernyőn, TalkBack bejárás) | **NEM FUTOTT** – B-03. Ami igazolt: a nyolc `@Preview` lefordul. |
+| `@Preview` **tényleges kirenderelése** (világos/sötét, mind a négy ág) | **NEM FUTOTT** – az előnézet-renderelő Android Studiót igényel. Ami igazolt: a nyolc előnézet-függvény lefordul. |
+| A `learn/cards` Compose UI tesztje | **NEM ALKALMAZHATÓ** – a T-303 nem ad UI-t, csak ViewModelt (ugyanaz a kettéválasztás, mint T-207/T-208 között); a T-304 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |

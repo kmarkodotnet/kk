@@ -23,8 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-302](T-302-feature-learn-tanulas-beallitasa.md) | feature/learn: tanulás beállítása | E3 | `feature/learn` | M | T-203, T-206 |
-| [T-303](T-303-feature-learn-kartyaallapot.md) | feature/learn: kártyaállapot | E3 | `feature/learn` | M | T-302 |
 | [T-304](T-304-feature-learn-kartya-ui.md) | feature/learn: kártya UI | E3 | `feature/learn` | L | T-303, T-204 |
 | [T-305](T-305-feature-learn-feliratos-kep-elrejtese-felfedesig.md) | feature/learn: feliratos kép elrejtése felfedésig | E3 | `feature/learn` | S | T-304 |
 | [T-306](T-306-feature-learn-onertekeles.md) | feature/learn: önértékelés | E3 | `feature/learn` | M | T-301, T-304 |
