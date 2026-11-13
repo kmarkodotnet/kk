@@ -50,8 +50,8 @@ import hu.kyokushin.trainer.core.ui.illustration.TechniqueIllustration
 import hu.kyokushin.trainer.core.ui.state.EmptyState
 import hu.kyokushin.trainer.core.ui.state.EmptyStateReason
 import hu.kyokushin.trainer.core.ui.state.ErrorState
-import hu.kyokushin.trainer.core.ui.status.VerificationBadge
 import hu.kyokushin.trainer.core.ui.status.UnreviewedBanner
+import hu.kyokushin.trainer.core.ui.status.VerificationBadge
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 import hu.kyokushin.trainer.feature.library.BuildConfig
 import hu.kyokushin.trainer.feature.library.R

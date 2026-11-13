@@ -12,7 +12,6 @@ import org.junit.Test
  * ADR-002 (háromállapotú státusz), ADR-010 (a `quizEligible` nem tárolt adat).
  */
 class ContentModelTest {
-
     private fun technique(
         illustration: IllustrationRef? = null,
         status: VerificationStatus = VerificationStatus.AWAITING_REVIEW,

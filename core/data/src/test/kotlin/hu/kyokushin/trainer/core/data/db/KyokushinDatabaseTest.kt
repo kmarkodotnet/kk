@@ -13,7 +13,6 @@ import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -21,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Instant
 
 /**
  * Az adatbázis tényleges viselkedése in-memory Room példányon (FR-18, DR-07).
@@ -36,7 +36,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class KyokushinDatabaseTest {
-
     private lateinit var database: KyokushinDatabase
 
     private val sessionId = SessionId.of("session-1")

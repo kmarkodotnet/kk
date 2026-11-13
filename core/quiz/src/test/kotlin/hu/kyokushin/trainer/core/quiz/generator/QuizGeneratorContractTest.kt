@@ -15,13 +15,11 @@ import org.junit.Test
  * üres, de megindokolt tervet ad.
  */
 class QuizGeneratorContractTest {
-
     /**
      * A szerződés legszűkebb teljesítése: nincs használható jelölt, tehát nincs kérdés.
      * Ez a „degenerált, de érvényes" eset, amit a UI-nak kezelnie kell (FR-22).
      */
     private class NothingAvailableGenerator : QuizGenerator {
-
         override fun generate(request: QuizRequest): QuizPlan = QuizPlan(
             questions = emptyList(),
             skippedTypes = skipReasons(request),

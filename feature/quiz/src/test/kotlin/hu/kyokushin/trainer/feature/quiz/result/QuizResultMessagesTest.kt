@@ -11,7 +11,6 @@ import org.junit.Test
  * nélkül (CONVENTIONS 4.1, T-411 „Kész ha").
  */
 class QuizResultMessagesTest {
-
     @Test
     fun quizResultSummary_normalCompletion_returnsScoredWithRoundedPercent_FR20() {
         val state = content(answered = 10, correct = 7, ratio = 0.7, aborted = false, requestedCount = 10)
@@ -52,7 +51,8 @@ class QuizResultMessagesTest {
     fun quizResultSummary_perfectScore_roundsToHundredPercent() {
         val state = content(answered = 5, correct = 5, ratio = 1.0, aborted = false, requestedCount = 5)
 
-        assertThat(quizResultSummary(state)).isEqualTo(QuizResultSummary.Scored(correct = 5, answered = 5, percent = 100))
+        assertThat(quizResultSummary(state))
+            .isEqualTo(QuizResultSummary.Scored(correct = 5, answered = 5, percent = 100))
     }
 
     private fun content(

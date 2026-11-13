@@ -50,7 +50,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class QuizRunViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -99,7 +98,11 @@ class QuizRunViewModelTest {
         assertThat(content.options.map { it.romaji })
             .isEqualTo(listOf(TECHNIQUE_HEISOKU, TECHNIQUE_FUDO, TECHNIQUE_MUSUBI, TECHNIQUE_CHUDAN).map { it.romaji })
         assertThat(content.options.map { it.hungarian })
-            .isEqualTo(listOf(TECHNIQUE_HEISOKU, TECHNIQUE_FUDO, TECHNIQUE_MUSUBI, TECHNIQUE_CHUDAN).map { it.hungarian })
+            .isEqualTo(
+                listOf(TECHNIQUE_HEISOKU, TECHNIQUE_FUDO, TECHNIQUE_MUSUBI, TECHNIQUE_CHUDAN).map {
+                    it.hungarian
+                },
+            )
         job.cancel()
     }
 

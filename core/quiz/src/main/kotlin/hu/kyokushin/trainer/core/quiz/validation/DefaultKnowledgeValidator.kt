@@ -42,7 +42,6 @@ import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
  * - **Nem nyúl a fájlrendszerhez, az órához és az RNG-hez** (ADR-001, NFR-07).
  */
 class DefaultKnowledgeValidator : KnowledgeValidator {
-
     override fun validate(input: KnowledgeInput): ValidationReport {
         val issues = mutableListOf<ValidationIssue>()
         val schemaVersion = input.manifest.schemaVersion?.trim()?.takeIf { it.isNotEmpty() }
@@ -165,7 +164,8 @@ class DefaultKnowledgeValidator : KnowledgeValidator {
             }
 
             // --- V005: képhivatkozás feloldása, szükség esetén Asset → Placeholder. ---
-            val resolution = resolveIllustration(entry.illustration, illustrationRegistry, input.availableIllustrationFiles)
+            val resolution =
+                resolveIllustration(entry.illustration, illustrationRegistry, input.availableIllustrationFiles)
             resolution.detail?.let { detail ->
                 recordIssues += issue(IssueCode.V005, "illustration", detail, resolution.severity)
             }
@@ -323,7 +323,12 @@ class DefaultKnowledgeValidator : KnowledgeValidator {
      *
      * A hiányzó fájl **nem** fokozza le a státuszt: az csak a képes kérdéstípusokat zárja
      * ki, a szöveges kvízt és a tanulást nem (V005 hatása a szabálytáblázat szerint).
+     *
+     * (A fenti táblázat két sora szándékosan 120 karakternél hosszabb: a cellák tördelése
+     * eltörné a Markdown-renderelést, ezért a `max-line-length` ktlint-szabály alább
+     * elszigetelten, indokolt elnyomva – T-607.)
      */
+    @Suppress("ktlint:standard:max-line-length")
     private fun resolveIllustration(
         rawRef: String?,
         registry: Map<String, IllustrationInput>,

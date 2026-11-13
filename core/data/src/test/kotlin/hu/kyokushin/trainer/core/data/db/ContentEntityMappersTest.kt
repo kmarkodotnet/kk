@@ -18,7 +18,6 @@ import org.junit.Test
  * valódi kép) négy nullázható oszlopon át is megőrződik.
  */
 class ContentEntityMappersTest {
-
     @Test
     fun technique_roundTripsThroughTheEntityWithoutLoss_DR01() {
         val technique = technique(
@@ -41,7 +40,8 @@ class ContentEntityMappersTest {
         val none = technique(illustration = null).toEntity()
         val placeholder = technique(illustration = IllustrationRef.Placeholder).toEntity()
         val asset = technique(
-            illustration = IllustrationRef.Asset("KY-0044", "KY-0044.jpg", quizUsable = false, hideableOnStudyCard = true),
+            illustration =
+                IllustrationRef.Asset("KY-0044", "KY-0044.jpg", quizUsable = false, hideableOnStudyCard = true),
         ).toEntity()
 
         assertThat(none.illustrationKind).isNull()

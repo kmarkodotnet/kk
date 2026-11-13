@@ -275,7 +275,11 @@ private fun AwaitingReviewNotice() {
  * pontosan az az állapot, amit a hibakezelési mátrix előír.
  */
 @Preview(name = "Asset – világos", showBackground = true)
-@Preview(name = "Asset – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Asset – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun TechniqueIllustrationAssetPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -295,7 +299,11 @@ private fun TechniqueIllustrationAssetPreview() {
 
 /** `Placeholder` eset: semleges helyőrző + „Ábra készül". */
 @Preview(name = "Placeholder – világos", showBackground = true)
-@Preview(name = "Placeholder – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Placeholder – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun TechniqueIllustrationPlaceholderPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -312,7 +320,11 @@ private fun TechniqueIllustrationPlaceholderPreview() {
  * lévő szöveg látszik – ez az ellenőrizhető bizonyíték arra, hogy nincs képblokk.
  */
 @Preview(name = "Nincs hivatkozás – világos", showBackground = true)
-@Preview(name = "Nincs hivatkozás – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Nincs hivatkozás – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun TechniqueIllustrationMissingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -334,7 +346,11 @@ private fun TechniqueIllustrationMissingPreview() {
  * (NFR-04). A valódi kvízrács a T-408 feladatban épül fel.
  */
 @Preview(name = "Kvízopció – világos", showBackground = true)
-@Preview(name = "Kvízopció – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Kvízopció – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun TechniqueIllustrationQuizOptionPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

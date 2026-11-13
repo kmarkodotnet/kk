@@ -40,7 +40,6 @@ data class ValidationIssue(
  * vet el, az [IssueScope] döntése.
  */
 enum class Severity {
-
     /** A szabálysértés elvetéssel vagy lefokozással jár (lásd [IssueScope]). */
     BLOCKING,
 
@@ -57,7 +56,6 @@ enum class Severity {
  * tudná eldönteni, szabad-e a [ValidationReport.accepted] listára támaszkodni.
  */
 enum class IssueScope {
-
     /** A teljes tudástár elutasítva; a jelentés `accepted` listája üres. */
     DATASET,
 
@@ -84,7 +82,6 @@ enum class IssueCode(
     val defaultSeverity: Severity,
     val scope: IssueScope,
 ) {
-
     /** A `schemaVersion` nem támogatott vagy hiányzik → a teljes betöltés elutasítva. */
     V001(Severity.BLOCKING, IssueScope.DATASET),
 
@@ -124,5 +121,4 @@ enum class IssueCode(
      * (`core/data`), amikor a deszerializálás meghiúsul, és a validátor sosem fut le.
      */
     V010(Severity.BLOCKING, IssueScope.DATASET),
-    ;
 }

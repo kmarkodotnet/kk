@@ -1,9 +1,9 @@
 package hu.kyokushin.trainer.feature.progress
 
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 import java.time.Instant
 import java.time.ZoneOffset
-import org.junit.Test
 
 /**
  * [formatLastPracticed] – `@Composable`-mentes dátumformázás (FR-25, FR-26, T-504, T-506).
@@ -12,7 +12,6 @@ import org.junit.Test
  * használ, nincs benne `Resources`-függés.
  */
 class ProgressFormattingTest {
-
     @Test
     fun formatLastPracticed_usesTheGivenZoneNotTheSystemDefault_FR25() {
         val instant = Instant.parse("2026-11-01T23:30:00Z")

@@ -1,7 +1,6 @@
 package hu.kyokushin.trainer.core.data.db
 
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
@@ -10,6 +9,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Test
+import java.io.File
 
 /**
  * A Room **exportált sémája** mint szerződés (DR-07, DR-08, FR-18).
@@ -26,7 +26,6 @@ import org.junit.Test
  * együttes viselkedését (TR-05) a T-118 in-memory adatbázison futó tesztjei mérik.
  */
 class RoomSchemaContractTest {
-
     private companion object {
         /** A tartalomtáblák: a tudástár frissítésekor upserttel újraírhatók. */
         val CONTENT_TABLES = setOf(

@@ -7,12 +7,12 @@ import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.scoring.Score
-import java.time.Instant
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Instant
 
 private const val LAST_PRACTICED_TEXT = "Utolsó gyakorlás: 2026.11.01."
 
@@ -27,7 +27,6 @@ private const val LAST_PRACTICED_TEXT = "Utolsó gyakorlás: 2026.11.01."
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ProgressNeedsPracticeAccessibilityTest {
-
     private lateinit var resources: Resources
 
     @Before

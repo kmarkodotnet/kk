@@ -32,7 +32,6 @@ import kotlinx.serialization.json.Json
  * @see QuizQuestion a kódolt tartalom – kizárólag azonosítók (ADR-006).
  */
 object QuizRunStateCodec {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     private val answersSerializer = MapSerializer(QuestionIdSerializer, TechniqueIdSerializer)

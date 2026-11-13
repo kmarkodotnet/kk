@@ -26,14 +26,14 @@ import hu.kyokushin.trainer.core.model.VerificationStatus
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
 import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * Közös tesztsegédek a `feature/quiz` modulhoz (T-403).
@@ -145,7 +145,6 @@ internal class FakeQuizTechniqueRepository(
     contentState: ContentState = quizImportedState(ALL_QUIZ_TECHNIQUES.size),
     private val synonymGroups: List<Set<TechniqueId>> = emptyList(),
 ) : TechniqueRepository {
-
     private val categoriesFlow = MutableStateFlow(categories)
     private val techniquesFlow = MutableStateFlow(techniques)
     private val contentStateFlow = MutableStateFlow(contentState)
@@ -202,7 +201,6 @@ internal class FakeQuizTechniqueRepository(
 internal class FakeQuizProgressRepository(
     private val sessionIdPrefix: String = "session",
 ) : ProgressRepository {
-
     private val _startSessionCalls = mutableListOf<Pair<Int, Long>>()
 
     /** Minden [startSession] hívás paraméterei, a hívás sorrendjében. */
@@ -216,17 +214,14 @@ internal class FakeQuizProgressRepository(
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("A kvízbeállító nem rögzít választ.")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("A kvízbeállító nem zár le menetet.")
-    }
 
-    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? {
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         throw UnsupportedOperationException("A kvízbeállító nem olvas vissza kvízeredményt.")
-    }
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("A kvízbeállító nem rögzít önértékelést.")
-    }
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
         throw UnsupportedOperationException("A kvízbeállító nem olvassa az önértékelés-összegzést.")
@@ -246,9 +241,8 @@ internal class FakeQuizProgressRepository(
     override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
         throw UnsupportedOperationException("A kvízbeállító nem olvassa az önértékelési előzményt (T-506).")
 
-    override suspend fun clearAllProgress() {
+    override suspend fun clearAllProgress(): Unit =
         throw UnsupportedOperationException("A kvízbeállító nem törli a haladást.")
-    }
 }
 
 /**
@@ -270,7 +264,6 @@ internal class FakeQuizProgressRepository(
 internal class FakeQuizRunProgressRepository(
     private val forceRecordResult: Boolean? = null,
 ) : ProgressRepository {
-
     private val _allAttempts = mutableListOf<NewAttempt>()
 
     /** Minden [recordAttempt] hívás, a hívás sorrendjében – a visszatérési értéktől függetlenül. */
@@ -296,13 +289,13 @@ internal class FakeQuizRunProgressRepository(
         _finishSessionCalls += id
     }
 
-    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? {
-        throw UnsupportedOperationException("A futó kvíz nem olvassa vissza a kvízeredményt (ez a `quiz/result` felelőssége).")
-    }
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
+        throw UnsupportedOperationException(
+            "A futó kvíz nem olvassa vissza a kvízeredményt (ez a `quiz/result` felelőssége).",
+        )
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("A futó kvíz nem rögzít önértékelést.")
-    }
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
         throw UnsupportedOperationException("A futó kvíz nem olvassa az önértékelés-összegzést.")
@@ -322,9 +315,8 @@ internal class FakeQuizRunProgressRepository(
     override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
         throw UnsupportedOperationException("A futó kvíz nem olvassa az önértékelési előzményt (T-506).")
 
-    override suspend fun clearAllProgress() {
+    override suspend fun clearAllProgress(): Unit =
         throw UnsupportedOperationException("A futó kvíz nem törli a haladást.")
-    }
 }
 
 /**
@@ -338,7 +330,6 @@ internal class FakeQuizRunProgressRepository(
 internal class FakeQuizResultProgressRepository(
     private val sessionResults: Map<SessionId, QuizSessionResult> = emptyMap(),
 ) : ProgressRepository {
-
     private val _startSessionCalls = mutableListOf<Pair<Int, Long>>()
 
     /** Minden [startSession] hívás paraméterei, a hívás sorrendjében (T-412). */
@@ -352,16 +343,14 @@ internal class FakeQuizResultProgressRepository(
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("Az eredményképernyő nem rögzít kvízválaszt.")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("Az eredményképernyő nem zár le menetet.")
-    }
 
     override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         sessionResults[sessionId]
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("Az eredményképernyő nem rögzít önértékelést.")
-    }
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
         throw UnsupportedOperationException("Az eredményképernyő nem olvassa az önértékelés-összegzést.")
@@ -379,18 +368,18 @@ internal class FakeQuizResultProgressRepository(
         throw UnsupportedOperationException("Az eredményképernyő nem olvassa az aggregált statisztikát (T-501).")
 
     override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
-        throw UnsupportedOperationException("Az eredményképernyő nem olvassa az önértékelési előzményt (T-506).")
+        throw UnsupportedOperationException(
+            "Az eredményképernyő nem olvassa az önértékelési előzményt (T-506).",
+        )
 
-    override suspend fun clearAllProgress() {
+    override suspend fun clearAllProgress(): Unit =
         throw UnsupportedOperationException("Az eredményképernyő nem törli a haladást.")
-    }
 }
 
 /** A tartalomimport tesztdublőre; a kimenetét és a kivételét a teszt dönti el. */
 internal class FakeQuizContentImporter(
     private val result: () -> ImportResult = { ImportResult.UpToDate("test-1") },
 ) : ContentImporter {
-
     var importCount: Int = 0
         private set
 
@@ -407,7 +396,6 @@ internal class FakeQuizContentImporter(
  * állapot egyetlen honest mérése (lásd `LibraryListFakes.GatedContentImporter`).
  */
 internal class GatedQuizContentImporter(private val gate: Job) : ContentImporter {
-
     override suspend fun importIfNeeded(): ImportResult {
         gate.join()
         return ImportResult.UpToDate("test-1")

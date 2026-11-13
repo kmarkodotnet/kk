@@ -20,7 +20,6 @@ import hu.kyokushin.trainer.core.ui.R
  * @property labelRes a mező magyar megnevezése a felsorolásban.
  */
 enum class TechniqueField(@StringRes val labelRes: Int) {
-
     /** A technika romaji neve. */
     ROMAJI(R.string.content_field_romaji),
 

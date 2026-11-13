@@ -268,7 +268,11 @@ private val PREVIEW_CONTENT = ProgressDiagnosticsUiState.Content(
 )
 
 @Preview(name = "Betöltés – világos", showBackground = true)
-@Preview(name = "Betöltés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressDiagnosticsScreenLoadingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -290,7 +294,11 @@ private fun ProgressDiagnosticsScreenNoReportPreview() {
 }
 
 @Preview(name = "Jelentés – világos", showBackground = true)
-@Preview(name = "Jelentés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Jelentés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressDiagnosticsScreenContentPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

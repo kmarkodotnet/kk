@@ -14,14 +14,14 @@ import hu.kyokushin.trainer.core.model.VerificationStatus
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
 import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * Fix óra a tesztekhez: a `ContentState.Imported.importedAt` így determinisztikus, és
@@ -121,7 +121,6 @@ internal class FakeTechniqueRepository(
     techniques: List<Technique> = ALL_TECHNIQUES,
     contentState: ContentState = importedState(ALL_TECHNIQUES.size),
 ) : TechniqueRepository {
-
     private val categoriesFlow = MutableStateFlow(categories)
     private val techniquesFlow = MutableStateFlow(techniques)
     private val contentStateFlow = MutableStateFlow(contentState)
@@ -182,7 +181,6 @@ internal class FakeTechniqueRepository(
 internal class FakeContentImporter(
     private val result: () -> ImportResult = { ImportResult.UpToDate("test-1") },
 ) : ContentImporter {
-
     var importCount: Int = 0
         private set
 
@@ -201,7 +199,6 @@ internal class FakeContentImporter(
  * `Loading` csak a `stateIn` kezdőértéke lenne, és a teszt nem azt mérné, amit állít.
  */
 internal class GatedContentImporter(private val gate: Job) : ContentImporter {
-
     override suspend fun importIfNeeded(): ImportResult {
         gate.join()
         return ImportResult.UpToDate("test-1")

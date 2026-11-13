@@ -10,8 +10,8 @@ import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.scoring.Score
-import java.time.Instant
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 
 /**
  * A felhasználói adat **írási és saját-önértékelési** felülete a feature modulok felé
@@ -56,7 +56,6 @@ import kotlinx.coroutines.flow.Flow
  *    tartalomtáblák és a `content_state` érintetlenek maradnak.
  */
 interface ProgressRepository {
-
     /**
      * Új kvízmenet nyitása (FR-19, ADR-007).
      *

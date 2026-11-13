@@ -42,7 +42,6 @@ import hu.kyokushin.trainer.core.ui.state.EmptyStateReason
  *   beállítás, és kódból soha nem emelkedik.
  */
 sealed interface LibraryListUiState {
-
     val query: String
     val categories: List<CategoryFilterUiModel>
     val selectedCategories: Set<CategoryId>

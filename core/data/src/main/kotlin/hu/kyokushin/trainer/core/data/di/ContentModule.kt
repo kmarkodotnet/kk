@@ -28,7 +28,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object ContentModule {
-
     /**
      * Az assetek olvasója az alkalmazás [AssetManager]-e felett.
      *

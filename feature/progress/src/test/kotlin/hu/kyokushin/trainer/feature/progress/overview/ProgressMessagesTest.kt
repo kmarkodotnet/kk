@@ -11,7 +11,6 @@ import org.junit.Test
  * Robolectric/Compose nélkül (CONVENTIONS 4.1).
  */
 class ProgressMessagesTest {
-
     @Test
     fun progressScoreDisplay_zeroAnswered_returnsNoData_FR27() {
         val display = progressScoreDisplay(Score(answered = 0, correct = 0, ratio = null))

@@ -15,7 +15,6 @@ package hu.kyokushin.trainer.core.model
  */
 @JvmInline
 value class TechniqueId private constructor(val value: String) {
-
     override fun toString(): String = value
 
     companion object {
@@ -37,7 +36,6 @@ value class TechniqueId private constructor(val value: String) {
  */
 @JvmInline
 value class CategoryId private constructor(val value: String) {
-
     override fun toString(): String = value
 
     companion object {
@@ -59,7 +57,6 @@ value class CategoryId private constructor(val value: String) {
  */
 @JvmInline
 value class SessionId private constructor(val value: String) {
-
     override fun toString(): String = value
 
     companion object {
@@ -81,7 +78,6 @@ value class SessionId private constructor(val value: String) {
  */
 @JvmInline
 value class QuestionId private constructor(val value: String) {
-
     override fun toString(): String = value
 
     companion object {

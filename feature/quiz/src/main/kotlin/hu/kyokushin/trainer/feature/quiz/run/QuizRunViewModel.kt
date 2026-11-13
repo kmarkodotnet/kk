@@ -13,7 +13,6 @@ import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizPlan
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
-import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * A futó kvíz állapotgépe (T-405, T-406, T-410; ARCHITECTURE 6.2 „a legkritikusabb
@@ -30,8 +30,9 @@ import kotlinx.coroutines.launch
  *
  * ## Bemenet: honnan jön a terv
  *
- * A `quiz/setup` (T-403/T-404) a „Kvíz indítása" gombra egy [hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult]-ot
- * ad (sessionId + terv + seed), de ezt **nem** a `quiz/run/{sessionId}` route path-argumentuma
+ * A `quiz/setup` (T-403/T-404) a „Kvíz indítása" gombra egy
+ * [hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult]-ot ad (sessionId + terv + seed),
+ * de ezt **nem** a `quiz/run/{sessionId}` route path-argumentuma
  * hordozza majd – egy teljes [QuizPlan] túl nagy és túl összetett egy URL-argumentumhoz, és a
  * `feature/quiz` modul nem is látna `kotlinx.serialization`-t a kódolásához (ADR-001, L3,
  * lásd `QuizRunStateCodec` KDoc-ja). A bemenet ehelyett a cél [SavedStateHandle]-jébe kerül
@@ -93,257 +94,258 @@ import kotlinx.coroutines.launch
  * @property savedStateHandle a teljes [QuizRunState] hordozója.
  */
 @HiltViewModel
-class QuizRunViewModel @Inject constructor(
-    private val progressRepository: ProgressRepository,
-    private val techniqueRepository: TechniqueRepository,
-    private val savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+class QuizRunViewModel
+    @Inject
+    constructor(
+        private val progressRepository: ProgressRepository,
+        private val techniqueRepository: TechniqueRepository,
+        private val savedStateHandle: SavedStateHandle,
+    ) : ViewModel() {
+        /** A bemenet (sessionId, seed, terv) – egyszer olvasva, a menet alatt nem változik. */
+        private val initial: InitialInput? = readInitialInput(savedStateHandle)
 
-    /** A bemenet (sessionId, seed, terv) – egyszer olvasva, a menet alatt nem változik. */
-    private val initial: InitialInput? = readInitialInput(savedStateHandle)
+        private val currentIndexFlow: Flow<Int> = savedStateHandle.getStateFlow(KEY_CURRENT_INDEX, 0)
 
-    private val currentIndexFlow: Flow<Int> = savedStateHandle.getStateFlow(KEY_CURRENT_INDEX, 0)
+        private val answersFlow: Flow<Map<QuestionId, TechniqueId>> =
+            savedStateHandle.getStateFlow(KEY_ANSWERS, "").map(::decodeAnswersOrEmpty)
 
-    private val answersFlow: Flow<Map<QuestionId, TechniqueId>> =
-        savedStateHandle.getStateFlow(KEY_ANSWERS, "").map(::decodeAnswersOrEmpty)
+        private val closeConfirmationFlow: Flow<Boolean> =
+            savedStateHandle.getStateFlow(KEY_CLOSE_CONFIRMATION, false)
 
-    private val closeConfirmationFlow: Flow<Boolean> =
-        savedStateHandle.getStateFlow(KEY_CLOSE_CONFIRMATION, false)
+        private val _closeEvent = Channel<Unit>(Channel.BUFFERED)
 
-    private val _closeEvent = Channel<Unit>(Channel.BUFFERED)
+        /** Egyszeri esemény: a megszakítás megerősítve – a hívó dönt a navigációról (L5). */
+        val closeEvent: Flow<Unit> = _closeEvent.receiveAsFlow()
 
-    /** Egyszeri esemény: a megszakítás megerősítve – a hívó dönt a navigációról (L5). */
-    val closeEvent: Flow<Unit> = _closeEvent.receiveAsFlow()
+        private val _finishEvent = Channel<SessionId>(Channel.BUFFERED)
 
-    private val _finishEvent = Channel<SessionId>(Channel.BUFFERED)
+        /**
+         * Egyszeri esemény: a kvíz **normál** befejezése (az utolsó kérdés „Eredmény" gombja,
+         * T-411, G-09) – a hívó dönt a `quiz/result/{sessionId}`-ra navigálásról (L5). Lásd
+         * [onNext] KDoc-ja.
+         */
+        val finishEvent: Flow<SessionId> = _finishEvent.receiveAsFlow()
 
-    /**
-     * Egyszeri esemény: a kvíz **normál** befejezése (az utolsó kérdés „Eredmény" gombja,
-     * T-411, G-09) – a hívó dönt a `quiz/result/{sessionId}`-ra navigálásról (L5). Lásd
-     * [onNext] KDoc-ja.
-     */
-    val finishEvent: Flow<SessionId> = _finishEvent.receiveAsFlow()
-
-    /**
-     * A teljes [QuizRunState], a `SavedStateHandle`-ből visszaépítve – `null`, ha a
-     * bemenet hiányzik vagy sérült (lásd [readInitialInput]).
-     */
-    private val runStateFlow: Flow<QuizRunState?> = combine(currentIndexFlow, answersFlow) { index, answers ->
-        val input = initial ?: return@combine null
-        val lastIndex = (input.plan.questions.size - 1).coerceAtLeast(0)
-        QuizRunState(
-            sessionId = input.sessionId,
-            seed = input.seed,
-            questions = input.plan.questions,
-            currentIndex = index.coerceIn(0, lastIndex),
-            answers = answers,
-            shortfall = input.plan.shortfall,
-        )
-    }
-
-    /**
-     * A tudástár aktív technikái, az opciófeloldás forrása (lásd az osztály KDoc-ja).
-     * `Flow`, nem egyszeri lekérdezés: ugyanaz a mintázat, mint a `QuizSetupViewModel`-nél
-     * – ha a tartalom frissül, a futó kvíz a friss nevekkel/ábrákkal jelenik meg.
-     */
-    private val techniquesFlow: Flow<List<Technique>> = techniqueRepository.observeTechniques()
-
-    val uiState: StateFlow<QuizRunUiState> = combine(
-        runStateFlow,
-        closeConfirmationFlow,
-        techniquesFlow,
-    ) { state, closeConfirmationVisible, techniques ->
-        buildUiState(state, closeConfirmationVisible, techniques)
-    }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
-            initialValue = QuizRunUiState.Loading,
-        )
-
-    /**
-     * Egy válasz rögzítése (T-406, FR-18, FR-19).
-     *
-     * No-op, ha [questionId]-ra már van válasz [answersFlow]-ban (lásd az osztály
-     * KDoc-ja: ez az **első** védelmi vonal – a gyors dupla koppintás itt elakad, mielőtt
-     * a [progressRepository] egyáltalán meghívásra kerülne).
-     *
-     * A helyesség **azonosító alapú** (T-406 „Kész ha" 2., DR-03): `selected ==
-     * question.correctTechniqueId`, soha nem szöveges egyezés.
-     */
-    fun onAnswer(questionId: QuestionId, selectedTechniqueId: TechniqueId) {
-        val plan = initial?.plan ?: return
-        val sessionId = initial.sessionId
-        val answers = decodeAnswersOrEmpty(savedStateHandle.get<String>(KEY_ANSWERS).orEmpty())
-        if (questionId in answers) return
-        val question = plan.questions.firstOrNull { it.id == questionId } ?: return
-        val correct = selectedTechniqueId == question.correctTechniqueId
-
-        viewModelScope.launch {
-            val recorded = progressRepository.recordAttempt(
-                NewAttempt(
-                    sessionId = sessionId,
-                    questionId = questionId,
-                    techniqueId = question.correctTechniqueId,
-                    questionType = question.type,
-                    selectedTechniqueId = selectedTechniqueId,
-                    correct = correct,
-                ),
+        /**
+         * A teljes [QuizRunState], a `SavedStateHandle`-ből visszaépítve – `null`, ha a
+         * bemenet hiányzik vagy sérült (lásd [readInitialInput]).
+         */
+        private val runStateFlow: Flow<QuizRunState?> = combine(currentIndexFlow, answersFlow) { index, answers ->
+            val input = initial ?: return@combine null
+            val lastIndex = (input.plan.questions.size - 1).coerceAtLeast(0)
+            QuizRunState(
+                sessionId = input.sessionId,
+                seed = input.seed,
+                questions = input.plan.questions,
+                currentIndex = index.coerceIn(0, lastIndex),
+                answers = answers,
+                shortfall = input.plan.shortfall,
             )
-            // T-406 "Teendők" 2.: a `false` (már volt válasz ERRE a kérdésre a DB
-            // szerint – a második védelmi vonal) nem módosítja az állapotot; a korábban
-            // rögzített válasz marad érvényben.
-            if (recorded) {
-                savedStateHandle[KEY_ANSWERS] =
-                    QuizRunStateCodec.encodeAnswers(answers + (questionId to selectedTechniqueId))
-            }
         }
-    }
 
-    /**
-     * A következő kérdésre lépés (T-410 „Teendők": „a kérdések között nincs
-     * visszalépés" – nincs `onPrevious`), **vagy** az utolsó kérdésen a kvíz normál
-     * befejezése (FUNCTIONAL_SPEC 5.2/4.: az utolsó kérdésnél a gomb felirata
-     * „Eredmény", T-411, G-09).
-     *
-     * Az utolsó kérdésen ez a metódus **nem** lép tovább pozícióban (nincs hova): helyette
-     * lezárja a menetet ([ProgressRepository.finishSession] – a `finishedAt` ettől lesz
-     * nem-`null`, FUNCTIONAL_SPEC 5.3, [hu.kyokushin.trainer.core.model.QuizSession.isFinished]),
-     * és egyszeri eseményként kiadja a [finishEvent]-et, hogy a hívó a
-     * `quiz/result/{sessionId}`-ra navigáljon (L5) – ugyanaz a mintázat, mint az
-     * [onConfirmClose]/[closeEvent] pár. A `finishSession` idempotens (a DAO csak akkor ír,
-     * ha a menet még befejezetlen, lásd `QuizSessionDao.markFinished`), tehát egy esetleges
-     * duplikált hívás (dupla koppintás a gombon) sem ír hibás állapotot.
-     */
-    fun onNext() {
-        val plan = initial?.plan ?: return
-        if (plan.questions.isEmpty()) return
-        val index = savedStateHandle.get<Int>(KEY_CURRENT_INDEX) ?: 0
-        if (index >= plan.questions.lastIndex) {
+        /**
+         * A tudástár aktív technikái, az opciófeloldás forrása (lásd az osztály KDoc-ja).
+         * `Flow`, nem egyszeri lekérdezés: ugyanaz a mintázat, mint a `QuizSetupViewModel`-nél
+         * – ha a tartalom frissül, a futó kvíz a friss nevekkel/ábrákkal jelenik meg.
+         */
+        private val techniquesFlow: Flow<List<Technique>> = techniqueRepository.observeTechniques()
+
+        val uiState: StateFlow<QuizRunUiState> = combine(
+            runStateFlow,
+            closeConfirmationFlow,
+            techniquesFlow,
+        ) { state, closeConfirmationVisible, techniques ->
+            buildUiState(state, closeConfirmationVisible, techniques)
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                initialValue = QuizRunUiState.Loading,
+            )
+
+        /**
+         * Egy válasz rögzítése (T-406, FR-18, FR-19).
+         *
+         * No-op, ha [questionId]-ra már van válasz [answersFlow]-ban (lásd az osztály
+         * KDoc-ja: ez az **első** védelmi vonal – a gyors dupla koppintás itt elakad, mielőtt
+         * a [progressRepository] egyáltalán meghívásra kerülne).
+         *
+         * A helyesség **azonosító alapú** (T-406 „Kész ha" 2., DR-03): `selected ==
+         * question.correctTechniqueId`, soha nem szöveges egyezés.
+         */
+        fun onAnswer(questionId: QuestionId, selectedTechniqueId: TechniqueId) {
+            val plan = initial?.plan ?: return
+            val sessionId = initial.sessionId
+            val answers = decodeAnswersOrEmpty(savedStateHandle.get<String>(KEY_ANSWERS).orEmpty())
+            if (questionId in answers) return
+            val question = plan.questions.firstOrNull { it.id == questionId } ?: return
+            val correct = selectedTechniqueId == question.correctTechniqueId
+
             viewModelScope.launch {
-                progressRepository.finishSession(initial.sessionId)
-                _finishEvent.send(initial.sessionId)
+                val recorded = progressRepository.recordAttempt(
+                    NewAttempt(
+                        sessionId = sessionId,
+                        questionId = questionId,
+                        techniqueId = question.correctTechniqueId,
+                        questionType = question.type,
+                        selectedTechniqueId = selectedTechniqueId,
+                        correct = correct,
+                    ),
+                )
+                // T-406 "Teendők" 2.: a `false` (már volt válasz ERRE a kérdésre a DB
+                // szerint – a második védelmi vonal) nem módosítja az állapotot; a korábban
+                // rögzített válasz marad érvényben.
+                if (recorded) {
+                    savedStateHandle[KEY_ANSWERS] =
+                        QuizRunStateCodec.encodeAnswers(answers + (questionId to selectedTechniqueId))
+                }
             }
-            return
         }
-        savedStateHandle[KEY_CURRENT_INDEX] = (index + 1).coerceAtMost(plan.questions.lastIndex)
-    }
 
-    /**
-     * A bezárás (×) gomb **és** a rendszer vissza-gombja (FUNCTIONAL_SPEC 5.2/5.,
-     * T-410 „Teendők" 2–3.) – mindkettő ezt a metódust hívja, ezért a két belépési pont
-     * garantáltan ugyanazt váltja ki: a megerősítő párbeszéd megnyitását. A tényleges
-     * `BackHandler`/ikongomb bekötése a kérdés-UI-t adó feladat tárgya (lásd az osztály
-     * KDoc-ja: ez a csoport csak az állapotgépet adja).
-     */
-    fun onRequestClose() {
-        savedStateHandle[KEY_CLOSE_CONFIRMATION] = true
-    }
+        /**
+         * A következő kérdésre lépés (T-410 „Teendők": „a kérdések között nincs
+         * visszalépés" – nincs `onPrevious`), **vagy** az utolsó kérdésen a kvíz normál
+         * befejezése (FUNCTIONAL_SPEC 5.2/4.: az utolsó kérdésnél a gomb felirata
+         * „Eredmény", T-411, G-09).
+         *
+         * Az utolsó kérdésen ez a metódus **nem** lép tovább pozícióban (nincs hova): helyette
+         * lezárja a menetet ([ProgressRepository.finishSession] – a `finishedAt` ettől lesz
+         * nem-`null`, FUNCTIONAL_SPEC 5.3, [hu.kyokushin.trainer.core.model.QuizSession.isFinished]),
+         * és egyszeri eseményként kiadja a [finishEvent]-et, hogy a hívó a
+         * `quiz/result/{sessionId}`-ra navigáljon (L5) – ugyanaz a mintázat, mint az
+         * [onConfirmClose]/[closeEvent] pár. A `finishSession` idempotens (a DAO csak akkor ír,
+         * ha a menet még befejezetlen, lásd `QuizSessionDao.markFinished`), tehát egy esetleges
+         * duplikált hívás (dupla koppintás a gombon) sem ír hibás állapotot.
+         */
+        fun onNext() {
+            val plan = initial?.plan ?: return
+            if (plan.questions.isEmpty()) return
+            val index = savedStateHandle.get<Int>(KEY_CURRENT_INDEX) ?: 0
+            if (index >= plan.questions.lastIndex) {
+                viewModelScope.launch {
+                    progressRepository.finishSession(initial.sessionId)
+                    _finishEvent.send(initial.sessionId)
+                }
+                return
+            }
+            savedStateHandle[KEY_CURRENT_INDEX] = (index + 1).coerceAtMost(plan.questions.lastIndex)
+        }
 
-    /** A megerősítő párbeszéd „Folytatás" gombja (FUNCTIONAL_SPEC 5.2/5.). */
-    fun onCancelClose() {
-        savedStateHandle[KEY_CLOSE_CONFIRMATION] = false
-    }
+        /**
+         * A bezárás (×) gomb **és** a rendszer vissza-gombja (FUNCTIONAL_SPEC 5.2/5.,
+         * T-410 „Teendők" 2–3.) – mindkettő ezt a metódust hívja, ezért a két belépési pont
+         * garantáltan ugyanazt váltja ki: a megerősítő párbeszéd megnyitását. A tényleges
+         * `BackHandler`/ikongomb bekötése a kérdés-UI-t adó feladat tárgya (lásd az osztály
+         * KDoc-ja: ez a csoport csak az állapotgépet adja).
+         */
+        fun onRequestClose() {
+            savedStateHandle[KEY_CLOSE_CONFIRMATION] = true
+        }
 
-    /**
-     * A megerősítő párbeszéd „Megszakítás" gombja (FR-19).
-     *
-     * Szándékosan **nem** hívja a [ProgressRepository.finishSession]-t: a megszakított
-     * munkamenet `finishedAt`-ja marad `null`, az `answeredCount` a tényleges érték
-     * (FUNCTIONAL_SPEC 5.2 „Viselkedési szabályok") – ez automatikusan igaz, mert az
-     * eddig rögzített [NewAttempt]-ek ([onAnswer]) már megvannak a `quiz_attempt`
-     * táblában, és ide nincs mit visszavonni. A navigáció kifelé adott, egyszeri esemény
-     * ([closeEvent]) – a hívó dönt a tényleges kilépésről (L5).
-     */
-    fun onConfirmClose() {
-        savedStateHandle[KEY_CLOSE_CONFIRMATION] = false
-        viewModelScope.launch { _closeEvent.send(Unit) }
-    }
+        /** A megerősítő párbeszéd „Folytatás" gombja (FUNCTIONAL_SPEC 5.2/5.). */
+        fun onCancelClose() {
+            savedStateHandle[KEY_CLOSE_CONFIRMATION] = false
+        }
 
-    private fun decodeAnswersOrEmpty(raw: String): Map<QuestionId, TechniqueId> =
-        if (raw.isBlank()) emptyMap() else QuizRunStateCodec.decodeAnswers(raw)
+        /**
+         * A megerősítő párbeszéd „Megszakítás" gombja (FR-19).
+         *
+         * Szándékosan **nem** hívja a [ProgressRepository.finishSession]-t: a megszakított
+         * munkamenet `finishedAt`-ja marad `null`, az `answeredCount` a tényleges érték
+         * (FUNCTIONAL_SPEC 5.2 „Viselkedési szabályok") – ez automatikusan igaz, mert az
+         * eddig rögzített [NewAttempt]-ek ([onAnswer]) már megvannak a `quiz_attempt`
+         * táblában, és ide nincs mit visszavonni. A navigáció kifelé adott, egyszeri esemény
+         * ([closeEvent]) – a hívó dönt a tényleges kilépésről (L5).
+         */
+        fun onConfirmClose() {
+            savedStateHandle[KEY_CLOSE_CONFIRMATION] = false
+            viewModelScope.launch { _closeEvent.send(Unit) }
+        }
 
-    /**
-     * A [QuizRunState] (a mentett igazság) leképezése a képernyő [QuizRunUiState]-jére.
-     *
-     * `null` bemenetre vagy üres kérdéslistára [QuizRunUiState.Empty] (NFR-06 védelmi
-     * háló) – lásd [readInitialInput] KDoc-ja. Ugyanez az ág jár, ha az aktuális kérdés
-     * bármely opciójának technikája **nem** található a [techniques] listában (pl. egy
-     * régi mentett állapot egy közben visszavont/törölt technikára hivatkozna) – a
-     * gyakorlatban nem várt eset, de a válasz nem omlik össze (NFR-06).
-     */
-    private fun buildUiState(
-        state: QuizRunState?,
-        closeConfirmationVisible: Boolean,
-        techniques: List<Technique>,
-    ): QuizRunUiState {
-        if (state == null || state.questions.isEmpty()) return QuizRunUiState.Empty
+        private fun decodeAnswersOrEmpty(raw: String): Map<QuestionId, TechniqueId> =
+            if (raw.isBlank()) emptyMap() else QuizRunStateCodec.decodeAnswers(raw)
 
-        val question = state.questions[state.currentIndex]
-        val techniqueById = techniques.associateBy { it.id }
-        val options = question.optionTechniqueIds.map { id ->
-            val technique = techniqueById[id] ?: return QuizRunUiState.Empty
-            QuizOptionDisplay(
-                techniqueId = id,
-                romaji = technique.romaji,
-                hungarian = technique.hungarian,
-                illustration = technique.illustration,
+        /**
+         * A [QuizRunState] (a mentett igazság) leképezése a képernyő [QuizRunUiState]-jére.
+         *
+         * `null` bemenetre vagy üres kérdéslistára [QuizRunUiState.Empty] (NFR-06 védelmi
+         * háló) – lásd [readInitialInput] KDoc-ja. Ugyanez az ág jár, ha az aktuális kérdés
+         * bármely opciójának technikája **nem** található a [techniques] listában (pl. egy
+         * régi mentett állapot egy közben visszavont/törölt technikára hivatkozna) – a
+         * gyakorlatban nem várt eset, de a válasz nem omlik össze (NFR-06).
+         */
+        private fun buildUiState(
+            state: QuizRunState?,
+            closeConfirmationVisible: Boolean,
+            techniques: List<Technique>,
+        ): QuizRunUiState {
+            if (state == null || state.questions.isEmpty()) return QuizRunUiState.Empty
+
+            val question = state.questions[state.currentIndex]
+            val techniqueById = techniques.associateBy { it.id }
+            val options = question.optionTechniqueIds.map { id ->
+                val technique = techniqueById[id] ?: return QuizRunUiState.Empty
+                QuizOptionDisplay(
+                    techniqueId = id,
+                    romaji = technique.romaji,
+                    hungarian = technique.hungarian,
+                    illustration = technique.illustration,
+                )
+            }
+
+            return QuizRunUiState.Content(
+                sessionId = state.sessionId,
+                question = question,
+                position = state.currentIndex,
+                total = state.questions.size,
+                answeredCount = state.answers.size,
+                selectedTechniqueId = state.answers[question.id],
+                isLastQuestion = state.currentIndex == state.questions.lastIndex,
+                closeConfirmationVisible = closeConfirmationVisible,
+                options = options,
             )
         }
 
-        return QuizRunUiState.Content(
-            sessionId = state.sessionId,
-            question = question,
-            position = state.currentIndex,
-            total = state.questions.size,
-            answeredCount = state.answers.size,
-            selectedTechniqueId = state.answers[question.id],
-            isLastQuestion = state.currentIndex == state.questions.lastIndex,
-            closeConfirmationVisible = closeConfirmationVisible,
-            options = options,
+        /** A bemenet, egy csomagban – lásd az osztály KDoc-ja. */
+        private data class InitialInput(
+            val sessionId: SessionId,
+            val seed: Long,
+            val plan: QuizPlan,
         )
-    }
 
-    /** A bemenet, egy csomagban – lásd az osztály KDoc-ja. */
-    private data class InitialInput(
-        val sessionId: SessionId,
-        val seed: Long,
-        val plan: QuizPlan,
-    )
+        companion object {
+            /**
+             * A kvízmenet azonosítója. **Nem** `private` – lásd az osztály KDoc-ja: ez lesz
+             * majd a `quiz/run/{sessionId}` route path-argumentumának a neve is.
+             */
+            const val KEY_SESSION_ID = "sessionId"
 
-    companion object {
-        /**
-         * A kvízmenet azonosítója. **Nem** `private` – lásd az osztály KDoc-ja: ez lesz
-         * majd a `quiz/run/{sessionId}` route path-argumentumának a neve is.
-         */
-        const val KEY_SESSION_ID = "sessionId"
+            /** A terv generálásához sorsolt RNG-mag – nem route-argumentum, lásd az osztály KDoc-ja. */
+            const val KEY_SEED = "quiz.run.seed"
 
-        /** A terv generálásához sorsolt RNG-mag – nem route-argumentum, lásd az osztály KDoc-ja. */
-        const val KEY_SEED = "quiz.run.seed"
+            /** A `QuizRunStateCodec.encodePlan` kimenete – nem route-argumentum, lásd az osztály KDoc-ja. */
+            const val KEY_PLAN = "quiz.run.plan"
 
-        /** A `QuizRunStateCodec.encodePlan` kimenete – nem route-argumentum, lásd az osztály KDoc-ja. */
-        const val KEY_PLAN = "quiz.run.plan"
+            private const val KEY_CURRENT_INDEX = "quiz.run.currentIndex"
+            private const val KEY_ANSWERS = "quiz.run.answers"
+            private const val KEY_CLOSE_CONFIRMATION = "quiz.run.closeConfirmationVisible"
 
-        private const val KEY_CURRENT_INDEX = "quiz.run.currentIndex"
-        private const val KEY_ANSWERS = "quiz.run.answers"
-        private const val KEY_CLOSE_CONFIRMATION = "quiz.run.closeConfirmationVisible"
+            /** A konfigurációváltás alatt életben tartja a feliratkozást. */
+            private const val STOP_TIMEOUT_MS = 5_000L
 
-        /** A konfigurációváltás alatt életben tartja a feliratkozást. */
-        private const val STOP_TIMEOUT_MS = 5_000L
-
-        /**
-         * A bemenet kiolvasása – hiányzó vagy sérült adatra `null` (NFR-06 védelmi háló),
-         * nem kivétel: egy ilyen `savedStateHandle` csak egy még nem létező hívó (lásd az
-         * osztály KDoc-ja) hiányából fakadhat, és a [buildUiState] ezt [QuizRunUiState.Empty]-re
-         * képezi, nem omlik össze.
-         */
-        private fun readInitialInput(savedStateHandle: SavedStateHandle): InitialInput? {
-            val sessionIdRaw = savedStateHandle.get<String>(KEY_SESSION_ID) ?: return null
-            val seed = savedStateHandle.get<Long>(KEY_SEED) ?: return null
-            val planRaw = savedStateHandle.get<String>(KEY_PLAN) ?: return null
-            val sessionId = runCatching { SessionId.of(sessionIdRaw) }.getOrNull() ?: return null
-            val plan = runCatching { QuizRunStateCodec.decodePlan(planRaw) }.getOrNull() ?: return null
-            return InitialInput(sessionId, seed, plan)
+            /**
+             * A bemenet kiolvasása – hiányzó vagy sérült adatra `null` (NFR-06 védelmi háló),
+             * nem kivétel: egy ilyen `savedStateHandle` csak egy még nem létező hívó (lásd az
+             * osztály KDoc-ja) hiányából fakadhat, és a [buildUiState] ezt [QuizRunUiState.Empty]-re
+             * képezi, nem omlik össze.
+             */
+            private fun readInitialInput(savedStateHandle: SavedStateHandle): InitialInput? {
+                val sessionIdRaw = savedStateHandle.get<String>(KEY_SESSION_ID) ?: return null
+                val seed = savedStateHandle.get<Long>(KEY_SEED) ?: return null
+                val planRaw = savedStateHandle.get<String>(KEY_PLAN) ?: return null
+                val sessionId = runCatching { SessionId.of(sessionIdRaw) }.getOrNull() ?: return null
+                val plan = runCatching { QuizRunStateCodec.decodePlan(planRaw) }.getOrNull() ?: return null
+                return InitialInput(sessionId, seed, plan)
+            }
         }
     }
-}

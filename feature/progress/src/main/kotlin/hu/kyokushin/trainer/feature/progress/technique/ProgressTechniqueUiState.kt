@@ -18,7 +18,6 @@ import java.time.Instant
  * [datasetTrust] a sealed interfész **közös** tulajdonsága (ADR-010, AC-08).
  */
 sealed interface ProgressTechniqueUiState {
-
     val datasetTrust: DatasetTrust
 
     /** A technika és a statisztika lekérdezése fut. */

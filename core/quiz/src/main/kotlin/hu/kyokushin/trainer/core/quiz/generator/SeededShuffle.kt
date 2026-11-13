@@ -24,7 +24,6 @@ import kotlin.random.Random
  * kiválasztása a [DistractorSelector] dolga, a keverés már csak permutál.
  */
 internal object SeededShuffle {
-
     /**
      * Az [items] elemei új sorrendben, kizárólag a [random] által meghatározott módon.
      *

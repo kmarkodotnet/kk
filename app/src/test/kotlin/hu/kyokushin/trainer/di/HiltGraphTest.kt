@@ -13,10 +13,6 @@ import hu.kyokushin.trainer.core.quiz.generator.DefaultQuizGenerator
 import hu.kyokushin.trainer.core.quiz.generator.QuizGenerator
 import hu.kyokushin.trainer.core.quiz.validation.DefaultKnowledgeValidator
 import hu.kyokushin.trainer.core.quiz.validation.KnowledgeValidator
-import java.time.Clock
-import java.time.ZoneOffset
-import javax.inject.Inject
-import kotlin.random.Random
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.junit.Before
@@ -25,6 +21,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Clock
+import java.time.ZoneOffset
+import javax.inject.Inject
+import kotlin.random.Random
 
 /**
  * Az alkalmazásszintű Hilt gráf felépülése (T-203, NFR-03, NFR-07).
@@ -50,7 +50,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = HiltTestApplication::class)
 class HiltGraphTest {
-
     @get:Rule
     val hiltRule = HiltAndroidRule(this)
 

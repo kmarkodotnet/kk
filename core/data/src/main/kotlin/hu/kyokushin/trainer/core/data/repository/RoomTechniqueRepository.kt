@@ -14,13 +14,13 @@ import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * A [TechniqueRepository] egyetlen megvalósítása Room felett (ARCHITECTURE 5.1, NFR-03).
@@ -74,159 +74,160 @@ import kotlinx.coroutines.withContext
  * @property database az adatbázis; a DAO-k rajta keresztül érhetők el.
  * @property ioDispatcher a háttér-I/O dispatcher; a kötést a `di` modul adja (T-203).
  */
-internal class RoomTechniqueRepository @Inject constructor(
-    private val database: KyokushinDatabase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : TechniqueRepository {
+internal class RoomTechniqueRepository
+    @Inject
+    constructor(
+        private val database: KyokushinDatabase,
+        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    ) : TechniqueRepository {
+        override fun observeCategories(): Flow<List<Category>> =
+            database.categoryDao()
+                .observeAll()
+                .map { rows -> rows.map { it.toCategory() } }
+                .flowOn(ioDispatcher)
 
-    override fun observeCategories(): Flow<List<Category>> =
-        database.categoryDao()
-            .observeAll()
-            .map { rows -> rows.map { it.toCategory() } }
-            .flowOn(ioDispatcher)
+        override fun observeTechniques(
+            query: String,
+            categories: Set<CategoryId>,
+        ): Flow<List<Technique>> =
+            observeTechniqueMatches(query, categories)
+                .map { matches -> matches.map(TechniqueMatch::technique) }
 
-    override fun observeTechniques(
-        query: String,
-        categories: Set<CategoryId>,
-    ): Flow<List<Technique>> =
-        observeTechniqueMatches(query, categories)
-            .map { matches -> matches.map(TechniqueMatch::technique) }
+        override fun observeTechniqueMatches(
+            query: String,
+            categories: Set<CategoryId>,
+        ): Flow<List<TechniqueMatch>> {
+            // A normalizálás a `core/quiz` NameNormalizer-éé: ugyanaz az alak, amit a validátor
+            // V006 szinonimavizsgálata, a tárolt `aliasNormalized` és a két keresőoszlop
+            // használ (FR-03). Két külön szabály azt jelentené, hogy a keresés olyan egyezést
+            // talál, amit a szinonimakizárás nem tart azonosnak.
+            val pattern = searchPattern(NameNormalizer.normalize(query))
+            return combine(
+                matchingTechniques(pattern, categories),
+                database.techniqueAliasDao().observeAll(),
+            ) { rows, aliasRows ->
+                val aliasesById = aliasRows.groupBy { it.techniqueId }
+                rows.map { row ->
+                    TechniqueMatch(
+                        technique = row.technique.toTechnique(
+                            aliasesById[row.technique.id].orEmpty().map(TechniqueAliasEntity::alias),
+                        ),
+                        // Ha a technika saját neve is illeszkedett, a találat önmagát
+                        // magyarázza – ilyenkor nincs mit kiírni (FUNCTIONAL_SPEC 3.1).
+                        matchedAlias = row.matchedAlias.takeUnless { row.nameMatched },
+                    )
+                }
+            }.flowOn(ioDispatcher)
+        }
 
-    override fun observeTechniqueMatches(
-        query: String,
-        categories: Set<CategoryId>,
-    ): Flow<List<TechniqueMatch>> {
-        // A normalizálás a `core/quiz` NameNormalizer-éé: ugyanaz az alak, amit a validátor
-        // V006 szinonimavizsgálata, a tárolt `aliasNormalized` és a két keresőoszlop
-        // használ (FR-03). Két külön szabály azt jelentené, hogy a keresés olyan egyezést
-        // talál, amit a szinonimakizárás nem tart azonosnak.
-        val pattern = searchPattern(NameNormalizer.normalize(query))
-        return combine(
-            matchingTechniques(pattern, categories),
-            database.techniqueAliasDao().observeAll(),
-        ) { rows, aliasRows ->
-            val aliasesById = aliasRows.groupBy { it.techniqueId }
-            rows.map { row ->
-                TechniqueMatch(
-                    technique = row.technique.toTechnique(
-                        aliasesById[row.technique.id].orEmpty().map(TechniqueAliasEntity::alias),
-                    ),
-                    // Ha a technika saját neve is illeszkedett, a találat önmagát
-                    // magyarázza – ilyenkor nincs mit kiírni (FUNCTIONAL_SPEC 3.1).
-                    matchedAlias = row.matchedAlias.takeUnless { row.nameMatched },
+        override suspend fun getTechnique(id: TechniqueId): Technique? = withContext(ioDispatcher) {
+            // Itt szándékosan `getById`, nem az aktívakra szűrő lekérdezés: a Haladás
+            // képernyőnek a visszavont technikát is fel kell tudnia oldani (DR-07,
+            // FUNCTIONAL_SPEC 6.2). A `null` jelentése „ilyen azonosító nincs", nem
+            // „kikerült a tananyagból".
+            val row = database.techniqueDao().getById(id) ?: return@withContext null
+            val aliases = database.techniqueAliasDao().getForTechnique(id)
+            row.toTechnique(aliases.map(TechniqueAliasEntity::alias))
+        }
+
+        override suspend fun getQuizCandidates(categories: Set<CategoryId>): QuizCandidateSet =
+            withContext(ioDispatcher) {
+                val rows = if (categories.isEmpty()) {
+                    database.techniqueDao().getActive()
+                } else {
+                    database.techniqueDao().getActiveInCategories(categories.toList())
+                }
+                val aliasesById = database.techniqueAliasDao().getAll().groupBy { it.techniqueId }
+                val techniques = rows.map { row ->
+                    row.toTechnique(aliasesById[row.id].orEmpty().map(TechniqueAliasEntity::alias))
+                }
+                QuizCandidateSet(
+                    techniques = techniques,
+                    synonymGroups = synonymGroups(techniques.mapTo(HashSet()) { it.id }),
+                    illustrationDigests = illustrationDigests(techniques),
                 )
             }
-        }.flowOn(ioDispatcher)
-    }
 
-    override suspend fun getTechnique(id: TechniqueId): Technique? = withContext(ioDispatcher) {
-        // Itt szándékosan `getById`, nem az aktívakra szűrő lekérdezés: a Haladás
-        // képernyőnek a visszavont technikát is fel kell tudnia oldani (DR-07,
-        // FUNCTIONAL_SPEC 6.2). A `null` jelentése „ilyen azonosító nincs", nem
-        // „kikerült a tananyagból".
-        val row = database.techniqueDao().getById(id) ?: return@withContext null
-        val aliases = database.techniqueAliasDao().getForTechnique(id)
-        row.toTechnique(aliases.map(TechniqueAliasEntity::alias))
-    }
+        override fun observeContentState(): Flow<ContentState> =
+            combine(
+                database.contentStateDao().observe(),
+                database.techniqueDao().observeActiveCount(),
+            ) { state, activeCount -> state.toContentState(activeCount) }
+                .flowOn(ioDispatcher)
 
-    override suspend fun getQuizCandidates(categories: Set<CategoryId>): QuizCandidateSet =
-        withContext(ioDispatcher) {
-            val rows = if (categories.isEmpty()) {
-                database.techniqueDao().getActive()
+        /**
+         * A keresésnek megfelelő aktív technikák a kategóriaszűrő két ágán.
+         *
+         * Üres halmaz jelentése **minden kategória**, nem „semmi" – ezért külön lekérdezés,
+         * nem egy `IN ()` üres listával (az egyetlen sort sem adna vissza).
+         */
+        private fun matchingTechniques(
+            pattern: String,
+            categories: Set<CategoryId>,
+        ): Flow<List<TechniqueSearchRow>> =
+            if (categories.isEmpty()) {
+                database.techniqueDao().observeActiveMatching(pattern)
             } else {
-                database.techniqueDao().getActiveInCategories(categories.toList())
+                database.techniqueDao()
+                    .observeActiveMatchingInCategories(pattern, categories.toList())
             }
-            val aliasesById = database.techniqueAliasDao().getAll().groupBy { it.techniqueId }
-            val techniques = rows.map { row ->
-                row.toTechnique(aliasesById[row.id].orEmpty().map(TechniqueAliasEntity::alias))
-            }
-            QuizCandidateSet(
-                techniques = techniques,
-                synonymGroups = synonymGroups(techniques.mapTo(HashSet()) { it.id }),
-                illustrationDigests = illustrationDigests(techniques),
-            )
+
+        /**
+         * A `synonym_group` tagságok visszaolvasása a [QuizCandidateSet] alakjára (V006, CR-07).
+         *
+         * A szűrés után a csoportok **megcsonkulhatnak**: egy visszavont vagy kategóriaszűrőn
+         * kiesett tag nem lehet a készlet része, és a [QuizCandidateSet] konstruktora joggal
+         * dobna egy ismeretlen azonosítóra hivatkozó csoportra. Ezért a nem ismert tagok
+         * kiesnek, és a kétnél kevesebb tagúra fogyott csoport is – egy egyelemű „csoport"
+         * nem zár ki semmit.
+         */
+        private suspend fun synonymGroups(knownIds: Set<TechniqueId>): List<Set<TechniqueId>> =
+            database.synonymGroupDao()
+                .getAll()
+                .groupBy { it.groupId }
+                .toSortedMap()
+                .values
+                .map { members ->
+                    members.asSequence()
+                        .map { it.techniqueId }
+                        .filterTo(LinkedHashSet()) { it in knownIds }
+                }
+                .filter { it.size >= 2 }
+
+        /**
+         * Az illusztráció-ujjlenyomatok a jelöltkészlethez (FR-13, T-402) – lásd az osztály
+         * fejdokumentációját a fájlnév-alapú választás indokáért.
+         *
+         * Csak a validált, valódi képpel rendelkező ([IllustrationRef.Asset]) technikák
+         * kapnak bejegyzést; a [IllustrationRef.Placeholder] és a hiányzó hivatkozás nélkül
+         * marad – a [QuizCandidateSet] konstruktora csak ezekre engedi a kulcsot.
+         */
+        private fun illustrationDigests(techniques: List<Technique>): Map<TechniqueId, String> =
+            techniques.mapNotNull { technique ->
+                (technique.illustration as? IllustrationRef.Asset)?.let { asset ->
+                    technique.id to asset.fileName
+                }
+            }.toMap()
+
+        /**
+         * A normalizált keresőszövegből **kész `LIKE` minta** (FR-03, ADR-012).
+         *
+         * Két dolgot tesz, és mindkettő szándékos:
+         *
+         * 1. **Rész-szó egyezés**: `%` mindkét oldalon, tehát a `dachi` a `Heisoku Dachi`
+         *    végén is talál, nem csak prefixként.
+         * 2. **A joker karakterek escape-elése**: a beírt `%` és `_` literális karakter, nem
+         *    joker – egy „%" beírása különben a teljes tudástárat adná vissza. Az escape
+         *    karakter a `\`, ezért azt kell elsőként duplázni.
+         *
+         * Üres keresőszövegre a minta `%`: minden sorra illeszkedik, mert a kikapcsolt szűrő
+         * jelentése „nincs szűrés", nem „nincs találat".
+         */
+        private fun searchPattern(normalizedQuery: String): String {
+            val escaped = normalizedQuery
+                .replace("""\""", """\\""")
+                .replace("%", """\%""")
+                .replace("_", """\_""")
+            return "%$escaped%"
         }
-
-    override fun observeContentState(): Flow<ContentState> =
-        combine(
-            database.contentStateDao().observe(),
-            database.techniqueDao().observeActiveCount(),
-        ) { state, activeCount -> state.toContentState(activeCount) }
-            .flowOn(ioDispatcher)
-
-    /**
-     * A keresésnek megfelelő aktív technikák a kategóriaszűrő két ágán.
-     *
-     * Üres halmaz jelentése **minden kategória**, nem „semmi" – ezért külön lekérdezés,
-     * nem egy `IN ()` üres listával (az egyetlen sort sem adna vissza).
-     */
-    private fun matchingTechniques(
-        pattern: String,
-        categories: Set<CategoryId>,
-    ): Flow<List<TechniqueSearchRow>> =
-        if (categories.isEmpty()) {
-            database.techniqueDao().observeActiveMatching(pattern)
-        } else {
-            database.techniqueDao()
-                .observeActiveMatchingInCategories(pattern, categories.toList())
-        }
-
-    /**
-     * A `synonym_group` tagságok visszaolvasása a [QuizCandidateSet] alakjára (V006, CR-07).
-     *
-     * A szűrés után a csoportok **megcsonkulhatnak**: egy visszavont vagy kategóriaszűrőn
-     * kiesett tag nem lehet a készlet része, és a [QuizCandidateSet] konstruktora joggal
-     * dobna egy ismeretlen azonosítóra hivatkozó csoportra. Ezért a nem ismert tagok
-     * kiesnek, és a kétnél kevesebb tagúra fogyott csoport is – egy egyelemű „csoport"
-     * nem zár ki semmit.
-     */
-    private suspend fun synonymGroups(knownIds: Set<TechniqueId>): List<Set<TechniqueId>> =
-        database.synonymGroupDao()
-            .getAll()
-            .groupBy { it.groupId }
-            .toSortedMap()
-            .values
-            .map { members ->
-                members.asSequence()
-                    .map { it.techniqueId }
-                    .filterTo(LinkedHashSet()) { it in knownIds }
-            }
-            .filter { it.size >= 2 }
-
-    /**
-     * Az illusztráció-ujjlenyomatok a jelöltkészlethez (FR-13, T-402) – lásd az osztály
-     * fejdokumentációját a fájlnév-alapú választás indokáért.
-     *
-     * Csak a validált, valódi képpel rendelkező ([IllustrationRef.Asset]) technikák
-     * kapnak bejegyzést; a [IllustrationRef.Placeholder] és a hiányzó hivatkozás nélkül
-     * marad – a [QuizCandidateSet] konstruktora csak ezekre engedi a kulcsot.
-     */
-    private fun illustrationDigests(techniques: List<Technique>): Map<TechniqueId, String> =
-        techniques.mapNotNull { technique ->
-            (technique.illustration as? IllustrationRef.Asset)?.let { asset ->
-                technique.id to asset.fileName
-            }
-        }.toMap()
-
-    /**
-     * A normalizált keresőszövegből **kész `LIKE` minta** (FR-03, ADR-012).
-     *
-     * Két dolgot tesz, és mindkettő szándékos:
-     *
-     * 1. **Rész-szó egyezés**: `%` mindkét oldalon, tehát a `dachi` a `Heisoku Dachi`
-     *    végén is talál, nem csak prefixként.
-     * 2. **A joker karakterek escape-elése**: a beírt `%` és `_` literális karakter, nem
-     *    joker – egy „%" beírása különben a teljes tudástárat adná vissza. Az escape
-     *    karakter a `\`, ezért azt kell elsőként duplázni.
-     *
-     * Üres keresőszövegre a minta `%`: minden sorra illeszkedik, mert a kikapcsolt szűrő
-     * jelentése „nincs szűrés", nem „nincs találat".
-     */
-    private fun searchPattern(normalizedQuery: String): String {
-        val escaped = normalizedQuery
-            .replace("""\""", """\\""")
-            .replace("%", """\%""")
-            .replace("_", """\_""")
-        return "%$escaped%"
     }
-}

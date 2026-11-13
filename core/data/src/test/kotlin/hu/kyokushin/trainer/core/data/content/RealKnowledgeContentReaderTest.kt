@@ -25,7 +25,6 @@ import org.junit.Test
  * illusztráció, 3 feliratos kép) ezért vannak kőbe zárva.
  */
 class RealKnowledgeContentReaderTest {
-
     private val validator = DefaultKnowledgeValidator()
 
     @Test
@@ -70,8 +69,10 @@ class RealKnowledgeContentReaderTest {
         val report = validator.validate(readRealContent())
 
         // A hibalista a hibaüzenet része: ha elbukik, látni kell, melyik rekordon.
-        assertThat(report.issues.filter { it.severity == Severity.BLOCKING }
-            .map { "${it.code}/${it.entryId ?: "-"}/${it.field ?: "-"}" }).isEmpty()
+        assertThat(
+            report.issues.filter { it.severity == Severity.BLOCKING }
+                .map { "${it.code}/${it.entryId ?: "-"}/${it.field ?: "-"}" },
+        ).isEmpty()
         assertThat(report.datasetRejected).isFalse()
         assertThat(report.rejected).isEmpty()
         assertThat(report.accepted).hasSize(EXPECTED_ENTRY_COUNT)
@@ -114,7 +115,6 @@ class RealKnowledgeContentReaderTest {
     }
 
     private companion object {
-
         /** `knowledgebase_transfer/README.md`: 161 rekord, 9 kategória, 10 illusztráció. */
         const val EXPECTED_ENTRY_COUNT = 161
         const val EXPECTED_CATEGORY_COUNT = 9

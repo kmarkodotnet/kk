@@ -7,8 +7,8 @@ import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
-import java.io.File
 import org.junit.Test
+import java.io.File
 
 /**
  * A kvízmotor **invariánsainak** teljes lefedése egyetlen, végigsöpört mátrixon
@@ -29,7 +29,6 @@ import org.junit.Test
  * együtt.
  */
 class QuizPlanInvariantTest {
-
     private val textTypes = setOf(QuestionType.JP_TO_HU, QuestionType.HU_TO_JP)
     private val imageTypes = setOf(QuestionType.IMAGE_TO_JP, QuestionType.JP_TO_IMAGE)
 

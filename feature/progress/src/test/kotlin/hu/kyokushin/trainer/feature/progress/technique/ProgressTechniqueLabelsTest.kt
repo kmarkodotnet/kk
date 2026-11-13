@@ -13,7 +13,6 @@ import org.junit.Test
  * `@StringRes Int`-et adnak vissza, nem oldanak fel szöveget.
  */
 class ProgressTechniqueLabelsTest {
-
     @Test
     fun questionTypeLabelRes_mapsEveryTypeToItsOwnResource_FR25() {
         assertThat(ProgressTechniqueLabels.questionTypeLabelRes(QuestionType.JP_TO_HU))

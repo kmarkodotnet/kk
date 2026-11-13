@@ -54,7 +54,6 @@ data class Score(
  * azt az ítéletet kell megőrizni (DR-09, lásd a `QuizAttempt` dokumentációját).
  */
 object QuizScoring {
-
     /**
      * Összegzi a megválaszolt kérdéseket.
      *

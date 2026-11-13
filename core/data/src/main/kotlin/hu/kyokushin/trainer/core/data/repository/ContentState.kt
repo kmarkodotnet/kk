@@ -33,7 +33,6 @@ import java.time.Instant
  * kapja. Itt csak **összegzés** van, mert a Beállítások képernyőnek is csak az kell.
  */
 sealed interface ContentState {
-
     /**
      * A tudástár bizalmi szintje (ADR-010, CR-02).
      *

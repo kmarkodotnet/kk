@@ -25,7 +25,6 @@ import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
  * hívó UI a futás idejére `Loading` állapotot tud mutatni (NFR-01).
  */
 interface ContentImporter {
-
     /**
      * Betölti a csomagolt tudástárat, **ha** a csomagolt `dataset_version` eltér a
      * tároltól.
@@ -57,7 +56,6 @@ interface ContentImporter {
  * `success: Boolean` mezős típus ezt a különbséget elrejtené.
  */
 sealed interface ImportResult {
-
     /**
      * A tárolt tartalomverzió megegyezik a csomagolttal: nem futott se validáció, se
      * adatbázisírás (FR-30 idempotencia).

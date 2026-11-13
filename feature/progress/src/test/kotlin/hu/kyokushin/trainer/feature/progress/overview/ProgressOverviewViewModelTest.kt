@@ -15,7 +15,6 @@ import hu.kyokushin.trainer.feature.progress.CATEGORY_TSUKI
 import hu.kyokushin.trainer.feature.progress.FakeProgressOverviewRepository
 import hu.kyokushin.trainer.feature.progress.FakeProgressTechniqueRepository
 import hu.kyokushin.trainer.feature.progress.progressImportedState
-import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -30,6 +29,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.time.Instant
 
 /**
  * A Haladás áttekintő ViewModel viselkedése – emulátor nélkül (T-503, FR-23, FR-24,
@@ -41,7 +41,6 @@ import org.junit.Test
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProgressOverviewViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())

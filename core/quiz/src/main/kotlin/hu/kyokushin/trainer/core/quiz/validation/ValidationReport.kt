@@ -41,7 +41,6 @@ data class ValidationReport(
     val datasetVersion: String? = null,
     val schemaVersion: String? = null,
 ) {
-
     /**
      * A teljes tudástár elutasítva – tipikusan nem támogatott `schemaVersion` (V001) vagy
      * értelmezhetetlen JSON (V010) miatt.

@@ -41,7 +41,8 @@ internal fun QuizAttemptEntity.toQuizAttempt(): QuizAttempt = QuizAttempt(
 
 /**
  * Egy önértékelés sor → domain leképezés (FR-28, T-506) – a technika-részletező
- * önértékelési előzményéhez ([hu.kyokushin.trainer.core.data.repository.ProgressRepository.observeStudyReviewHistory]).
+ * önértékelési előzményéhez
+ * ([hu.kyokushin.trainer.core.data.repository.ProgressRepository.observeStudyReviewHistory]).
  */
 internal fun StudyReviewEntity.toStudyReview(): StudyReview = StudyReview(
     id = id,

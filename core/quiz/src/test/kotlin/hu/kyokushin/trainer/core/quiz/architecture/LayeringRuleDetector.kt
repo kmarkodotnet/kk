@@ -13,9 +13,9 @@ import java.io.File
  * függvényekkel.
  */
 internal object LayeringRuleDetector {
-
     private val FORBIDDEN_IMPORT_KEYWORDS = listOf("android.", "androidx.", "room", "compose")
-    private val FORBIDDEN_RUNTIME_CALLS = listOf("Random.Default", "System.currentTimeMillis", "Instant.now", "Math.random")
+    private val FORBIDDEN_RUNTIME_CALLS =
+        listOf("Random.Default", "System.currentTimeMillis", "Instant.now", "Math.random")
     private val FORBIDDEN_TYPE_SUFFIXES = listOf("Entity", "Dao", "Dto")
     private val BLOCK_COMMENT_REGEX = Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL)
 

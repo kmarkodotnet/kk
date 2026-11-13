@@ -13,7 +13,6 @@ package hu.kyokushin.trainer.core.model
  * típus a megjelenítés egyetlen bemenete a renderelő oldalon.
  */
 enum class QuestionType {
-
     /** Japán (romaji) név látszik, a magyar jelentést kell kiválasztani. */
     JP_TO_HU,
 

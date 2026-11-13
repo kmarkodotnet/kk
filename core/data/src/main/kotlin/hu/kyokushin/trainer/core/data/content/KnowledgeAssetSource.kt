@@ -17,7 +17,6 @@ import java.io.IOException
  * típusa (ADR-001, L3): a `core/data`-ból nem szivárog ki.
  */
 internal interface KnowledgeAssetSource {
-
     /**
      * A [relativePath] fájl teljes szöveges tartalma UTF-8 kódolással.
      *
@@ -46,7 +45,6 @@ internal interface KnowledgeAssetSource {
  * `knowledgebase_transfer/` másolata, és nincs konverziós réteg a kettő között.
  */
 internal object KnowledgeAssetLayout {
-
     /** A tudástár gyökérkönyvtára az assetsben. */
     const val ROOT: String = "knowledge"
 
@@ -75,7 +73,6 @@ internal class AndroidKnowledgeAssetSource(
     private val assets: AssetManager,
     private val rootDirectory: String = KnowledgeAssetLayout.ROOT,
 ) : KnowledgeAssetSource {
-
     override fun readText(relativePath: String): String =
         assets.open(resolve(relativePath)).use { stream ->
             stream.readBytes().toString(Charsets.UTF_8)

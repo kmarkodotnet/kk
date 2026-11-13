@@ -10,9 +10,9 @@ import hu.kyokushin.trainer.core.data.repository.ProgressRepository
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.quiz.generator.QuizGenerator
 import hu.kyokushin.trainer.core.quiz.validation.KnowledgeValidator
+import kotlinx.coroutines.CoroutineDispatcher
 import java.time.Clock
 import kotlin.random.Random
-import kotlinx.coroutines.CoroutineDispatcher
 
 /**
  * Az alkalmazásszintű kötések belépési pontja (T-203).
@@ -38,7 +38,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface KyokushinGraph {
-
     fun techniqueRepository(): TechniqueRepository
 
     fun progressRepository(): ProgressRepository

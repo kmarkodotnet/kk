@@ -21,7 +21,6 @@ package hu.kyokushin.trainer.core.quiz.validation
  * ugyanazt a jelentést adja, és a hívás semmit nem módosít a bemeneten.
  */
 fun interface KnowledgeValidator {
-
     /**
      * Validálja a tudástárat, és strukturált jelentést ad.
      *

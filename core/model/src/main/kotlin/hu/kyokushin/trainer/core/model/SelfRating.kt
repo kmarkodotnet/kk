@@ -8,7 +8,6 @@ package hu.kyokushin.trainer.core.model
  * 10. pontja szerint MOST nem implementálandó, így a modell sem nyit rá kaput.
  */
 enum class SelfRating {
-
     /** A felhasználó szerint tudta a technikát. */
     KNEW,
 

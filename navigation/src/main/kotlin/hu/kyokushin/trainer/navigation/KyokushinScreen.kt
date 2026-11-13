@@ -61,6 +61,7 @@ enum class KyokushinScreen(
         topLevel = true,
         showsBottomBar = true,
     ),
+
     /**
      * A `categoryIds`/`hideMode` opcionális lekérdezőparaméter neve **szándékosan**
      * egyezik a [LearnCardsViewModel.KEY_CATEGORY_IDS]/[LearnCardsViewModel.KEY_HIDE_MODE]
@@ -130,7 +131,6 @@ enum class KyokushinScreen(
     ;
 
     companion object {
-
         /**
          * A megadott útvonalmintához tartozó képernyő, vagy `null`, ha nincs ilyen.
          *
@@ -159,7 +159,6 @@ object NavArgs {
  * (`TechniqueId.of(...)`). Az útvonal nem domain határ, hanem szövegminta.
  */
 object KyokushinRoutes {
-
     fun libraryDetail(techniqueId: String): String = "library/detail/$techniqueId"
 
     /**

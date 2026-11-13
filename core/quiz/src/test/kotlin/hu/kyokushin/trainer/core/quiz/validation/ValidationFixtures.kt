@@ -1,6 +1,6 @@
 package hu.kyokushin.trainer.core.quiz.validation
 
-/**
+/*
  * A validátor-tesztek közös bemenetépítői (TR-01).
  *
  * Miért közös fájl, és nem osztályonkénti privát segédek? A TR-01 készlet három

@@ -3,8 +3,8 @@ package hu.kyokushin.trainer.core.quiz.generator
 import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.Technique
-import java.io.File
 import org.junit.Test
+import java.io.File
 
 /**
  * A [DefaultQuizGenerator] seedelt determinizmusa és a terv összeállítása
@@ -25,7 +25,6 @@ import org.junit.Test
  * a T-109 készlete fedi; itt szándékosan nem ismételjük meg őket.
  */
 class DefaultQuizGeneratorTest {
-
     /** Egy kategóriában ennyi, szöveges típusokra kvízképes technika. */
     private fun pool(count: Int, categoryId: String = "geri"): List<Technique> =
         (1..count).map { index ->

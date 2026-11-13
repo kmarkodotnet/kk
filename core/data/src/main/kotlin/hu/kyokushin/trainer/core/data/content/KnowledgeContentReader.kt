@@ -5,10 +5,10 @@ import hu.kyokushin.trainer.core.quiz.validation.IssueCode
 import hu.kyokushin.trainer.core.quiz.validation.KnowledgeInput
 import hu.kyokushin.trainer.core.quiz.validation.ValidationIssue
 import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
-import java.io.IOException
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import java.io.IOException
 
 /**
  * A csomagolt tudástár beolvasása és a validátor bemenetének összeállítása
@@ -35,7 +35,6 @@ internal class KnowledgeContentReader(
     private val source: KnowledgeAssetSource,
     private val json: Json = KnowledgeJson,
 ) {
-
     /**
      * Beolvassa a `manifest.json`-t, az `entries.json`-t és a csomagolt képfájlok listáját.
      *
@@ -96,7 +95,6 @@ internal class KnowledgeContentReader(
         val fileName: String,
         override val cause: Throwable,
     ) : Exception(cause) {
-
         /** A `V010` jelentés: a teljes betöltés elutasítva, diagnosztikával. */
         fun toReport(): ValidationReport = ValidationReport(
             issues = listOf(
@@ -113,7 +111,6 @@ internal class KnowledgeContentReader(
     }
 
     internal companion object {
-
         /** Olvasó a csomagolt assetek felett (`assets/knowledge/`). */
         fun forAssets(
             assets: AssetManager,
@@ -132,7 +129,6 @@ internal class KnowledgeContentReader(
  * különbséget elrejtené.
  */
 internal sealed interface KnowledgeContentReadResult {
-
     /**
      * A fájlok értelmezhetők voltak; a tartalmi szabályok vizsgálata még **nem** történt
      * meg.

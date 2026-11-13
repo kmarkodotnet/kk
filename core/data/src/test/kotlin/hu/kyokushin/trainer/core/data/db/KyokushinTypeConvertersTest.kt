@@ -9,9 +9,9 @@ import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
-import java.time.Instant
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.time.Instant
 
 /**
  * A Room oszlop-konverterek tesztjei (DR-08).
@@ -20,7 +20,6 @@ import org.junit.Test
  * és ez a réteg az, ahol a séma és a domain között adat romolhat.
  */
 class KyokushinTypeConvertersTest {
-
     private val converters = KyokushinTypeConverters()
 
     // --- Instant ↔ Long -----------------------------------------------------------

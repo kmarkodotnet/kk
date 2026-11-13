@@ -18,7 +18,6 @@ import org.junit.Test
  * (ADR-011). Ha a tartalom változik, ez a teszt kikényszeríti, hogy valaki tudomásul vegye.
  */
 class RealContentCandidateFilterTest {
-
     private val report = DefaultKnowledgeValidator().validate(RealKnowledgeBase.load())
 
     private fun realRequest(

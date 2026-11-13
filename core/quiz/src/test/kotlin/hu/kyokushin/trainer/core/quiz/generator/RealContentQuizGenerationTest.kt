@@ -27,7 +27,6 @@ import org.junit.Test
  * kategóriaméreteket, szinonimacsoportokat és a három feliratos képet hordozza (ADR-011).
  */
 class RealContentQuizGenerationTest {
-
     private val report = DefaultKnowledgeValidator().validate(RealKnowledgeBase.load())
 
     private val imageTypes = setOf(QuestionType.IMAGE_TO_JP, QuestionType.JP_TO_IMAGE)

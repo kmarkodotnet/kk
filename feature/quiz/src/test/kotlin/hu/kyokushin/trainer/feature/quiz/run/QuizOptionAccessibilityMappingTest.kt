@@ -19,7 +19,6 @@ import org.junit.Test
  * semmilyen helyesség-állapot nem jelenik meg a TalkBack felé.
  */
 class QuizOptionAccessibilityMappingTest {
-
     @Test
     fun unanswered_hasNoIconTextOrStateDescription_NFR04() {
         // Válasz előtt egyetlen opció sem árulhat el semmit a helyességről.

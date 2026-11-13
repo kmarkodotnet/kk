@@ -22,7 +22,6 @@ package hu.kyokushin.trainer.core.quiz.generator
  *    `dryRun(r).expectedQuestionCount == generate(r).questionCount` minden `r`-re (T-111).
  */
 interface QuizGenerator {
-
     /**
      * Összeállítja a kvíz tervét.
      *

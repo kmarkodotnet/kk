@@ -56,7 +56,6 @@ data class QuizPlan(
  * hiba lesz minden olyan helyen, ahol a `when` nem kezeli.
  */
 enum class SkipReason {
-
     /**
      * A szűrt jelöltkészletben nincs elég kvízképes technika ehhez a típushoz: a helyes
      * válasz mellé nem áll össze három elfogadható distraktor (FR-14).
@@ -113,7 +112,6 @@ data class Shortfall(
  * nem jött ki a kért kérdésszám.
  */
 enum class ShortfallReason {
-
     /**
      * Kevesebb kvízképes technika volt a szűrt készletben, mint a kért kérdésszám. A motor
      * nem ismétli ugyanazt a helyes technikát, amíg van fel nem használt jelölt, és

@@ -25,14 +25,14 @@ import hu.kyokushin.trainer.core.model.VerificationStatus
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
 import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * Közös tesztsegédek a `feature/learn` modulhoz (T-302, T-303, G-04 csoport).
@@ -134,7 +134,6 @@ internal class FakeLearnTechniqueRepository(
     techniques: List<Technique> = ALL_LEARN_TECHNIQUES,
     contentState: ContentState = learnImportedState(ALL_LEARN_TECHNIQUES.size),
 ) : TechniqueRepository {
-
     private val categoriesFlow = MutableStateFlow(categories)
     private val techniquesFlow = MutableStateFlow(techniques)
     private val contentStateFlow = MutableStateFlow(contentState)
@@ -170,7 +169,6 @@ internal class FakeLearnTechniqueRepository(
  * azonnal kiderüljön, ne csendben nullázzon valamit.
  */
 internal class FakeLearnProgressRepository : ProgressRepository {
-
     private val _recordedReviews = mutableListOf<Pair<TechniqueId, SelfRating>>()
 
     /** Minden [recordStudyReview] hívás, a hívás sorrendjében. */
@@ -182,13 +180,11 @@ internal class FakeLearnProgressRepository : ProgressRepository {
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("A tanulás nem rögzít kvízválaszt.")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("A tanulás nem zár le kvízmenetet.")
-    }
 
-    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? {
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         throw UnsupportedOperationException("A tanulás nem olvas vissza kvízeredményt.")
-    }
 
     override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
         _recordedReviews += techniqueId to rating
@@ -212,16 +208,14 @@ internal class FakeLearnProgressRepository : ProgressRepository {
     override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
         throw UnsupportedOperationException("A tanulás nem olvassa az önértékelési előzményt (T-506).")
 
-    override suspend fun clearAllProgress() {
+    override suspend fun clearAllProgress(): Unit =
         throw UnsupportedOperationException("A tanulás nem törli a haladást.")
-    }
 }
 
 /** A tartalomimport tesztdublőre; a kimenetét és a kivételét a teszt dönti el. */
 internal class FakeLearnContentImporter(
     private val result: () -> ImportResult = { ImportResult.UpToDate("test-1") },
 ) : ContentImporter {
-
     var importCount: Int = 0
         private set
 
@@ -238,7 +232,6 @@ internal class FakeLearnContentImporter(
  * állapot egyetlen honest mérése (lásd `LibraryListFakes.GatedContentImporter`).
  */
 internal class GatedLearnContentImporter(private val gate: Job) : ContentImporter {
-
     override suspend fun importIfNeeded(): ImportResult {
         gate.join()
         return ImportResult.UpToDate("test-1")

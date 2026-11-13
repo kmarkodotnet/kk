@@ -40,8 +40,8 @@ import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.scoring.Score
 import hu.kyokushin.trainer.core.ui.illustration.IllustrationLabel
 import hu.kyokushin.trainer.core.ui.illustration.TechniqueIllustration
-import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 import hu.kyokushin.trainer.core.ui.status.UnreviewedBanner
+import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 import hu.kyokushin.trainer.feature.quiz.R
 import hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult
 import hu.kyokushin.trainer.feature.quiz.setup.questionTypeLabelRes
@@ -378,7 +378,11 @@ private val PREVIEW_CONTENT_NO_ANSWERS = QuizResultUiState.Content(
 )
 
 @Preview(name = "Betöltés – világos", showBackground = true)
-@Preview(name = "Betöltés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun QuizResultScreenLoadingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -469,7 +473,11 @@ private fun QuizResultScreenAbortedPreview() {
 }
 
 @Preview(name = "0 válasz – világos", showBackground = true)
-@Preview(name = "0 válasz – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "0 válasz – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun QuizResultScreenNoAnswersPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

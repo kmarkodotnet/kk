@@ -48,7 +48,6 @@ import hu.kyokushin.trainer.core.quiz.generator.Shortfall
  *   (ADR-010).
  */
 sealed interface QuizSetupUiState {
-
     /** Első betöltés fut (a tartalomimportot ez a ViewModel indítja, FUNCTIONAL_SPEC 7.1). */
     data object Loading : QuizSetupUiState
 

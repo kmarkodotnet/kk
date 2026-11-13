@@ -32,7 +32,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object TimeModule {
-
     @Provides
     @Singleton
     fun provideClock(): Clock = Clock.systemUTC()

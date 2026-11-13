@@ -269,7 +269,8 @@ private fun ProgressTechniqueSelfRatingHistorySection(history: List<StudyReview>
                 history.forEach { review ->
                     Text(
                         text = stringResource(ProgressTechniqueLabels.selfRatingLabelRes(review.selfRating)) +
-                            " · " + stringResource(R.string.progress_last_practiced, formatLastPracticed(review.reviewedAt)),
+                            " · " +
+                            stringResource(R.string.progress_last_practiced, formatLastPracticed(review.reviewedAt)),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -325,7 +326,11 @@ private val PREVIEW_CONTENT_RETIRED_NO_DATA = PREVIEW_CONTENT.copy(
 )
 
 @Preview(name = "Betöltés – világos", showBackground = true)
-@Preview(name = "Betöltés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressTechniqueScreenLoadingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -338,7 +343,11 @@ private fun ProgressTechniqueScreenLoadingPreview() {
 }
 
 @Preview(name = "Hiba – világos", showBackground = true)
-@Preview(name = "Hiba – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Hiba – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressTechniqueScreenErrorPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

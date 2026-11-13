@@ -23,7 +23,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class LearnCardPoliciesTest {
-
     // --------------------------------------------------------------------- T-305
 
     @Test

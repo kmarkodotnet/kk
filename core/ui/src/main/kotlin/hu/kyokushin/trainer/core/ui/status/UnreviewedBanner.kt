@@ -79,7 +79,6 @@ fun UnreviewedBanner(
  * `strings.xml` fölött tesztelhető legyen.
  */
 object UnreviewedNotice {
-
     /**
      * A szalag szövege, vagy `null`, ha nincs szalag.
      *

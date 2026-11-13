@@ -28,7 +28,6 @@ import hu.kyokushin.trainer.core.model.VerificationStatus
  * viselkedés ne tudjon elválni.
  */
 object QuizEligibility {
-
     /**
      * Átjut-e a technika a kapun az adott kérdéstípusnál és bizalmi szinten.
      *

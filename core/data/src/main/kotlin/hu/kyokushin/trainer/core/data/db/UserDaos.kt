@@ -22,7 +22,6 @@ import java.time.Instant
 
 @Dao
 internal interface QuizSessionDao {
-
     @Insert
     suspend fun insert(session: QuizSessionEntity)
 
@@ -65,7 +64,6 @@ internal interface QuizSessionDao {
 
 @Dao
 internal interface QuizAttemptDao {
-
     /**
      * Egy kvízválasz rögzítése – **az egyszeri válasz kikényszerítésének helye** (FR-18).
      *
@@ -233,7 +231,6 @@ internal interface QuizAttemptDao {
 
 @Dao
 internal interface StudyReviewDao {
-
     /**
      * Önértékelés rögzítése. Minden hívás **új sort** hoz létre, az ismételt önértékelés
      * nem ütközés, hanem a haladás időbeli alakulásának adata (DR-09).

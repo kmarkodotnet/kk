@@ -20,7 +20,6 @@ internal class FakeKnowledgeAssetSource(
     private val files: Map<String, String>,
     private val illustrationFiles: Set<String> = emptySet(),
 ) : KnowledgeAssetSource {
-
     override fun readText(relativePath: String): String =
         files[relativePath] ?: throw FileNotFoundException(relativePath)
 
@@ -42,7 +41,6 @@ internal class FakeKnowledgeAssetSource(
  * teszteli, hogy a modul ne függjön Android assetkezeléstől.
  */
 internal class RealContentAssetSource : KnowledgeAssetSource {
-
     override fun readText(relativePath: String): String = contentFile(relativePath).readText(Charsets.UTF_8)
 
     override fun listFileNames(relativeDirectory: String): Set<String> =
@@ -74,7 +72,6 @@ internal class RealContentAssetSource : KnowledgeAssetSource {
  * sem emeli.
  */
 internal object KnowledgeSourceFixtures {
-
     /** Az alap kiadás technikái: három valódi állás, a `stances` kategóriában. */
     val defaultEntries: List<String> = listOf(
         entry(id = "KY-0001"),
@@ -100,15 +97,17 @@ internal object KnowledgeSourceFixtures {
     ): FakeKnowledgeAssetSource = FakeKnowledgeAssetSource(
         files = mapOf(
             KnowledgeAssetLayout.MANIFEST_FILE to manifest(version, schemaVersion),
-            KnowledgeAssetLayout.ENTRIES_FILE to """
+            KnowledgeAssetLayout.ENTRIES_FILE to
+                """
                 { "schema_version": "$schemaVersion", "dataset_version": "$version",
                   "entries": [ ${entries.joinToString(",")} ] }
-            """.trimIndent(),
+                """.trimIndent(),
         ),
         illustrationFiles = setOf("KY-0044.jpg"),
     )
 
-    fun manifest(version: String, schemaVersion: String = DEFAULT_SCHEMA_VERSION): String = """
+    fun manifest(version: String, schemaVersion: String = DEFAULT_SCHEMA_VERSION): String =
+        """
         {
           "schema_version": "$schemaVersion",
           "dataset_version": "$version",
@@ -124,7 +123,7 @@ internal object KnowledgeSourceFixtures {
             }
           ]
         }
-    """.trimIndent()
+        """.trimIndent()
 
     /**
      * Egy rekord JSON töredéke.
@@ -138,7 +137,8 @@ internal object KnowledgeSourceFixtures {
         hungarian: String? = "Elöl álló állás",
         aliases: List<String> = listOf("Zenkucu dachi"),
         retired: Boolean = false,
-    ): String = """
+    ): String =
+        """
         {
           "id": "$id",
           "category_id": "stances",
@@ -150,7 +150,7 @@ internal object KnowledgeSourceFixtures {
           "quiz_excluded": false,
           "retired": $retired
         }
-    """.trimIndent()
+        """.trimIndent()
 
     private fun String?.jsonOrNull(): String = if (this == null) "null" else "\"$this\""
 

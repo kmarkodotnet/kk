@@ -14,7 +14,6 @@ import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
  * szerinti) véletlenszerű sorrend.
  */
 object ProgressDiagnosticsGrouping {
-
     fun buildGroups(report: ValidationReport, filter: SeverityFilter): List<ProgressDiagnosticsGroup> =
         report.issues
             .filter { matches(filter, it.severity) }

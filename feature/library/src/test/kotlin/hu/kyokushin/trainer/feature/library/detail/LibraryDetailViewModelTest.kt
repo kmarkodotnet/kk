@@ -44,7 +44,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class LibraryDetailViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -203,7 +202,6 @@ private class FailingGetTechniqueRepository(
     private val delegate: TechniqueRepository,
     private val shouldFailProvider: () -> Boolean,
 ) : TechniqueRepository by delegate {
-
     override suspend fun getTechnique(id: TechniqueId): Technique? {
         if (shouldFailProvider()) throw IllegalStateException("getTechnique failed (test)")
         return delegate.getTechnique(id)

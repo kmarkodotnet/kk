@@ -17,7 +17,6 @@ import org.junit.Test
  * helyessége nem függhet attól, milyen technikák vannak éppen a tudástárban.
  */
 class QuizQuestionContractTest {
-
     private val json = Json
 
     @Test
@@ -145,14 +144,16 @@ class QuizQuestionContractTest {
      */
     @Test
     fun corruptSavedState_cannotBypassQuestionInvariants_FR14() {
-        val tooFewOptions = """
+        val tooFewOptions =
+            """
             {"id":"Q-1","type":"JP_TO_HU","correctTechniqueId":"KY-0001",
              "optionTechniqueIds":["KY-0001","KY-0002"]}
-        """.trimIndent()
-        val blankId = """
+            """.trimIndent()
+        val blankId =
+            """
             {"id":"Q-1","type":"JP_TO_HU","correctTechniqueId":"  ",
              "optionTechniqueIds":["  ","KY-0002","KY-0003","KY-0004"]}
-        """.trimIndent()
+            """.trimIndent()
 
         assertThrows(IllegalArgumentException::class.java) {
             json.decodeFromString(QuizQuestion.serializer(), tooFewOptions)

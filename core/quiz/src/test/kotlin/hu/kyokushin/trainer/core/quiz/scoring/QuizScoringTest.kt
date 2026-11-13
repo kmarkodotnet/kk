@@ -6,8 +6,8 @@ import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.QuizAttempt
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
-import java.time.Instant
 import org.junit.Test
+import java.time.Instant
 
 /**
  * A [QuizScoring] alaptesztjei (T-113). A teljes TR-04 készlet – 0%, 100%, félbehagyott,
@@ -15,7 +15,6 @@ import org.junit.Test
  * pontjait fedjük, amelyek nélkül a függvény nem tekinthető késznek.
  */
 class QuizScoringTest {
-
     private val session = SessionId.of("session-1")
 
     /** Az `answeredAt` fix, injektált időpontból származik – a teszt sem hívja az órát. */

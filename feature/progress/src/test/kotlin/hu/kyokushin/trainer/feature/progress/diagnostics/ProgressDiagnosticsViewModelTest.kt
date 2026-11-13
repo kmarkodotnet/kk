@@ -36,7 +36,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ProgressDiagnosticsViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -82,7 +81,8 @@ class ProgressDiagnosticsViewModelTest {
     /** V001, `IssueScope.DATASET`, BLOKKOLÓ → a teljes tudástár elutasítva (`datasetRejected`). */
     @Test
     fun uiState_datasetScopedBlockingIssue_setsDatasetRejectedFlag_FR32() = runTest {
-        val report = ValidationReport(issues = listOf(ValidationIssue(code = IssueCode.V001, severity = Severity.BLOCKING)))
+        val report =
+            ValidationReport(issues = listOf(ValidationIssue(code = IssueCode.V001, severity = Severity.BLOCKING)))
         val viewModel = viewModel(report = report)
         val job = collectState(viewModel)
         advanceUntilIdle()

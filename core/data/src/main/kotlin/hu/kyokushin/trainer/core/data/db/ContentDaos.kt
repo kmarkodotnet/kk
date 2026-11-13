@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 internal interface CategoryDao {
-
     @Upsert
     suspend fun upsertAll(categories: List<CategoryEntity>)
 
@@ -43,7 +42,6 @@ internal interface CategoryDao {
 
 @Dao
 internal interface TechniqueDao {
-
     @Upsert
     suspend fun upsertAll(techniques: List<TechniqueEntity>)
 
@@ -193,7 +191,6 @@ internal interface TechniqueDao {
 
 @Dao
 internal interface TechniqueAliasDao {
-
     @Upsert
     suspend fun upsertAll(aliases: List<TechniqueAliasEntity>)
 
@@ -229,7 +226,6 @@ internal interface TechniqueAliasDao {
 
 @Dao
 internal interface SynonymGroupDao {
-
     @Upsert
     suspend fun upsertAll(members: List<SynonymGroupMemberEntity>)
 
@@ -246,7 +242,6 @@ internal interface SynonymGroupDao {
 
 @Dao
 internal interface ContentStateDao {
-
     @Upsert
     suspend fun upsert(state: ContentStateEntity)
 

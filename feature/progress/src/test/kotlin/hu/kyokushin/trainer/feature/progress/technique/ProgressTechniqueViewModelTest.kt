@@ -2,7 +2,6 @@ package hu.kyokushin.trainer.feature.progress.technique
 
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
-import hu.kyokushin.trainer.core.data.repository.ProgressRepository
 import hu.kyokushin.trainer.core.data.repository.TechniqueProgress
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.DatasetTrust
@@ -12,12 +11,10 @@ import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.scoring.Score
-import hu.kyokushin.trainer.core.ui.R as CoreUiR
 import hu.kyokushin.trainer.feature.progress.CATEGORY_DACHI
 import hu.kyokushin.trainer.feature.progress.FakeProgressTechniqueDetailRepository
 import hu.kyokushin.trainer.feature.progress.FakeProgressTechniqueRepository
 import hu.kyokushin.trainer.feature.progress.progressImportedState
-import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -35,6 +32,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Instant
+import hu.kyokushin.trainer.core.ui.R as CoreUiR
 
 /**
  * A technika-részletező ViewModel viselkedése – emulátor nélkül (T-506, FR-25, FR-28,
@@ -48,7 +47,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ProgressTechniqueViewModelTest {
-
     private val activeTechnique = Technique(
         id = TechniqueId.of("KY-0002"),
         categoryId = CATEGORY_DACHI.id,
@@ -287,7 +285,6 @@ private class FailingGetTechniqueRepository(
     private val delegate: TechniqueRepository,
     private val shouldFailProvider: () -> Boolean,
 ) : TechniqueRepository by delegate {
-
     override suspend fun getTechnique(id: TechniqueId): Technique? {
         if (shouldFailProvider()) throw IllegalStateException("getTechnique failed (test)")
         return delegate.getTechnique(id)

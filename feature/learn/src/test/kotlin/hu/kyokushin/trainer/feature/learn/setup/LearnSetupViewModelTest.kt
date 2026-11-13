@@ -15,7 +15,6 @@ import hu.kyokushin.trainer.feature.learn.GatedLearnContentImporter
 import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.learnImportedState
 import hu.kyokushin.trainer.feature.learn.learnTechnique
-import hu.kyokushin.trainer.feature.learn.R as LearnR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -33,6 +32,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import hu.kyokushin.trainer.feature.learn.R as LearnR
 
 /**
  * A tanulás-beállító ViewModel viselkedése – emulátor nélkül (T-302, FR-06, FR-07).
@@ -45,7 +45,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class LearnSetupViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())

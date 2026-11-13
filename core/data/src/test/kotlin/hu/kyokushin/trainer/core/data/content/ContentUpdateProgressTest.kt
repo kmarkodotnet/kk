@@ -15,9 +15,6 @@ import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.validation.DefaultKnowledgeValidator
 import hu.kyokushin.trainer.core.quiz.validation.IssueCode
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -28,6 +25,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * **TR-05: a tudástár frissítése nem viszi el az előrehaladást** (FR-33, DR-06, DR-07,
@@ -58,7 +58,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ContentUpdateProgressTest {
-
     private lateinit var database: KyokushinDatabase
 
     private val clock = Clock.fixed(Instant.ofEpochMilli(1_762_000_000_000L), ZoneOffset.UTC)

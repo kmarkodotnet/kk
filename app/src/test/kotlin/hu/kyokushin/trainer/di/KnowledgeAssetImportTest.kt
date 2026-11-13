@@ -6,7 +6,6 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
 import hu.kyokushin.trainer.core.data.content.ContentImporter
 import hu.kyokushin.trainer.core.data.content.ImportResult
-import javax.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -14,6 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import javax.inject.Inject
 
 /**
  * A csomagolt `app/src/main/assets/knowledge/` tartalom tényleges betöltése (T-601, FR-29,
@@ -43,7 +43,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = HiltTestApplication::class)
 class KnowledgeAssetImportTest {
-
     @get:Rule
     val hiltRule = HiltAndroidRule(this)
 

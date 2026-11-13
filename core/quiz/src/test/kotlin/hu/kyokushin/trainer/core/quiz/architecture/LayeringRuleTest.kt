@@ -33,7 +33,6 @@ import java.io.File
  * teszt JVM munkakönyvtára a modul saját könyvtára, nem a repó gyökere.
  */
 class LayeringRuleTest {
-
     @Test
     fun coreModelAndCoreQuiz_haveNoForbiddenImport_TR07_NFR03() {
         val violations = sourceFiles(CORE_MODULES).flatMap { file ->

@@ -355,8 +355,20 @@ private val PREVIEW_CATEGORIES = listOf(
 )
 
 private val PREVIEW_QUESTION_TYPES_ENABLED = listOf(
-    QuizQuestionTypeUiModel(QuestionType.JP_TO_HU, selected = true, enabled = true, disabledReasonRes = null, disabledReasonArg = 0),
-    QuizQuestionTypeUiModel(QuestionType.HU_TO_JP, selected = true, enabled = true, disabledReasonRes = null, disabledReasonArg = 0),
+    QuizQuestionTypeUiModel(
+        QuestionType.JP_TO_HU,
+        selected = true,
+        enabled = true,
+        disabledReasonRes = null,
+        disabledReasonArg = 0,
+    ),
+    QuizQuestionTypeUiModel(
+        QuestionType.HU_TO_JP,
+        selected = true,
+        enabled = true,
+        disabledReasonRes = null,
+        disabledReasonArg = 0,
+    ),
     QuizQuestionTypeUiModel(
         type = QuestionType.IMAGE_TO_JP,
         selected = false,

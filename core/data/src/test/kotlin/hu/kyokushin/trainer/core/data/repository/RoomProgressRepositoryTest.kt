@@ -15,11 +15,6 @@ import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -31,6 +26,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * A [ProgressRepository] tényleges viselkedése in-memory Room példányon
@@ -46,7 +46,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class RoomProgressRepositoryTest {
-
     private lateinit var database: KyokushinDatabase
     private lateinit var repository: ProgressRepository
 

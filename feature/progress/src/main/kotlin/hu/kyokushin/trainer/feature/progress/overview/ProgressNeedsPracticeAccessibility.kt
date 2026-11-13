@@ -19,7 +19,6 @@ import hu.kyokushin.trainer.feature.progress.R
  * tesztjeiben ne okozzon a futtató gép időzónájától függő, nem determinisztikus eredményt.
  */
 internal object ProgressNeedsPracticeAccessibility {
-
     fun describe(
         resources: Resources,
         item: ProgressNeedsPracticeItem,

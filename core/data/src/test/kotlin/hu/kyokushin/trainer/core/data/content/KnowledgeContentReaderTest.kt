@@ -22,7 +22,6 @@ import org.junit.Test
  *    validátor.
  */
 class KnowledgeContentReaderTest {
-
     private val validator = DefaultKnowledgeValidator()
 
     @Test
@@ -223,9 +222,9 @@ class KnowledgeContentReaderTest {
     )
 
     private companion object {
-
         /** A kanonikus manifest egy kategóriával és egy illusztrációval (ADR-011). */
-        val CANONICAL_MANIFEST = """
+        val CANONICAL_MANIFEST =
+            """
             {
               "schema_version": "1.0.0",
               "dataset_version": "0.1.0",
@@ -256,9 +255,10 @@ class KnowledgeContentReaderTest {
               ],
               "synonym_groups": []
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        fun canonicalEntries(reviewStatus: String) = """
+        fun canonicalEntries(reviewStatus: String) =
+            """
             {
               "schema_version": "1.0.0",
               "dataset_version": "0.1.0",
@@ -283,10 +283,11 @@ class KnowledgeContentReaderTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         /** Ugyanaz a manifest, kitalált jövőbeli mezőkkel minden szinten. */
-        val MANIFEST_WITH_FUTURE_FIELDS = """
+        val MANIFEST_WITH_FUTURE_FIELDS =
+            """
             {
               "schema_version": "1.0.0",
               "dataset_version": "0.1.0",
@@ -307,9 +308,10 @@ class KnowledgeContentReaderTest {
               ],
               "synonym_groups": []
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        val ENTRIES_WITH_FUTURE_FIELDS = """
+        val ENTRIES_WITH_FUTURE_FIELDS =
+            """
             {
               "schema_version": "1.0.0",
               "future_entries_field": "a konverter új kimenete",
@@ -324,9 +326,10 @@ class KnowledgeContentReaderTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
-        val ENTRIES_WITH_A_MISSING_MANDATORY_FIELD = """
+        val ENTRIES_WITH_A_MISSING_MANDATORY_FIELD =
+            """
             {
               "schema_version": "1.0.0",
               "entries": [
@@ -345,6 +348,6 @@ class KnowledgeContentReaderTest {
                 }
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
     }
 }

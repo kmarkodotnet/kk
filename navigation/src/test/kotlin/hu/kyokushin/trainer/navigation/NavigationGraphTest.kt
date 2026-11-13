@@ -13,7 +13,6 @@ import org.junit.Test
  * A tényleges koppintás-bejárás emulátort igényel – az a T-606 tárgya.
  */
 class NavigationGraphTest {
-
     @Test
     fun navGraph_declaresExactlyTheSpecifiedRoutes_NFR03() {
         val routes = KyokushinScreen.entries.map { it.routePattern }

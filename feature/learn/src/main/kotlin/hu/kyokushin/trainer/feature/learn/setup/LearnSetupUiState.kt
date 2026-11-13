@@ -39,7 +39,6 @@ import hu.kyokushin.trainer.feature.learn.HideMode
  *   (ADR-010).
  */
 sealed interface LearnSetupUiState {
-
     /** Első betöltés fut (a tartalomimportot ez a ViewModel indítja, FUNCTIONAL_SPEC 7.1). */
     data object Loading : LearnSetupUiState
 

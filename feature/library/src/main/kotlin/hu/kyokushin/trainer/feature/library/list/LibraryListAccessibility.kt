@@ -27,7 +27,6 @@ import hu.kyokushin.trainer.feature.library.R
  * között.
  */
 internal object LibraryListItemAccessibility {
-
     fun describe(resources: Resources, item: LibraryTechniqueUiModel): String {
         val statusLabel = VerificationBadgeText.label(resources, item.status)
         val core = listOfNotNull(item.romaji, item.hungarian, item.categoryNameHu, statusLabel)

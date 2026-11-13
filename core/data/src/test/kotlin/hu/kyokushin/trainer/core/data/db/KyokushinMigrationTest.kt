@@ -6,7 +6,6 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.sqlite.execSQL
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -14,6 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 /**
  * A séma 1 → 2 migrációja (DR-08, ADR-012, FR-03, FR-33).
@@ -37,7 +37,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class KyokushinMigrationTest {
-
     /** Az átmeneti adatbázisfájl – nem az éles `kyokushin.db`. */
     private val databaseFile = File(System.getProperty("java.io.tmpdir"), DATABASE_FILE_NAME)
 

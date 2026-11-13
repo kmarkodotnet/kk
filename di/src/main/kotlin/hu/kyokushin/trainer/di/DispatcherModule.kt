@@ -6,9 +6,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import hu.kyokushin.trainer.core.data.di.DefaultDispatcher
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import javax.inject.Singleton
 
 /**
  * A háttérszálkészletek kötése (ARCHITECTURE 7.: `DispatcherModule`, NFR-07, T-203).
@@ -28,7 +28,6 @@ import kotlinx.coroutines.Dispatchers
 @Module
 @InstallIn(SingletonComponent::class)
 internal object DispatcherModule {
-
     /**
      * Blokkoló I/O: Room lekérdezések, assetolvasás, tartalomimport.
      *

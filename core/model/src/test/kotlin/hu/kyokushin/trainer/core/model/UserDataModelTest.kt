@@ -17,7 +17,6 @@ import java.time.Instant
  * ADR-009 (`Instant` desugaring nélkül).
  */
 class UserDataModelTest {
-
     private val startedAt: Instant = Instant.parse("2026-11-11T09:00:00Z")
     private val answeredAt: Instant = Instant.parse("2026-11-11T09:00:12Z")
 

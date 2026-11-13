@@ -19,7 +19,6 @@ package hu.kyokushin.trainer.core.model
  * jogosultság **egyetlen típusvizsgálat** (CR-05, FR-13).
  */
 sealed interface IllustrationRef {
-
     /**
      * Validált, a csomagban tényleg létező képfájl.
      *

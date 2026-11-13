@@ -9,7 +9,7 @@ import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
 import hu.kyokushin.trainer.core.quiz.validation.CategoryInput
 
-/**
+/*
  * A **tartalom** oldali entitás ↔ domain leképezés (ADR-001 L3/L4, ARCHITECTURE 5.1).
  *
  * Ez a réteg az, ami miatt a Room entitás nem szivárog ki a `core/data`-ból: a

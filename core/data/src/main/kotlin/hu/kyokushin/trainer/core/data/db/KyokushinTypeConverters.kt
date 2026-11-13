@@ -40,7 +40,6 @@ import java.time.Instant
  * unit teszt pedig ugyanazt a példányt használja, amit a generált kód.
  */
 internal class KyokushinTypeConverters {
-
     // --- Időbélyeg ---------------------------------------------------------------
 
     /** `Instant` → epoch milli. `null` marad `null` (pl. `quiz_session.finishedAt`, FR-19). */

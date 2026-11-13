@@ -24,7 +24,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class LibraryListAccessibilityTest {
-
     private lateinit var resources: Resources
 
     @Before

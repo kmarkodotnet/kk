@@ -9,7 +9,6 @@ import org.junit.Test
  * összehasonlítás alapja, nem a név), DR-04 (a felhasználói rekordok azonosítói).
  */
 class IdentifiersTest {
-
     @Test
     fun techniqueId_keepsRawValue_DR01() {
         assertThat(TechniqueId.of("tech-mae-geri").value).isEqualTo("tech-mae-geri")

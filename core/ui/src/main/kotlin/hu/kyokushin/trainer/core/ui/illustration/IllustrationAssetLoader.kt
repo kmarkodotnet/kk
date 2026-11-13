@@ -17,7 +17,6 @@ import java.io.IOException
  * majd a kettő hatvány léptékű ritkítás ([inSampleSizeFor]).
  */
 internal object IllustrationAssetLoader {
-
     /** A tudástár illusztrációinak könyvtára az assetsben. */
     const val ILLUSTRATION_DIRECTORY: String = "knowledge/illustrations"
 

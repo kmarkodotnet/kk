@@ -13,7 +13,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * védeni hivatott (FR-33). Hiányzó migráció esetén a helyes viselkedés a hangos hiba.
  */
 internal object KyokushinMigrations {
-
     /**
      * 1 → 2: a keresés SQL-oldalra költözése (FR-03, T-202, ADR-012).
      *

@@ -33,7 +33,6 @@ enum class BottomNavDestination(
     fun isSelected(current: KyokushinScreen?): Boolean = current?.section == screen.section
 
     companion object {
-
         /** Az a fül, amely a [current] képernyőn kijelölt, vagy `null`, ha egyik sem. */
         fun selectedFor(current: KyokushinScreen?): BottomNavDestination? =
             entries.firstOrNull { it.isSelected(current) }

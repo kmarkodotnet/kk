@@ -14,7 +14,6 @@ import kotlin.math.roundToInt
  * megfogalmazás ugyanarra a szabályra (DR-09).
  */
 sealed interface ProgressScoreDisplay {
-
     /** Legalább egy próbálkozás történt – [percent] a `0..100` tartományban. */
     data class Scored(val correct: Int, val answered: Int, val percent: Int) : ProgressScoreDisplay
 

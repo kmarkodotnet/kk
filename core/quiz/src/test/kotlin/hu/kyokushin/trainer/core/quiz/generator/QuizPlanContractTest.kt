@@ -15,7 +15,6 @@ import org.junit.Test
  * értelmezhető indoklás. A motor nem dob kivételt, és nem gyárt hibás kérdést.
  */
 class QuizPlanContractTest {
-
     private val json = Json
 
     @Test

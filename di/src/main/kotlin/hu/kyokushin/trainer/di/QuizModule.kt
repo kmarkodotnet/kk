@@ -22,7 +22,6 @@ import kotlin.random.Random
 @Module
 @InstallIn(SingletonComponent::class)
 internal object QuizModule {
-
     /**
      * A kvízgenerátor. A [DefaultQuizGenerator] `object`: állapotmentes, és a determinizmusa
      * kizárólag a [hu.kyokushin.trainer.core.quiz.generator.QuizRequest] seedjéből

@@ -1,10 +1,10 @@
 package hu.kyokushin.trainer.core.data.db
 
 import com.google.common.truth.Truth.assertThat
-import java.lang.reflect.Method
-import kotlin.coroutines.Continuation
 import kotlinx.coroutines.flow.Flow
 import org.junit.Test
+import java.lang.reflect.Method
+import kotlin.coroutines.Continuation
 
 /**
  * A DAO-k szerződése: **minden** művelet `suspend` vagy `Flow` (NFR-01, kyo-android-module 6).
@@ -19,7 +19,6 @@ import org.junit.Test
  * repository nem tudja, mit hív.
  */
 class DaoContractTest {
-
     private val daos = listOf(
         CategoryDao::class.java,
         TechniqueDao::class.java,

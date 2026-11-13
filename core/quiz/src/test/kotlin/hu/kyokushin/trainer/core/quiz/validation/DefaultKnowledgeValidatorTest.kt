@@ -17,7 +17,6 @@ import org.junit.Test
  * [RealKnowledgeBaseValidationTest]-ben. A közös bemenetépítők: `ValidationFixtures.kt`.
  */
 class DefaultKnowledgeValidatorTest {
-
     private val validator = DefaultKnowledgeValidator()
 
     // ----------------------------------------------------------------------------
@@ -152,7 +151,11 @@ class DefaultKnowledgeValidatorTest {
             KnowledgeInput(
                 manifest = manifest(
                     illustrations = listOf(
-                        IllustrationInput(ref = "KY-0044", file = "illustrations/KY-0044.jpg", license = "project-internal"),
+                        IllustrationInput(
+                            ref = "KY-0044",
+                            file = "illustrations/KY-0044.jpg",
+                            license = "project-internal",
+                        ),
                     ),
                 ),
                 entries = listOf(validEntry(illustration = "KY-0044")),
@@ -379,7 +382,8 @@ class DefaultKnowledgeValidatorTest {
                     validEntry(
                         romaji = "Mae geri",
                         hungarian = "Előre rúgás",
-                        aliases = listOf("", null, "   ", "mae  geri", "ELŐRE RÚGÁS", "Zenkutsu", "zenkutsu", "Kokutsu"),
+                        aliases =
+                            listOf("", null, "   ", "mae  geri", "ELŐRE RÚGÁS", "Zenkutsu", "zenkutsu", "Kokutsu"),
                     ),
                 ),
             ),
@@ -449,7 +453,8 @@ class DefaultKnowledgeValidatorTest {
                 schemaVersion = "1.0.0",
                 contentVersion = "0.1.0",
                 datasetKind = null,
-                categories = listOf(CategoryInput(id = null, nameHu = null, sortOrder = null), CategoryInput(id = "   ")),
+                categories =
+                    listOf(CategoryInput(id = null, nameHu = null, sortOrder = null), CategoryInput(id = "   ")),
                 illustrations = listOf(IllustrationInput(), IllustrationInput(ref = "  ")),
             ),
             entries = listOf(

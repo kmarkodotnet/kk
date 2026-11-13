@@ -462,7 +462,11 @@ private val PREVIEW_CONTENT_NO_DATA = ProgressOverviewUiState.Content(
 )
 
 @Preview(name = "Betöltés – világos", showBackground = true)
-@Preview(name = "Betöltés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressOverviewScreenLoadingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

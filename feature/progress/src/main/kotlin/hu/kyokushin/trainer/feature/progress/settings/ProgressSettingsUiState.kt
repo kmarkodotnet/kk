@@ -14,7 +14,6 @@ import hu.kyokushin.trainer.core.model.DatasetTrust
  * érinti a tudástárat").
  */
 sealed interface ProgressSettingsUiState {
-
     /** A `TechniqueRepository` `Flow`-jai még nem adtak értéket. */
     data object Loading : ProgressSettingsUiState
 
@@ -33,7 +32,8 @@ sealed interface ProgressSettingsUiState {
      *   mérete).
      * @property clearStep az „Előrehaladás törlése" kétlépcsős megerősítésének jelenlegi
      *   lépése (FR-35) – [ClearProgressStep.NONE] esetén nincs nyitott párbeszéd.
-     * @property isClearing igaz, amíg a [hu.kyokushin.trainer.core.data.repository.ProgressRepository.clearAllProgress]
+     * @property isClearing igaz, amíg a
+     *   [hu.kyokushin.trainer.core.data.repository.ProgressRepository.clearAllProgress]
      *   hívás fut – a végső megerősítő gomb ezalatt letiltva, hogy ne lehessen kétszer
      *   elindítani.
      */

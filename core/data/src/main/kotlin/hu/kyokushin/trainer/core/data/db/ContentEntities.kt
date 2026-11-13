@@ -12,7 +12,7 @@ import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
 import java.time.Instant
 
-/**
+/*
  * A **tartalomtáblák** (ARCHITECTURE 5.2): a csomagolt tudástárból upserttel töltődnek,
  * és a tartalomfrissítés újraírhatja őket. Minden típus `internal` – a Room entitás nem
  * szivárog ki a `core/data`-ból (ADR-001 L3/L4).

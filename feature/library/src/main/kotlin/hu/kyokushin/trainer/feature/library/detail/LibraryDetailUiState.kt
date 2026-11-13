@@ -34,7 +34,6 @@ import hu.kyokushin.trainer.core.ui.status.TechniqueField
  *   nem emelkedik (CR-02).
  */
 sealed interface LibraryDetailUiState {
-
     val datasetTrust: DatasetTrust
 
     /** Az `getTechnique` lekérdezés fut. */

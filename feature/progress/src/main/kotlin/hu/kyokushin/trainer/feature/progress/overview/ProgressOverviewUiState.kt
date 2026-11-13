@@ -18,7 +18,6 @@ import java.time.Instant
  * `docs/backlog/GROUPS.md` G-10 csoportja ezt a három alszakaszt egy menetben viszi.
  */
 sealed interface ProgressOverviewUiState {
-
     /** Az aggregált statisztika `Flow`-jai még nem adtak értéket. */
     data object Loading : ProgressOverviewUiState
 

@@ -17,9 +17,6 @@ import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
 import hu.kyokushin.trainer.core.quiz.text.NameNormalizer
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -31,6 +28,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.time.Instant
 
 /**
  * A [TechniqueRepository] szerződésének tényleges viselkedése in-memory Room példányon
@@ -49,7 +49,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class RoomTechniqueRepositoryTest {
-
     private lateinit var database: KyokushinDatabase
     private lateinit var repository: TechniqueRepository
 

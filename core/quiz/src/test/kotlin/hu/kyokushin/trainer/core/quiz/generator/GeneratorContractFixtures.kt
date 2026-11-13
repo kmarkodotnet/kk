@@ -10,7 +10,7 @@ import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
 
-/**
+/*
  * A generátorszerződés tesztjeinek közös építői (T-107, TR-02).
  *
  * Minden builder **érvényes** alapértékekkel indul, a tesztek egy-egy paramétert

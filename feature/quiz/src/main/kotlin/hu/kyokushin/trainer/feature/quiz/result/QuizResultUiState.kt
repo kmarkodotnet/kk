@@ -16,7 +16,6 @@ import hu.kyokushin.trainer.core.quiz.scoring.Score
  * próbálkozásokat (DR-09) – lásd a `kyo-quiz-engine` skill 7. szakasza.
  */
 sealed interface QuizResultUiState {
-
     /** A menet visszaolvasása még nem tért vissza. */
     data object Loading : QuizResultUiState
 

@@ -17,7 +17,6 @@ import kotlin.math.roundToInt
  * egymásra épülő ágként sorolja fel).
  */
 sealed interface QuizResultSummary {
-
     /** FUNCTIONAL_SPEC 5.3/1.: „`{helyes}` / `{megválaszolt}` helyes" + százalék. */
     data class Scored(val correct: Int, val answered: Int, val percent: Int) : QuizResultSummary
 

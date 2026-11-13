@@ -15,7 +15,6 @@ package hu.kyokushin.trainer.core.model
  * figyelmeztető jelölés nem rejthető el és nem kapcsolható ki.
  */
 enum class DatasetTrust {
-
     /**
      * Lektorált tartalom. A „lektorálatlan gyakorlóanyag" jelölések nem jelennek meg –
      * kódmódosítás nélkül, puszta tartalomcserétől (AC-08).

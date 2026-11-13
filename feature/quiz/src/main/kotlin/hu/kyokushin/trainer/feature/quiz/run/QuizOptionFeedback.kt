@@ -11,7 +11,6 @@ import hu.kyokushin.trainer.core.model.TechniqueId
  * színről és a `stateDescription`-ről, egy helyen, négy eset helyett.
  */
 internal enum class QuizOptionFeedback {
-
     /** Még nincs válasz ebben a kérdésben – semleges, kattintható opció. */
     UNANSWERED,
 
@@ -39,7 +38,6 @@ internal enum class QuizOptionFeedback {
  * Robolectric/Compose-renderelés nélkül bizonyítható legyen).
  */
 internal object QuizOptionFeedbackResolver {
-
     fun resolve(
         optionId: TechniqueId,
         correctTechniqueId: TechniqueId,

@@ -21,8 +21,6 @@ import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_JODAN
 import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_MUSUBI
 import hu.kyokushin.trainer.feature.quiz.quizImportedState
 import hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult
-import java.time.Instant
-import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -40,6 +38,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Instant
+import kotlin.random.Random
 
 /**
  * A kvízeredmény ViewModel viselkedése – emulátor nélkül (T-411, T-412, T-415, FR-20,
@@ -53,7 +53,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class QuizResultViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())

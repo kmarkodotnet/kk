@@ -21,7 +21,6 @@ import org.junit.Test
  * 7. a kiválasztás rendezett bejárású, tehát a bemenet sorrendjétől független (NFR-07).
  */
 class DistractorSelectorTest {
-
     private fun selected(
         request: QuizRequest,
         type: QuestionType = QuestionType.JP_TO_HU,

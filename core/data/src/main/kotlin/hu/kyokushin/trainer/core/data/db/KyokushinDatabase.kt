@@ -38,7 +38,12 @@ import androidx.room.TypeConverters
  * Hilt kötés (T-203) ezért `addMigrations(...)`-t kap, destruktív tartalékot nem.
  * Minden `version` emelés explicit `Migration`-t és ADR-t igényel – a migrációk a
  * [KyokushinMigrations] alatt, egy helyen élnek.
+ *
+ * (A fenti két táblázat néhány sora szándékosan 120 karakternél hosszabb: a cellák
+ * tördelése eltörné a Markdown-renderelést, ezért a `max-line-length` ktlint-szabály
+ * alább elszigetelten, indokolt elnyomva – T-607.)
  */
+@Suppress("ktlint:standard:max-line-length")
 @Database(
     version = KyokushinDatabase.VERSION,
     exportSchema = true,
@@ -57,7 +62,6 @@ import androidx.room.TypeConverters
 )
 @TypeConverters(KyokushinTypeConverters::class)
 internal abstract class KyokushinDatabase : RoomDatabase() {
-
     abstract fun categoryDao(): CategoryDao
 
     abstract fun techniqueDao(): TechniqueDao

@@ -15,7 +15,6 @@ import hu.kyokushin.trainer.feature.learn.HideMode
  * készült, ugyanerre a [LearnCardsViewModel]-re épülve.
  */
 sealed interface LearnCardsUiState {
-
     /** A technikák betöltése még nem futott le (az első emisszióig). */
     data object Loading : LearnCardsUiState
 

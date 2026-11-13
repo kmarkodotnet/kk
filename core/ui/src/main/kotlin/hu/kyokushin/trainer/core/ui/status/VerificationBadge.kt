@@ -106,7 +106,6 @@ private fun badgeContentColor(status: VerificationStatus) = when (status) {
  * a minta, mint az `IllustrationContentDescription`-nál.
  */
 object VerificationBadgeText {
-
     /**
      * A jelölő címkéje, vagy `null`, ha nincs jelölő.
      *

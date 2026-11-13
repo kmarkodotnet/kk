@@ -22,7 +22,6 @@ import org.robolectric.annotation.Config
 // letöltve (ugyanaz, mint a `core/data` és az `app` tesztjeiben).
 @Config(sdk = [34])
 class IllustrationContentDescriptionTest {
-
     private lateinit var resources: Resources
 
     @Before

@@ -13,7 +13,6 @@ import hu.kyokushin.trainer.feature.progress.R
  * `strings.xml` fölött, emulátor nélkül (Robolectric) tesztelhető.
  */
 object ProgressDiagnosticsIssueLabels {
-
     /**
      * Az érintett rekord leírása, vagy `null`, ha az észrevétel a **teljes** tudástárra
      * vonatkozik, nem egyetlen rekordra ([ValidationIssue.entryIndex] `null` –

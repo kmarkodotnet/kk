@@ -1,7 +1,6 @@
 package hu.kyokushin.trainer.core.quiz.validation
 
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -11,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
+import java.io.File
 
 /**
  * A **valódi** tudástár (`knowledgebase_transfer/`) beolvasása a tesztekhez – egy helyen.
@@ -24,7 +24,6 @@ import kotlinx.serialization.json.jsonObject
  * elő a kanonikus séma szerint (ADR-011).
  */
 internal object RealKnowledgeBase {
-
     /** `knowledgebase_transfer/README.md`: 161 rekord, 9 kategória, 10 illusztráció. */
     const val EXPECTED_ENTRY_COUNT = 161
     const val EXPECTED_ILLUSTRATION_COUNT = 10

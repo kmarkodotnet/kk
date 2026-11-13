@@ -27,7 +27,6 @@ import kotlinx.serialization.encoding.Encoder
  * kicsi és stabil marad (ADR-006 következménye).
  */
 object TechniqueIdSerializer : KSerializer<TechniqueId> {
-
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("hu.kyokushin.trainer.core.model.TechniqueId", PrimitiveKind.STRING)
 
@@ -38,7 +37,6 @@ object TechniqueIdSerializer : KSerializer<TechniqueId> {
 
 /** A [QuestionId] sztring alakú szerializálása – a [TechniqueIdSerializer] indoklásával. */
 object QuestionIdSerializer : KSerializer<QuestionId> {
-
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("hu.kyokushin.trainer.core.model.QuestionId", PrimitiveKind.STRING)
 

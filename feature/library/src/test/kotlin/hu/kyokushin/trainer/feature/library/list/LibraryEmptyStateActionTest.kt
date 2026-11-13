@@ -13,7 +13,6 @@ import org.junit.Test
  * érvényes marad.
  */
 class LibraryEmptyStateActionTest {
-
     @Test
     fun noResult_offersClearFilters_notDiagnostics() {
         var clearCalled = false

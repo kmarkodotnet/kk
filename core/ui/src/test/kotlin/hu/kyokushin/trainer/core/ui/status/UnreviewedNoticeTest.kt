@@ -25,7 +25,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class UnreviewedNoticeTest {
-
     private lateinit var resources: Resources
 
     @Before

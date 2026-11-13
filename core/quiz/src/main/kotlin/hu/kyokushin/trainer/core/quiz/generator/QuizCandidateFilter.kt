@@ -26,7 +26,6 @@ import hu.kyokushin.trainer.core.quiz.validation.QuizEligibility
  * a seedelt RNG csak a kiválasztásnál és a keverésnél jön képbe (T-110).
  */
 object QuizCandidateFilter {
-
     /**
      * A kérés kategóriaszűrőjén átjutó technikák, azonosító szerint rendezve (FR-11).
      *

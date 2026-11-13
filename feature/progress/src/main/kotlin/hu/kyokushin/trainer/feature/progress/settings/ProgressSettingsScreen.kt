@@ -348,7 +348,11 @@ private val PREVIEW_NOT_IMPORTED = ProgressSettingsUiState.Content(
 )
 
 @Preview(name = "Betöltés – világos", showBackground = true)
-@Preview(name = "Betöltés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressSettingsScreenLoadingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {
@@ -363,7 +367,11 @@ private fun ProgressSettingsScreenLoadingPreview() {
 }
 
 @Preview(name = "Betöltve – világos", showBackground = true)
-@Preview(name = "Betöltve – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltve – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun ProgressSettingsScreenContentPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

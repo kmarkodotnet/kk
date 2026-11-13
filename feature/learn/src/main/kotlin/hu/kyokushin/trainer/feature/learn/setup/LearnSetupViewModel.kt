@@ -11,10 +11,8 @@ import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.Technique
-import hu.kyokushin.trainer.core.ui.R as CoreUiR
 import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.R
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +23,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import hu.kyokushin.trainer.core.ui.R as CoreUiR
 
 /**
  * A tanulás-beállító képernyő állapotkezelése (FR-06, FR-07, FUNCTIONAL_SPEC 4.1, US-09,
@@ -49,8 +49,8 @@ import kotlinx.coroutines.launch
  * Minden `topLevel` képernyő (a bottom nav egy fülének kezdőképernyője) maga biztosítja,
  * hogy a tartalom be legyen töltve – nem az `Application`, mert csak így tud a képernyő
  * valódi `Loading` állapotot mutatni (FUNCTIONAL_SPEC 7.1). Az import idempotens
- * (FR-30): ha a Tudástár fül már lefuttatta, ez a hívás [hu.kyokushin.trainer.core.data.content.ImportResult.UpToDate]-tel
- * tér vissza.
+ * (FR-30): ha a Tudástár fül már lefuttatta, ez a hívás
+ * [hu.kyokushin.trainer.core.data.content.ImportResult.UpToDate]-tel tér vissza.
  *
  * ### Az „utolsó választás megjegyzése" hatóköre
  *
@@ -69,153 +69,154 @@ import kotlinx.coroutines.launch
  * @property savedStateHandle a kijelölt kategóriákat és az elrejtési módot őrzi meg.
  */
 @HiltViewModel
-class LearnSetupViewModel @Inject constructor(
-    private val repository: TechniqueRepository,
-    private val contentImporter: ContentImporter,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-    private val savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+class LearnSetupViewModel
+    @Inject
+    constructor(
+        private val repository: TechniqueRepository,
+        private val contentImporter: ContentImporter,
+        @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+        private val savedStateHandle: SavedStateHandle,
+    ) : ViewModel() {
+        /** A tartalombetöltés szakasza – a `Loading` és az `Error` állapot egyetlen forrása. */
+        private val importPhase = MutableStateFlow(ImportPhase.RUNNING)
 
-    /** A tartalombetöltés szakasza – a `Loading` és az `Error` állapot egyetlen forrása. */
-    private val importPhase = MutableStateFlow(ImportPhase.RUNNING)
+        private val selectedCategoriesFlow: Flow<Set<CategoryId>> =
+            // ArrayList, nem `emptyList()`: a SavedStateHandle Bundle-be ír, és csak a konkrét,
+            // szerializálható gyűjteményt fogadja el (CONVENTIONS 4.1).
+            savedStateHandle.getStateFlow(KEY_SELECTED_CATEGORIES, ArrayList<String>())
+                .map { raw -> raw.map(CategoryId::of).toSet() }
 
-    private val selectedCategoriesFlow: Flow<Set<CategoryId>> =
-        // ArrayList, nem `emptyList()`: a SavedStateHandle Bundle-be ír, és csak a konkrét,
-        // szerializálható gyűjteményt fogadja el (CONVENTIONS 4.1).
-        savedStateHandle.getStateFlow(KEY_SELECTED_CATEGORIES, ArrayList<String>())
-            .map { raw -> raw.map(CategoryId::of).toSet() }
+        private val hideModeFlow: Flow<HideMode> =
+            savedStateHandle.getStateFlow(KEY_HIDE_MODE, DEFAULT_HIDE_MODE.name)
+                .map { raw -> runCatching { HideMode.valueOf(raw) }.getOrDefault(DEFAULT_HIDE_MODE) }
 
-    private val hideModeFlow: Flow<HideMode> =
-        savedStateHandle.getStateFlow(KEY_HIDE_MODE, DEFAULT_HIDE_MODE.name)
-            .map { raw -> runCatching { HideMode.valueOf(raw) }.getOrDefault(DEFAULT_HIDE_MODE) }
+        private val selectionFlow: Flow<SetupSelection> =
+            combine(selectedCategoriesFlow, hideModeFlow) { selected, hideMode ->
+                SetupSelection(selected, hideMode)
+            }
 
-    private val selectionFlow: Flow<SetupSelection> =
-        combine(selectedCategoriesFlow, hideModeFlow) { selected, hideMode ->
-            SetupSelection(selected, hideMode)
+        /** A képernyő állapota. */
+        val uiState: StateFlow<LearnSetupUiState> = combine(
+            importPhase,
+            selectionFlow,
+            repository.observeCategories(),
+            repository.observeTechniques(),
+            repository.observeContentState(),
+        ) { phase, selection, categories, techniques, contentState ->
+            buildState(phase, selection, categories, techniques, contentState)
+        }
+            .flowOn(defaultDispatcher)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                initialValue = LearnSetupUiState.Loading,
+            )
+
+        init {
+            startImport()
         }
 
-    /** A képernyő állapota. */
-    val uiState: StateFlow<LearnSetupUiState> = combine(
-        importPhase,
-        selectionFlow,
-        repository.observeCategories(),
-        repository.observeTechniques(),
-        repository.observeContentState(),
-    ) { phase, selection, categories, techniques, contentState ->
-        buildState(phase, selection, categories, techniques, contentState)
-    }
-        .flowOn(defaultDispatcher)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
-            initialValue = LearnSetupUiState.Loading,
-        )
-
-    init {
-        startImport()
-    }
-
-    /** Egy kategória ki- vagy bekapcsolása (FUNCTIONAL_SPEC 4.1/2., több kategória egyszerre). */
-    fun onToggleCategory(categoryId: CategoryId) {
-        val current = savedStateHandle.get<List<String>>(KEY_SELECTED_CATEGORIES).orEmpty()
-        val next = if (categoryId.value in current) {
-            current - categoryId.value
-        } else {
-            current + categoryId.value
+        /** Egy kategória ki- vagy bekapcsolása (FUNCTIONAL_SPEC 4.1/2., több kategória egyszerre). */
+        fun onToggleCategory(categoryId: CategoryId) {
+            val current = savedStateHandle.get<List<String>>(KEY_SELECTED_CATEGORIES).orEmpty()
+            val next = if (categoryId.value in current) {
+                current - categoryId.value
+            } else {
+                current + categoryId.value
+            }
+            savedStateHandle[KEY_SELECTED_CATEGORIES] = ArrayList(next)
         }
-        savedStateHandle[KEY_SELECTED_CATEGORIES] = ArrayList(next)
-    }
 
-    /** Az elrejtési mód kiválasztása (FR-07, FUNCTIONAL_SPEC 4.1/3.). */
-    fun onSelectHideMode(hideMode: HideMode) {
-        savedStateHandle[KEY_HIDE_MODE] = hideMode.name
-    }
+        /** Az elrejtési mód kiválasztása (FR-07, FUNCTIONAL_SPEC 4.1/3.). */
+        fun onSelectHideMode(hideMode: HideMode) {
+            savedStateHandle[KEY_HIDE_MODE] = hideMode.name
+        }
 
-    /** „Újra" az `Error` állapotból: a betöltés újraindul. */
-    fun onRetry() {
-        startImport()
-    }
+        /** „Újra" az `Error` állapotból: a betöltés újraindul. */
+        fun onRetry() {
+            startImport()
+        }
 
-    private fun startImport() {
-        importPhase.value = ImportPhase.RUNNING
-        viewModelScope.launch {
-            importPhase.value = try {
-                // A visszatérési érték itt nem érdekes, lásd `LibraryListViewModel` KDoc-ja
-                // ugyanerről a mintáról: mindhárom ág rendes működés.
-                contentImporter.importIfNeeded()
-                ImportPhase.DONE
-            } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
-                ImportPhase.FAILED
+        private fun startImport() {
+            importPhase.value = ImportPhase.RUNNING
+            viewModelScope.launch {
+                importPhase.value = try {
+                    // A visszatérési érték itt nem érdekes, lásd `LibraryListViewModel` KDoc-ja
+                    // ugyanerről a mintáról: mindhárom ág rendes működés.
+                    contentImporter.importIfNeeded()
+                    ImportPhase.DONE
+                } catch (@Suppress("TooGenericExceptionCaught") error: Exception) {
+                    ImportPhase.FAILED
+                }
             }
         }
-    }
 
-    private fun buildState(
-        phase: ImportPhase,
-        selection: SetupSelection,
-        categories: List<Category>,
-        techniques: List<Technique>,
-        contentState: ContentState,
-    ): LearnSetupUiState {
-        if (phase == ImportPhase.RUNNING) return LearnSetupUiState.Loading
-        if (phase == ImportPhase.FAILED) return LearnSetupUiState.Error(CoreUiR.string.error_load_failed)
+        private fun buildState(
+            phase: ImportPhase,
+            selection: SetupSelection,
+            categories: List<Category>,
+            techniques: List<Technique>,
+            contentState: ContentState,
+        ): LearnSetupUiState {
+            if (phase == ImportPhase.RUNNING) return LearnSetupUiState.Loading
+            if (phase == ImportPhase.FAILED) return LearnSetupUiState.Error(CoreUiR.string.error_load_failed)
 
-        val orderedCategories = categories.sortedWith(
-            compareBy({ it.sortOrder }, { it.id.value }),
-        )
-        // A tanuláshoz nem kell `VERIFIED` vagy `quizEligible` (T-302 „Kész ha"): minden
-        // nem visszavont technikát számolunk, a hitelesítési státusztól függetlenül. Az
-        // `observeTechniques` már kiszűri a visszavontakat (ADR-004).
-        val countByCategory = techniques.groupingBy { it.categoryId }.eachCount()
-        val categoryModels = orderedCategories.map { category ->
-            LearnCategoryUiModel(
-                id = category.id,
-                nameHu = category.nameHu,
-                displayableCount = countByCategory[category.id] ?: 0,
-                selected = category.id in selection.selectedCategories,
+            val orderedCategories = categories.sortedWith(
+                compareBy({ it.sortOrder }, { it.id.value }),
+            )
+            // A tanuláshoz nem kell `VERIFIED` vagy `quizEligible` (T-302 „Kész ha"): minden
+            // nem visszavont technikát számolunk, a hitelesítési státusztól függetlenül. Az
+            // `observeTechniques` már kiszűri a visszavontakat (ADR-004).
+            val countByCategory = techniques.groupingBy { it.categoryId }.eachCount()
+            val categoryModels = orderedCategories.map { category ->
+                LearnCategoryUiModel(
+                    id = category.id,
+                    nameHu = category.nameHu,
+                    displayableCount = countByCategory[category.id] ?: 0,
+                    selected = category.id in selection.selectedCategories,
+                )
+            }
+
+            val selectedDisplayableCount = categoryModels
+                .filter { it.selected }
+                .sumOf { it.displayableCount }
+            val canStart = selection.selectedCategories.isNotEmpty() && selectedDisplayableCount > 0
+            val disabledReasonRes = when {
+                canStart -> null
+                selection.selectedCategories.isEmpty() -> R.string.learn_setup_start_disabled_no_category
+                else -> R.string.learn_setup_start_disabled_no_technique
+            }
+
+            return LearnSetupUiState.Content(
+                categories = categoryModels,
+                selectedCategories = selection.selectedCategories,
+                hideMode = selection.hideMode,
+                canStart = canStart,
+                disabledReasonRes = disabledReasonRes,
+                datasetTrust = contentState.datasetTrust,
             )
         }
 
-        val selectedDisplayableCount = categoryModels
-            .filter { it.selected }
-            .sumOf { it.displayableCount }
-        val canStart = selection.selectedCategories.isNotEmpty() && selectedDisplayableCount > 0
-        val disabledReasonRes = when {
-            canStart -> null
-            selection.selectedCategories.isEmpty() -> R.string.learn_setup_start_disabled_no_category
-            else -> R.string.learn_setup_start_disabled_no_technique
-        }
+        /** A tartalombetöltés szakasza. */
+        private enum class ImportPhase { RUNNING, DONE, FAILED }
 
-        return LearnSetupUiState.Content(
-            categories = categoryModels,
-            selectedCategories = selection.selectedCategories,
-            hideMode = selection.hideMode,
-            canStart = canStart,
-            disabledReasonRes = disabledReasonRes,
-            datasetTrust = contentState.datasetTrust,
+        /** A kijelölt kategóriák és az elrejtési mód egy csomagban. */
+        private data class SetupSelection(
+            val selectedCategories: Set<CategoryId>,
+            val hideMode: HideMode,
         )
+
+        companion object {
+            private const val KEY_SELECTED_CATEGORIES = "learn.setup.categories"
+            private const val KEY_HIDE_MODE = "learn.setup.hideMode"
+
+            /**
+             * Alapértelmezett elrejtési mód, amíg a felhasználó nem választott: a japán név
+             * elrejtése, a FUNCTIONAL_SPEC 4.1/3. pontjában felsorolt első lehetőség.
+             */
+            private val DEFAULT_HIDE_MODE = HideMode.HIDE_JAPANESE
+
+            /** A konfigurációváltás alatt életben tartja a feliratkozást. */
+            private const val STOP_TIMEOUT_MS = 5_000L
+        }
     }
-
-    /** A tartalombetöltés szakasza. */
-    private enum class ImportPhase { RUNNING, DONE, FAILED }
-
-    /** A kijelölt kategóriák és az elrejtési mód egy csomagban. */
-    private data class SetupSelection(
-        val selectedCategories: Set<CategoryId>,
-        val hideMode: HideMode,
-    )
-
-    companion object {
-        private const val KEY_SELECTED_CATEGORIES = "learn.setup.categories"
-        private const val KEY_HIDE_MODE = "learn.setup.hideMode"
-
-        /**
-         * Alapértelmezett elrejtési mód, amíg a felhasználó nem választott: a japán név
-         * elrejtése, a FUNCTIONAL_SPEC 4.1/3. pontjában felsorolt első lehetőség.
-         */
-        private val DEFAULT_HIDE_MODE = HideMode.HIDE_JAPANESE
-
-        /** A konfigurációváltás alatt életben tartja a feliratkozást. */
-        private const val STOP_TIMEOUT_MS = 5_000L
-    }
-}

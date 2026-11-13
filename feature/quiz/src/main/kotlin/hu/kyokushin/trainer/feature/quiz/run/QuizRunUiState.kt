@@ -19,7 +19,6 @@ import hu.kyokushin.trainer.core.quiz.generator.QuizQuestion
  * (T-407/T-409) sosem lásson repository-hívást, csak ezt a kész modellt.
  */
 sealed interface QuizRunUiState {
-
     /** A kezdeti bemenet (terv) feloldása még nem futott le. */
     data object Loading : QuizRunUiState
 

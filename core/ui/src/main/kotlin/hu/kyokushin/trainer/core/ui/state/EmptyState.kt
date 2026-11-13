@@ -37,7 +37,6 @@ import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
  * (NFR-02).
  */
 sealed interface EmptyStateReason {
-
     /** A megjelenített magyar üzenet feloldása. */
     fun message(resources: Resources): String
 

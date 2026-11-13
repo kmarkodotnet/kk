@@ -23,7 +23,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ProgressDiagnosticsIssueLabelsTest {
-
     private lateinit var resources: Resources
 
     @Before

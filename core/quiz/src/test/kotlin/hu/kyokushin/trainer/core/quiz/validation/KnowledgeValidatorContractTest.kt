@@ -11,7 +11,6 @@ import org.junit.Test
  * a TR-01 teljes lefedésével a T-106 feladat tárgya.
  */
 class KnowledgeValidatorContractTest {
-
     /**
      * A szerződés lelke (TR-01, FR-31): a hibás tartalomnak *reprezentálhatónak* kell
      * lennie. Ha a bemeneti típusok validálnának, a hiba már a jelentés elkészítése előtt

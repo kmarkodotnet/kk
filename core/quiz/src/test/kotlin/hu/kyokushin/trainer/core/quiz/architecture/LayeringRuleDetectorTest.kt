@@ -11,28 +11,29 @@ import org.junit.Test
  * (nem akad bele a megengedett/dokumentáló kódba) eset is.
  */
 class LayeringRuleDetectorTest {
-
     // ------------------------------------------------------------------------------
     // Tiltott import – core/model, core/quiz
     // ------------------------------------------------------------------------------
 
     @Test
     fun forbiddenImportsIn_androidImport_isDetected_TR07() {
-        val source = """
+        val source =
+            """
             package hu.kyokushin.trainer.core.quiz.generator
 
             import android.os.Parcelable
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenImportsIn(source)).containsExactly("import android.os.Parcelable")
     }
 
     @Test
     fun forbiddenImportsIn_androidxRoomAndComposeImport_isDetected_TR07() {
-        val source = """
+        val source =
+            """
             import androidx.room.Entity
             import androidx.compose.runtime.Composable
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenImportsIn(source))
             .containsExactly("import androidx.room.Entity", "import androidx.compose.runtime.Composable")
@@ -40,13 +41,14 @@ class LayeringRuleDetectorTest {
 
     @Test
     fun forbiddenImportsIn_onlyKotlinAndCoreModelImports_isEmpty_TR07() {
-        val source = """
+        val source =
+            """
             package hu.kyokushin.trainer.core.quiz.generator
 
             import hu.kyokushin.trainer.core.model.TechniqueId
             import kotlin.random.Random
             import kotlinx.serialization.Serializable
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenImportsIn(source)).isEmpty()
     }
@@ -57,25 +59,27 @@ class LayeringRuleDetectorTest {
 
     @Test
     fun forbiddenRuntimeCallsIn_directRandomDefaultCall_isDetected_TR07_NFR07() {
-        val source = """
+        val source =
+            """
             class Shuffler {
                 fun shuffle() = Random.Default.nextInt()
             }
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenRuntimeCallsIn(source)).containsExactly("Random.Default")
     }
 
     @Test
     fun forbiddenRuntimeCallsIn_allFourForbiddenCalls_areDetected_TR07_NFR07() {
-        val source = """
+        val source =
+            """
             class Clock {
                 fun now() = Instant.now()
                 fun millis() = System.currentTimeMillis()
                 fun seed() = Random.Default.nextLong()
                 fun chance() = Math.random()
             }
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenRuntimeCallsIn(source))
             .containsExactly("Random.Default", "System.currentTimeMillis", "Instant.now", "Math.random")
@@ -85,26 +89,28 @@ class LayeringRuleDetectorTest {
     fun forbiddenRuntimeCallsIn_mentionOnlyInKdocComment_isIgnored_TR07_NFR07() {
         // Ugyanaz a mintázat, mint a valódi `QuizGenerator.kt`/`SeededShuffle.kt`: a KDoc
         // dokumentálja, hogy a hívás NINCS a kódban – ez nem minősül találatnak.
-        val source = """
+        val source =
+            """
             /**
              * A modulban nincs `Random.Default`, nincs `Instant.now()`, nincs
              * `System.currentTimeMillis()` és nincs `Math.random()` – a seedet és az
              * órát mindig a hívó adja át.
              */
             class DefaultQuizGenerator
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenRuntimeCallsIn(source)).isEmpty()
     }
 
     @Test
     fun forbiddenRuntimeCallsIn_mentionOnlyInLineComment_isIgnored_TR07_NFR07() {
-        val source = """
+        val source =
+            """
             class DefaultQuizGenerator {
                 // nincs itt Random.Default, a seedet a kérés hordozza
                 fun generate(seed: Long) = Random(seed)
             }
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenRuntimeCallsIn(source)).isEmpty()
     }
@@ -122,11 +128,12 @@ class LayeringRuleDetectorTest {
 
     @Test
     fun forbiddenDataLayerImportsIn_entityDaoAndDtoTypeImport_isDetected_TR07_NFR03() {
-        val source = """
+        val source =
+            """
             import hu.kyokushin.trainer.core.data.db.TechniqueEntity
             import hu.kyokushin.trainer.core.data.db.TechniqueDao
             import hu.kyokushin.trainer.core.data.content.KnowledgeDto
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenDataLayerImportsIn(source))
             .containsExactly(
@@ -138,11 +145,12 @@ class LayeringRuleDetectorTest {
 
     @Test
     fun forbiddenDataLayerImportsIn_repositoryAndDomainTypeImport_isEmpty_TR07_NFR03() {
-        val source = """
+        val source =
+            """
             import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
             import hu.kyokushin.trainer.core.model.Technique
             import hu.kyokushin.trainer.core.model.TechniqueId
-        """.trimIndent()
+            """.trimIndent()
 
         assertThat(LayeringRuleDetector.forbiddenDataLayerImportsIn(source)).isEmpty()
     }

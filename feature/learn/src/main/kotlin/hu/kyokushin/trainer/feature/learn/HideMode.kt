@@ -11,7 +11,6 @@ package hu.kyokushin.trainer.feature.learn
  * a beállítás a kártyaállapot bemenete (`docs/backlog/GROUPS.md` G-04).
  */
 enum class HideMode {
-
     /** A japán (romaji) név van elrejtve; a magyar név és az ábra látszik. */
     HIDE_JAPANESE,
 

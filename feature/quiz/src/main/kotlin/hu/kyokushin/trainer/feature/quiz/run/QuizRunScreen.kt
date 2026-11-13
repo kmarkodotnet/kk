@@ -866,7 +866,11 @@ private val PREVIEW_CONTENT_LONG_NAME = PREVIEW_CONTENT_A_UNANSWERED.copy(
 )
 
 @Preview(name = "Betöltés – világos", showBackground = true)
-@Preview(name = "Betöltés – sötét", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "Betöltés – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
 @Composable
 private fun QuizRunScreenLoadingPreview() {
     KyokushinTrainerTheme(dynamicColor = false) {

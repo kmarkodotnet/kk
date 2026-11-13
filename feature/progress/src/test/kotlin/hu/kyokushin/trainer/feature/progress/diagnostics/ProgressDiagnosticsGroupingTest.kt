@@ -15,7 +15,6 @@ import org.junit.Test
  * 4. szakasz).
  */
 class ProgressDiagnosticsGroupingTest {
-
     private val v002 = ValidationIssue(code = IssueCode.V002, severity = Severity.BLOCKING, entryIndex = 1)
     private val v005Blocking = ValidationIssue(code = IssueCode.V005, severity = Severity.BLOCKING, entryIndex = 2)
     private val v005Warning = ValidationIssue(code = IssueCode.V005, severity = Severity.WARNING, entryIndex = 3)

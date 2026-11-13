@@ -3,15 +3,11 @@ package hu.kyokushin.trainer.feature.quiz.setup
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.data.content.ImportResult
-import hu.kyokushin.trainer.core.model.CategoryId
-import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.VerificationStatus
 import hu.kyokushin.trainer.core.quiz.generator.DefaultQuizGenerator
 import hu.kyokushin.trainer.core.quiz.generator.QuizGenerator
-import hu.kyokushin.trainer.core.ui.R as CoreUiR
-import hu.kyokushin.trainer.feature.quiz.ALL_QUIZ_CATEGORIES
 import hu.kyokushin.trainer.feature.quiz.ALL_QUIZ_TECHNIQUES
 import hu.kyokushin.trainer.feature.quiz.CATEGORY_DACHI
 import hu.kyokushin.trainer.feature.quiz.FakeQuizContentImporter
@@ -24,10 +20,8 @@ import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_FUDO
 import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_HEISOKU
 import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_JODAN
 import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_MUSUBI
-import hu.kyokushin.trainer.feature.quiz.quizImportedState
 import hu.kyokushin.trainer.feature.quiz.quizTechnique
 import hu.kyokushin.trainer.feature.quiz.quizUsableIllustration
-import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -46,6 +40,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.random.Random
+import hu.kyokushin.trainer.core.ui.R as CoreUiR
 
 /**
  * A kvízbeállító ViewModel viselkedése – emulátor nélkül (T-403, FR-11, FR-12, FR-13,
@@ -60,7 +56,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class QuizSetupViewModelTest {
-
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())

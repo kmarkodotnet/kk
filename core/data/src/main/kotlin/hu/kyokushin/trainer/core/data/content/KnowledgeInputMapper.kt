@@ -6,7 +6,7 @@ import hu.kyokushin.trainer.core.quiz.validation.KnowledgeInput
 import hu.kyokushin.trainer.core.quiz.validation.ManifestInput
 import hu.kyokushin.trainer.core.quiz.validation.TechniqueInput
 
-/**
+/*
  * A kanonikus séma DTO-i → a validátor bemenete (ADR-011, DR-05).
  *
  * Ez a leképezés **az egyetlen** hely, ahol a `snake_case` tartalomséma és a validátor

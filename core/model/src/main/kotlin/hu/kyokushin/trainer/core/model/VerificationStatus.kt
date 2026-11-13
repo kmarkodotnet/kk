@@ -17,7 +17,6 @@ package hu.kyokushin.trainer.core.model
  * ne rontsa el a meglévő adatot.
  */
 enum class VerificationStatus {
-
     /** Szakmailag ellenőrzött rekord. A UI nem tesz rá jelölőt. */
     VERIFIED,
 

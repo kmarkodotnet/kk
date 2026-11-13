@@ -13,11 +13,11 @@ import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.quiz.scoring.Score
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 /**
  * A Haladás áttekintő képernyő állapotkezelése (FUNCTIONAL_SPEC 6.1, FR-23, FR-24, FR-26,
@@ -60,102 +60,103 @@ import kotlinx.coroutines.flow.stateIn
  *   lektorálatlanság-szalag (ADR-010) bemenete.
  */
 @HiltViewModel
-class ProgressOverviewViewModel @Inject constructor(
-    private val progressRepository: ProgressRepository,
-    private val techniqueRepository: TechniqueRepository,
-) : ViewModel() {
+class ProgressOverviewViewModel
+    @Inject
+    constructor(
+        private val progressRepository: ProgressRepository,
+        private val techniqueRepository: TechniqueRepository,
+    ) : ViewModel() {
+        val uiState: StateFlow<ProgressOverviewUiState> = combine(
+            combine(
+                progressRepository.observeOverallProgress(),
+                progressRepository.observeCategoryProgress(),
+                techniqueRepository.observeCategories(),
+                techniqueRepository.observeContentState(),
+            ) { overall, categoryProgress, categories, contentState ->
+                OverviewAndCategorySources(overall, categoryProgress, categories, contentState.datasetTrust)
+            },
+            progressRepository.observeNeedsPractice(NEEDS_PRACTICE_LIMIT),
+            techniqueRepository.observeTechniques(),
+            progressRepository.observeStudyReviewSummary(),
+        ) { sources, needsPractice, techniques, studyReviewSummary ->
+            buildState(sources, needsPractice, techniques, studyReviewSummary)
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                initialValue = ProgressOverviewUiState.Loading,
+            )
 
-    val uiState: StateFlow<ProgressOverviewUiState> = combine(
-        combine(
-            progressRepository.observeOverallProgress(),
-            progressRepository.observeCategoryProgress(),
-            techniqueRepository.observeCategories(),
-            techniqueRepository.observeContentState(),
-        ) { overall, categoryProgress, categories, contentState ->
-            OverviewAndCategorySources(overall, categoryProgress, categories, contentState.datasetTrust)
-        },
-        progressRepository.observeNeedsPractice(NEEDS_PRACTICE_LIMIT),
-        techniqueRepository.observeTechniques(),
-        progressRepository.observeStudyReviewSummary(),
-    ) { sources, needsPractice, techniques, studyReviewSummary ->
-        buildState(sources, needsPractice, techniques, studyReviewSummary)
-    }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
-            initialValue = ProgressOverviewUiState.Loading,
-        )
-
-    private fun buildState(
-        sources: OverviewAndCategorySources,
-        needsPractice: List<TechniqueProgress>,
-        techniques: List<Technique>,
-        studyReviewSummary: StudyReviewSummary,
-    ): ProgressOverviewUiState.Content {
-        val scoreByCategory = sources.categoryProgress.associateBy { it.categoryId }
-        val categoryItems = sources.categories.map { category ->
-            ProgressCategoryItem(
-                categoryId = category.id,
-                nameHu = category.nameHu,
-                score = scoreByCategory[category.id]?.score ?: NO_ATTEMPTS_SCORE,
+        private fun buildState(
+            sources: OverviewAndCategorySources,
+            needsPractice: List<TechniqueProgress>,
+            techniques: List<Technique>,
+            studyReviewSummary: StudyReviewSummary,
+        ): ProgressOverviewUiState.Content {
+            val scoreByCategory = sources.categoryProgress.associateBy { it.categoryId }
+            val categoryItems = sources.categories.map { category ->
+                ProgressCategoryItem(
+                    categoryId = category.id,
+                    nameHu = category.nameHu,
+                    score = scoreByCategory[category.id]?.score ?: NO_ATTEMPTS_SCORE,
+                )
+            }
+            return ProgressOverviewUiState.Content(
+                overallScore = sources.overall.score,
+                categories = categoryItems,
+                needsPractice = buildNeedsPracticeItems(needsPractice, techniques),
+                studyReviewSummary = studyReviewSummary,
+                datasetTrust = sources.datasetTrust,
             )
         }
-        return ProgressOverviewUiState.Content(
-            overallScore = sources.overall.score,
-            categories = categoryItems,
-            needsPractice = buildNeedsPracticeItems(needsPractice, techniques),
-            studyReviewSummary = studyReviewSummary,
-            datasetTrust = sources.datasetTrust,
-        )
-    }
 
-    private fun buildNeedsPracticeItems(
-        needsPractice: List<TechniqueProgress>,
-        techniques: List<Technique>,
-    ): List<ProgressNeedsPracticeItem> {
-        val techniqueById = techniques.associateBy { it.id }
-        // `mapNotNull`: lásd az osztály KDoc-ja – egy visszavont technika korábbi
-        // próbálkozása nincs az aktív `techniques` listában, ezért kimarad innen.
-        return needsPractice.mapNotNull { progress ->
-            val technique = techniqueById[progress.techniqueId] ?: return@mapNotNull null
-            ProgressNeedsPracticeItem(
-                techniqueId = progress.techniqueId,
-                romaji = technique.romaji,
-                hungarian = technique.hungarian,
-                illustration = technique.illustration,
-                score = progress.score,
-                // A `TechniqueProgress` szerződése szerint `answered >= 1` esetén soha
-                // nem `null` (lásd `observeNeedsPractice` KDoc-ja) – ez a lista eleve csak
-                // ilyen tételeket ad.
-                lastPracticedAt = requireNotNull(progress.lastPracticedAt) {
-                    "observeNeedsPractice csak legalább egy próbálkozással rendelkező " +
-                        "technikát ad, tehát lastPracticedAt itt sosem null."
-                },
-            )
+        private fun buildNeedsPracticeItems(
+            needsPractice: List<TechniqueProgress>,
+            techniques: List<Technique>,
+        ): List<ProgressNeedsPracticeItem> {
+            val techniqueById = techniques.associateBy { it.id }
+            // `mapNotNull`: lásd az osztály KDoc-ja – egy visszavont technika korábbi
+            // próbálkozása nincs az aktív `techniques` listában, ezért kimarad innen.
+            return needsPractice.mapNotNull { progress ->
+                val technique = techniqueById[progress.techniqueId] ?: return@mapNotNull null
+                ProgressNeedsPracticeItem(
+                    techniqueId = progress.techniqueId,
+                    romaji = technique.romaji,
+                    hungarian = technique.hungarian,
+                    illustration = technique.illustration,
+                    score = progress.score,
+                    // A `TechniqueProgress` szerződése szerint `answered >= 1` esetén soha
+                    // nem `null` (lásd `observeNeedsPractice` KDoc-ja) – ez a lista eleve csak
+                    // ilyen tételeket ad.
+                    lastPracticedAt = requireNotNull(progress.lastPracticedAt) {
+                        "observeNeedsPractice csak legalább egy próbálkozással rendelkező " +
+                            "technikát ad, tehát lastPracticedAt itt sosem null."
+                    },
+                )
+            }
+        }
+
+        /** A kategóriakerethez tartozó négy forrás egy pillanatra összefogva (lásd fent). */
+        private data class OverviewAndCategorySources(
+            val overall: OverallProgress,
+            val categoryProgress: List<CategoryProgress>,
+            val categories: List<Category>,
+            val datasetTrust: DatasetTrust,
+        )
+
+        companion object {
+            /** A konfigurációváltás alatt életben tartja a feliratkozást. */
+            private const val STOP_TIMEOUT_MS = 5_000L
+
+            /** A „Gyakorlást igénylő" lista legnagyobb mérete (FUNCTIONAL_SPEC 6.1/4., FR-26). */
+            private const val NEEDS_PRACTICE_LIMIT = 10
+
+            /**
+             * Védelmi háló: ha egy kategóriára véletlenül nem érkezne sor a
+             * [ProgressRepository.observeCategoryProgress]-ból (a T-501 szerződése szerint ez
+             * nem fordulhat elő, lásd az osztály KDoc-ja), a hívó így is „nincs adat"-ot kap,
+             * nem `NullPointerException`-t vagy hamis 0%-ot.
+             */
+            private val NO_ATTEMPTS_SCORE = Score(answered = 0, correct = 0, ratio = null)
         }
     }
-
-    /** A kategóriakerethez tartozó négy forrás egy pillanatra összefogva (lásd fent). */
-    private data class OverviewAndCategorySources(
-        val overall: OverallProgress,
-        val categoryProgress: List<CategoryProgress>,
-        val categories: List<Category>,
-        val datasetTrust: DatasetTrust,
-    )
-
-    companion object {
-        /** A konfigurációváltás alatt életben tartja a feliratkozást. */
-        private const val STOP_TIMEOUT_MS = 5_000L
-
-        /** A „Gyakorlást igénylő" lista legnagyobb mérete (FUNCTIONAL_SPEC 6.1/4., FR-26). */
-        private const val NEEDS_PRACTICE_LIMIT = 10
-
-        /**
-         * Védelmi háló: ha egy kategóriára véletlenül nem érkezne sor a
-         * [ProgressRepository.observeCategoryProgress]-ból (a T-501 szerződése szerint ez
-         * nem fordulhat elő, lásd az osztály KDoc-ja), a hívó így is „nincs adat"-ot kap,
-         * nem `NullPointerException`-t vagy hamis 0%-ot.
-         */
-        private val NO_ATTEMPTS_SCORE = Score(answered = 0, correct = 0, ratio = null)
-    }
-}

@@ -1,8 +1,8 @@
 package hu.kyokushin.trainer.core.quiz.generator
 
 import com.google.common.truth.Truth.assertThat
-import kotlin.random.Random
 import org.junit.Test
+import kotlin.random.Random
 
 /**
  * A [SeededShuffle] Fisher–Yates keverése – a determinizmus legalsó építőköve
@@ -21,7 +21,6 @@ import org.junit.Test
  *    felett minden permutáció elérhető – nem egy elfajuló, sorrendet őrző művelet.
  */
 class SeededShuffleTest {
-
     /**
      * Sorsolásszámláló RNG: a kérdéseket delegálja egy seedelt forrásnak, de megszámolja a
      * `nextInt(until)` hívásokat. Így az RNG-fogyás nem „valószínűleg annyi", hanem mért

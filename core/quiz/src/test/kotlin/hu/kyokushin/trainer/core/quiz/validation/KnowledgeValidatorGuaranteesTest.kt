@@ -15,7 +15,6 @@ import org.junit.Test
  * nem a szabály, hanem a *szerződés* sérült.
  */
 class KnowledgeValidatorGuaranteesTest {
-
     private val validator = DefaultKnowledgeValidator()
 
     // ----------------------------------------------------------------------------
@@ -38,7 +37,11 @@ class KnowledgeValidatorGuaranteesTest {
                 assertThat(report.accepted.size + report.rejected.size).isEqualTo(input.entries.size)
             }
             report.rejected.forEach { rejected ->
-                assertThat(rejected.issues.any { it.severity == Severity.BLOCKING && it.code.scope == IssueScope.RECORD })
+                assertThat(
+                    rejected.issues.any {
+                        it.severity == Severity.BLOCKING && it.code.scope == IssueScope.RECORD
+                    },
+                )
                     .isTrue()
                 // Ugyanaz az észrevétel a diagnosztikai listában is megjelenik.
                 assertThat(report.issues).containsAtLeastElementsIn(rejected.issues)

@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.Flow
  * egyetlen metódus sem terheli (NFR-01, NFR-10).
  */
 interface TechniqueRepository {
-
     /**
      * A kategóriák a **tartalom által diktált** sorrendben (DR-02, ADR-011).
      *

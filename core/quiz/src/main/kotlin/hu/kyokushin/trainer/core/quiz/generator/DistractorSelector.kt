@@ -42,7 +42,6 @@ import hu.kyokushin.trainer.core.model.TechniqueId
  * listáját keverheti meg a seedelt RNG-vel, a kizárási szabályok újrafogalmazása nélkül.
  */
 object DistractorSelector {
-
     /** Ennyi téves válasz kell egy kérdéshez – kevesebb nem engedett (FR-14). */
     const val DISTRACTOR_COUNT: Int = QuizQuestion.OPTION_COUNT - 1
 
@@ -74,7 +73,7 @@ object DistractorSelector {
                     (
                         correctDigest == null ||
                             visualDigestOf(request, questionType, candidate.id) != correctDigest
-                        )
+                    )
             }
         // Prioritás: azonos kategória elöl, más kategória utána (feltöltésként).
         val (sameCategory, otherCategory) = pool.partition { it.categoryId == correct.categoryId }

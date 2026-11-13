@@ -22,7 +22,6 @@ import java.text.Normalizer
  * explicit [java.util.Locale.ROOT]), nincs I/O, nincs óra és nincs RNG (NFR-07, ADR-001).
  */
 object NameNormalizer {
-
     /**
      * Összehasonlításra és keresésre alkalmas alakot készít: trimmel, kisbetűsít,
      * eltünteti a diakritikus jeleket, és az egybefüggő whitespace-t egyetlen szóközre húzza.

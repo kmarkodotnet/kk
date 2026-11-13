@@ -9,7 +9,6 @@ import org.junit.Test
  * nélkül, sima JUnit teszttel (T-409, FR-17, NFR-04).
  */
 class QuizOptionFeedbackResolverTest {
-
     private val correct = TechniqueId.of("KY-0001")
     private val wrongA = TechniqueId.of("KY-0002")
     private val wrongB = TechniqueId.of("KY-0003")

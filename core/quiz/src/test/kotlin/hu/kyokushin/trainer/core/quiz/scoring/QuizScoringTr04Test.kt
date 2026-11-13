@@ -6,8 +6,8 @@ import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.QuizAttempt
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
-import java.time.Instant
 import org.junit.Test
+import java.time.Instant
 
 /**
  * TR-04 – az eredményszámítás határesetei (FR-18, FR-20, FR-27, DR-09).
@@ -25,7 +25,6 @@ import org.junit.Test
  * (NFR-07).
  */
 class QuizScoringTr04Test {
-
     private val session = SessionId.of("session-tr04")
 
     private val base: Instant = Instant.parse("2026-02-01T18:30:00Z")

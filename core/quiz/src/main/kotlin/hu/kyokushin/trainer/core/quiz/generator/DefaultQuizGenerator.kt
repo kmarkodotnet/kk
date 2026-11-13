@@ -37,9 +37,13 @@ import kotlin.random.Random
  * legfeljebb egyszer szerepel – akkor is, ha több kérdéstípusban is használható lenne. Ha
  * a kért kérdésszám több, mint ahány különböző helyes jelölt van, a terv **kevesebb**
  * kérdést ad [Shortfall]-lal; ismétlés és kitalált opció helyett (FR-22).
+ *
+ * (A fenti táblázat két sora szándékosan 120 karakternél hosszabb: a cellák tördelése
+ * eltörné a Markdown-renderelést, ezért a `max-line-length` ktlint-szabály alább
+ * elszigetelten, indokolt elnyomva – T-607.)
  */
+@Suppress("ktlint:standard:max-line-length")
 object DefaultQuizGenerator : QuizGenerator {
-
     /**
      * Egy lehetséges kérdés a keverés **előtt**: egy kérdéstípus és egy hozzá tényleg
      * összeálló helyes válasz.

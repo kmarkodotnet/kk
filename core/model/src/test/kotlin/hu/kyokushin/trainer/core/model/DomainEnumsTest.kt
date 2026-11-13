@@ -11,7 +11,6 @@ import org.junit.Test
  * CR-01/CR-02 (hitelesítési státusz nem emelhető kódból), DR-01.
  */
 class DomainEnumsTest {
-
     @Test
     fun questionType_hasExactlyTheFourSpecifiedTypes_FR12() {
         assertThat(QuestionType.entries.map { it.name })

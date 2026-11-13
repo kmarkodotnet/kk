@@ -12,7 +12,6 @@ import hu.kyokushin.trainer.core.quiz.validation.ValidationIssue
  * ágak KDoc-ját arra, miért nem elegendő egyetlen „betöltve" ág.
  */
 sealed interface ProgressDiagnosticsUiState {
-
     /** A [hu.kyokushin.trainer.core.data.content.ContentImporter.lastValidationReport] hívása még fut. */
     data object Loading : ProgressDiagnosticsUiState
 

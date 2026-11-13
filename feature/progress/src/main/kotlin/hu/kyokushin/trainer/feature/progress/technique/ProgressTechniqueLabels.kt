@@ -13,7 +13,6 @@ import hu.kyokushin.trainer.feature.progress.R
  * fordító rögtön jelez egy jövőbeli új [QuestionType]/[SelfRating] esetén.
  */
 object ProgressTechniqueLabels {
-
     @StringRes
     fun questionTypeLabelRes(type: QuestionType): Int = when (type) {
         QuestionType.JP_TO_HU -> R.string.progress_technique_type_jp_to_hu

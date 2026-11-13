@@ -10,7 +10,6 @@ import org.junit.Test
  * Tiszta JVM teszt: a ritkítási szabály Android nélkül is ellenőrizhető.
  */
 class IllustrationSampleSizeTest {
-
     @Test
     fun sampleSize_forPackagedIllustrations_downscalesLargeImages_NFR05() {
         // A jelenlegi tudástár-készlet tényleges mérete (manifest.json): 1122x1402.

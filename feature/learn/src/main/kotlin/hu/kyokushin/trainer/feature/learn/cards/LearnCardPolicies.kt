@@ -16,7 +16,6 @@ import hu.kyokushin.trainer.feature.learn.R
  * a `feature/library`-ban.
  */
 object LearnCardImagePolicy {
-
     /**
      * Igaz, ha a kártya ábráját **nem szabad** megjeleníteni felfedés előtt (T-305).
      *
@@ -33,7 +32,6 @@ object LearnCardImagePolicy {
  * Az ábra akadálymentes leírásának szándéka a tanulókártyán (FR-07, NFR-04).
  */
 object LearnCardIllustrationLabelPolicy {
-
     /**
      * Felfedés **előtt** [IllustrationLabel.Decorative] – nem a technika neve.
      *
@@ -56,7 +54,6 @@ object LearnCardIllustrationLabelPolicy {
  * »elrejtve«, utána »felfedve«").
  */
 object LearnCardStateDescription {
-
     fun forRevealed(resources: Resources, revealed: Boolean): String = resources.getString(
         if (revealed) R.string.learn_cards_a11y_state_revealed else R.string.learn_cards_a11y_state_hidden,
     )

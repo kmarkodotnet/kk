@@ -12,8 +12,6 @@ import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.feature.learn.HideMode
-import javax.inject.Inject
-import kotlin.random.Random
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +21,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import kotlin.random.Random
 
 /**
  * A tanulókártya munkamenet állapotkezelése (T-303, FR-09, NFR-07, FUNCTIONAL_SPEC 4.2,
@@ -108,186 +108,187 @@ import kotlinx.coroutines.launch
  * @property savedStateHandle a bemenetet és a munkamenet állapotát hordozza.
  */
 @HiltViewModel
-class LearnCardsViewModel @Inject constructor(
-    private val repository: TechniqueRepository,
-    private val progressRepository: ProgressRepository,
-    private val random: Random,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-    private val savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+class LearnCardsViewModel
+    @Inject
+    constructor(
+        private val repository: TechniqueRepository,
+        private val progressRepository: ProgressRepository,
+        private val random: Random,
+        @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+        private val savedStateHandle: SavedStateHandle,
+    ) : ViewModel() {
+        private val selectedCategories: Set<CategoryId> =
+            savedStateHandle.get<String>(KEY_CATEGORY_IDS)
+                .orEmpty()
+                .split(CATEGORY_ID_SEPARATOR)
+                .filter { it.isNotBlank() }
+                .map(CategoryId::of)
+                .toSet()
 
-    private val selectedCategories: Set<CategoryId> =
-        savedStateHandle.get<String>(KEY_CATEGORY_IDS)
-            .orEmpty()
-            .split(CATEGORY_ID_SEPARATOR)
-            .filter { it.isNotBlank() }
-            .map(CategoryId::of)
-            .toSet()
+        private val hideMode: HideMode =
+            savedStateHandle.get<String>(KEY_HIDE_MODE)
+                ?.let { runCatching { HideMode.valueOf(it) }.getOrNull() }
+                ?: HideMode.HIDE_JAPANESE
 
-    private val hideMode: HideMode =
-        savedStateHandle.get<String>(KEY_HIDE_MODE)
-            ?.let { runCatching { HideMode.valueOf(it) }.getOrNull() }
-            ?: HideMode.HIDE_JAPANESE
+        /** Egyszer sorsolva: ha már volt, a mentett értéket olvassuk vissza (lásd osztály KDoc). */
+        private val seed: Long =
+            savedStateHandle.get<Long>(KEY_SEED)
+                ?: random.nextLong().also { savedStateHandle[KEY_SEED] = it }
 
-    /** Egyszer sorsolva: ha már volt, a mentett értéket olvassuk vissza (lásd osztály KDoc). */
-    private val seed: Long =
-        savedStateHandle.get<Long>(KEY_SEED)
-            ?: random.nextLong().also { savedStateHandle[KEY_SEED] = it }
+        private val positionFlow: Flow<Int> = savedStateHandle.getStateFlow(KEY_POSITION, 0)
 
-    private val positionFlow: Flow<Int> = savedStateHandle.getStateFlow(KEY_POSITION, 0)
+        private val revealedPositionsFlow: Flow<Set<Int>> =
+            savedStateHandle.getStateFlow(KEY_REVEALED, ArrayList<String>())
+                .map { raw -> raw.mapNotNull(String::toIntOrNull).toSet() }
 
-    private val revealedPositionsFlow: Flow<Set<Int>> =
-        savedStateHandle.getStateFlow(KEY_REVEALED, ArrayList<String>())
-            .map { raw -> raw.mapNotNull(String::toIntOrNull).toSet() }
-
-    val uiState: StateFlow<LearnCardsUiState> = combine(
-        repository.observeTechniques(categories = selectedCategories),
-        repository.observeCategories(),
-        positionFlow,
-        revealedPositionsFlow,
-    ) { techniques, categories, position, revealedPositions ->
-        buildState(techniques, categories, position, revealedPositions)
-    }
-        .flowOn(defaultDispatcher)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
-            initialValue = LearnCardsUiState.Loading,
-        )
-
-    /** Az aktuális kártya felfedése (FR-08). Már felfedett kártyán no-op. */
-    fun onReveal() {
-        val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
-        val revealed = savedStateHandle.get<ArrayList<String>>(KEY_REVEALED).orEmpty()
-        if (position.toString() !in revealed) {
-            savedStateHandle[KEY_REVEALED] = ArrayList(revealed + position.toString())
+        val uiState: StateFlow<LearnCardsUiState> = combine(
+            repository.observeTechniques(categories = selectedCategories),
+            repository.observeCategories(),
+            positionFlow,
+            revealedPositionsFlow,
+        ) { techniques, categories, position, revealedPositions ->
+            buildState(techniques, categories, position, revealedPositions)
         }
-    }
+            .flowOn(defaultDispatcher)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+                initialValue = LearnCardsUiState.Loading,
+            )
 
-    /**
-     * Önértékelés mentése, majd automatikus továbblépés (T-306, FR-10, FR-28,
-     * FUNCTIONAL_SPEC 4.2/4.: „Megnyomás után: `StudyReview` rekord mentése … automatikus
-     * továbblépés a következő kártyára").
-     *
-     * No-op, ha az aktuális kártya nincs felfedve – lásd az osztály KDoc-ja. A UI (T-304)
-     * ezért a két gombot felfedésig letiltva tartja, de ez csak elsődleges védelem.
-     */
-    fun onSelfRate(rating: SelfRating) {
-        val state = uiState.value
-        if (state !is LearnCardsUiState.Content || !state.card.revealed) return
-        val techniqueId = state.card.techniqueId
-        viewModelScope.launch {
-            progressRepository.recordStudyReview(techniqueId, rating)
-            onNext()
-        }
-    }
-
-    /** A „Tudtam" gomb (FUNCTIONAL_SPEC 4.2/4., [SelfRating.KNEW]). */
-    fun onKnew() = onSelfRate(SelfRating.KNEW)
-
-    /** A „Gyakorolnom kell" gomb (FUNCTIONAL_SPEC 4.2/4., [SelfRating.NEEDS_PRACTICE]). */
-    fun onNeedsPractice() = onSelfRate(SelfRating.NEEDS_PRACTICE)
-
-    /**
-     * A következő kártyára lépés (FUNCTIONAL_SPEC 4.2/5.).
-     *
-     * A nyers pozíció nő, szorítás nélkül: az utolsó kártyán hívva a [buildState]
-     * [LearnCardsUiState.Finished]-t ad, azaz a záróképernyőre lép (T-307, lásd az
-     * osztály KDoc-ja). A UI (T-304) emiatt a „Következő" gombot az utolsó kártyán sem
-     * tiltja le.
-     */
-    fun onNext() {
-        val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
-        savedStateHandle[KEY_POSITION] = position + 1
-    }
-
-    /** Az előző kártyára lépés, határral az elején (FUNCTIONAL_SPEC 4.2/5.). */
-    fun onPrevious() {
-        val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
-        savedStateHandle[KEY_POSITION] = (position - 1).coerceAtLeast(0)
-    }
-
-    /**
-     * Visszaállás az első kártyára, üres felfedettségi készlettel (T-307, a záróképernyő
-     * „Újrakezdés" gombja). A [seed] – és vele a kártyák sorrendje – **nem** változik,
-     * lásd az osztály KDoc-ja.
-     */
-    fun onRestart() {
-        savedStateHandle[KEY_POSITION] = 0
-        savedStateHandle[KEY_REVEALED] = ArrayList<String>()
-    }
-
-    private fun buildState(
-        techniques: List<Technique>,
-        categories: List<Category>,
-        position: Int,
-        revealedPositions: Set<Int>,
-    ): LearnCardsUiState {
-        if (techniques.isEmpty()) return LearnCardsUiState.Empty
-
-        val ordered = shuffledOrder(techniques)
-
-        // A `lastIndex`-en túli pozíció a záróképernyő bemenete, nem egy "túllépett"
-        // érték, amit vissza kellene szorítani – lásd az osztály KDoc-ja (T-307).
-        if (position >= ordered.size) {
-            return LearnCardsUiState.Finished(total = ordered.size, categoryIds = selectedCategories)
+        /** Az aktuális kártya felfedése (FR-08). Már felfedett kártyán no-op. */
+        fun onReveal() {
+            val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
+            val revealed = savedStateHandle.get<ArrayList<String>>(KEY_REVEALED).orEmpty()
+            if (position.toString() !in revealed) {
+                savedStateHandle[KEY_REVEALED] = ArrayList(revealed + position.toString())
+            }
         }
 
-        val categoryNameById: Map<CategoryId, String> = categories.associate { it.id to it.nameHu }
-        val clampedPosition = position.coerceIn(0, ordered.lastIndex)
-        val technique = ordered[clampedPosition]
-
-        return LearnCardsUiState.Content(
-            card = LearnCardUiModel(
-                techniqueId = technique.id,
-                categoryName = categoryNameById[technique.categoryId].orEmpty(),
-                romaji = technique.romaji,
-                hungarian = technique.hungarian,
-                illustration = technique.illustration,
-                status = technique.status,
-                revealed = clampedPosition in revealedPositions,
-            ),
-            position = clampedPosition,
-            total = ordered.size,
-            hasPrevious = clampedPosition > 0,
-            hasNext = clampedPosition < ordered.lastIndex,
-            hideMode = hideMode,
-        )
-    }
-
-    /**
-     * Seedelt keverés kanonikusan rendezett bemenetből.
-     *
-     * A bemenet a `technique.id` szerint rendezett, **mielőtt** a `shuffled(Random(seed))`
-     * megkeveri: a [TechniqueRepository.observeTechniques] sorrendje nem specifikált
-     * szerződés (csak a tartalma az), ezért anélkül a kiinduló sorrend – és vele a
-     * kimenet – a repository belső rendezésétől függhetne. Rendezett bemenet mellett a
-     * kimenet kizárólag a [seed]-től függ (NFR-07, ugyanaz a garancia, mint a
-     * `DefaultQuizGenerator`-nál).
-     */
-    private fun shuffledOrder(techniques: List<Technique>): List<Technique> =
-        techniques.sortedBy { it.id.value }.shuffled(Random(seed))
-
-    companion object {
         /**
-         * A kijelölt kategóriák kulcsa, [CATEGORY_ID_SEPARATOR]-rel elválasztva.
+         * Önértékelés mentése, majd automatikus továbblépés (T-306, FR-10, FR-28,
+         * FUNCTIONAL_SPEC 4.2/4.: „Megnyomás után: `StudyReview` rekord mentése … automatikus
+         * továbblépés a következő kártyára").
          *
-         * **Nem** `private`: ez a név lesz majd a jövőbeli navigációs argumentum neve is
-         * (T-304), ugyanúgy, mint a `LibraryDetailViewModel.KEY_TECHNIQUE_ID`.
+         * No-op, ha az aktuális kártya nincs felfedve – lásd az osztály KDoc-ja. A UI (T-304)
+         * ezért a két gombot felfedésig letiltva tartja, de ez csak elsődleges védelem.
          */
-        const val KEY_CATEGORY_IDS = "categoryIds"
+        fun onSelfRate(rating: SelfRating) {
+            val state = uiState.value
+            if (state !is LearnCardsUiState.Content || !state.card.revealed) return
+            val techniqueId = state.card.techniqueId
+            viewModelScope.launch {
+                progressRepository.recordStudyReview(techniqueId, rating)
+                onNext()
+            }
+        }
 
-        /** A [HideMode] enum neve sztringként. Nem `private`, lásd [KEY_CATEGORY_IDS]. */
-        const val KEY_HIDE_MODE = "hideMode"
+        /** A „Tudtam" gomb (FUNCTIONAL_SPEC 4.2/4., [SelfRating.KNEW]). */
+        fun onKnew() = onSelfRate(SelfRating.KNEW)
 
-        /** Elválasztó a [KEY_CATEGORY_IDS] értékében; a `CategoryId` nem tartalmazhat vesszőt. */
-        const val CATEGORY_ID_SEPARATOR = ","
+        /** A „Gyakorolnom kell" gomb (FUNCTIONAL_SPEC 4.2/4., [SelfRating.NEEDS_PRACTICE]). */
+        fun onNeedsPractice() = onSelfRate(SelfRating.NEEDS_PRACTICE)
 
-        private const val KEY_SEED = "learn.cards.seed"
-        private const val KEY_POSITION = "learn.cards.position"
-        private const val KEY_REVEALED = "learn.cards.revealedPositions"
+        /**
+         * A következő kártyára lépés (FUNCTIONAL_SPEC 4.2/5.).
+         *
+         * A nyers pozíció nő, szorítás nélkül: az utolsó kártyán hívva a [buildState]
+         * [LearnCardsUiState.Finished]-t ad, azaz a záróképernyőre lép (T-307, lásd az
+         * osztály KDoc-ja). A UI (T-304) emiatt a „Következő" gombot az utolsó kártyán sem
+         * tiltja le.
+         */
+        fun onNext() {
+            val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
+            savedStateHandle[KEY_POSITION] = position + 1
+        }
 
-        /** A konfigurációváltás alatt életben tartja a feliratkozást. */
-        private const val STOP_TIMEOUT_MS = 5_000L
+        /** Az előző kártyára lépés, határral az elején (FUNCTIONAL_SPEC 4.2/5.). */
+        fun onPrevious() {
+            val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
+            savedStateHandle[KEY_POSITION] = (position - 1).coerceAtLeast(0)
+        }
+
+        /**
+         * Visszaállás az első kártyára, üres felfedettségi készlettel (T-307, a záróképernyő
+         * „Újrakezdés" gombja). A [seed] – és vele a kártyák sorrendje – **nem** változik,
+         * lásd az osztály KDoc-ja.
+         */
+        fun onRestart() {
+            savedStateHandle[KEY_POSITION] = 0
+            savedStateHandle[KEY_REVEALED] = ArrayList<String>()
+        }
+
+        private fun buildState(
+            techniques: List<Technique>,
+            categories: List<Category>,
+            position: Int,
+            revealedPositions: Set<Int>,
+        ): LearnCardsUiState {
+            if (techniques.isEmpty()) return LearnCardsUiState.Empty
+
+            val ordered = shuffledOrder(techniques)
+
+            // A `lastIndex`-en túli pozíció a záróképernyő bemenete, nem egy "túllépett"
+            // érték, amit vissza kellene szorítani – lásd az osztály KDoc-ja (T-307).
+            if (position >= ordered.size) {
+                return LearnCardsUiState.Finished(total = ordered.size, categoryIds = selectedCategories)
+            }
+
+            val categoryNameById: Map<CategoryId, String> = categories.associate { it.id to it.nameHu }
+            val clampedPosition = position.coerceIn(0, ordered.lastIndex)
+            val technique = ordered[clampedPosition]
+
+            return LearnCardsUiState.Content(
+                card = LearnCardUiModel(
+                    techniqueId = technique.id,
+                    categoryName = categoryNameById[technique.categoryId].orEmpty(),
+                    romaji = technique.romaji,
+                    hungarian = technique.hungarian,
+                    illustration = technique.illustration,
+                    status = technique.status,
+                    revealed = clampedPosition in revealedPositions,
+                ),
+                position = clampedPosition,
+                total = ordered.size,
+                hasPrevious = clampedPosition > 0,
+                hasNext = clampedPosition < ordered.lastIndex,
+                hideMode = hideMode,
+            )
+        }
+
+        /**
+         * Seedelt keverés kanonikusan rendezett bemenetből.
+         *
+         * A bemenet a `technique.id` szerint rendezett, **mielőtt** a `shuffled(Random(seed))`
+         * megkeveri: a [TechniqueRepository.observeTechniques] sorrendje nem specifikált
+         * szerződés (csak a tartalma az), ezért anélkül a kiinduló sorrend – és vele a
+         * kimenet – a repository belső rendezésétől függhetne. Rendezett bemenet mellett a
+         * kimenet kizárólag a [seed]-től függ (NFR-07, ugyanaz a garancia, mint a
+         * `DefaultQuizGenerator`-nál).
+         */
+        private fun shuffledOrder(techniques: List<Technique>): List<Technique> =
+            techniques.sortedBy { it.id.value }.shuffled(Random(seed))
+
+        companion object {
+            /**
+             * A kijelölt kategóriák kulcsa, [CATEGORY_ID_SEPARATOR]-rel elválasztva.
+             *
+             * **Nem** `private`: ez a név lesz majd a jövőbeli navigációs argumentum neve is
+             * (T-304), ugyanúgy, mint a `LibraryDetailViewModel.KEY_TECHNIQUE_ID`.
+             */
+            const val KEY_CATEGORY_IDS = "categoryIds"
+
+            /** A [HideMode] enum neve sztringként. Nem `private`, lásd [KEY_CATEGORY_IDS]. */
+            const val KEY_HIDE_MODE = "hideMode"
+
+            /** Elválasztó a [KEY_CATEGORY_IDS] értékében; a `CategoryId` nem tartalmazhat vesszőt. */
+            const val CATEGORY_ID_SEPARATOR = ","
+
+            private const val KEY_SEED = "learn.cards.seed"
+            private const val KEY_POSITION = "learn.cards.position"
+            private const val KEY_REVEALED = "learn.cards.revealedPositions"
+
+            /** A konfigurációváltás alatt életben tartja a feliratkozást. */
+            private const val STOP_TIMEOUT_MS = 5_000L
+        }
     }
-}

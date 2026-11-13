@@ -30,7 +30,6 @@ class KnowledgeValidationRuleTableTest(
     @Suppress("unused") private val caseName: String,
     private val case: RuleCase,
 ) {
-
     @Test
     fun validate_ruleTableCase_matchesTheRuleTable_TR01() {
         // A szerződés első szabálya minden esetre érvényes: a hiba adat, nem kivétel (FR-31).
@@ -54,7 +53,6 @@ class KnowledgeValidationRuleTableTest(
     )
 
     companion object {
-
         /**
          * Minden [IssueCode] kódhoz tartozó esetek. A kulcs az eset neve, és a
          * konvenció kötelező: `V0nn_` előtaggal kezdődik, mert a lefedettségi teszt ebből
@@ -217,7 +215,11 @@ class KnowledgeValidationRuleTableTest(
                     input = KnowledgeInput(
                         manifest(
                             illustrations = listOf(
-                                IllustrationInput(ref = "KY-0044", file = "illustrations/KY-0044.jpg", license = "project-internal"),
+                                IllustrationInput(
+                                    ref = "KY-0044",
+                                    file = "illustrations/KY-0044.jpg",
+                                    license = "project-internal",
+                                ),
                             ),
                         ),
                         listOf(validEntry(illustration = "KY-0044", verified = true)),
@@ -236,7 +238,8 @@ class KnowledgeValidationRuleTableTest(
                 "V005_registryEntryWithoutLicense_degradesToPlaceholder" to RuleCase(
                     input = KnowledgeInput(
                         manifest(
-                            illustrations = listOf(IllustrationInput(ref = "KY-0044", file = "KY-0044.jpg", license = null)),
+                            illustrations =
+                                listOf(IllustrationInput(ref = "KY-0044", file = "KY-0044.jpg", license = null)),
                         ),
                         listOf(validEntry(illustration = "KY-0044")),
                         availableIllustrationFiles = setOf("KY-0044.jpg"),
@@ -249,7 +252,10 @@ class KnowledgeValidationRuleTableTest(
             add(
                 "V005_intentionalPlaceholderWithNullFile_producesNoIssue" to RuleCase(
                     input = KnowledgeInput(
-                        manifest(illustrations = listOf(IllustrationInput(ref = "placeholder", file = null, license = "N/A"))),
+                        manifest(
+                            illustrations =
+                                listOf(IllustrationInput(ref = "placeholder", file = null, license = "N/A")),
+                        ),
                         listOf(validEntry(illustration = "placeholder")),
                     ),
                 ) { report ->
@@ -277,7 +283,14 @@ class KnowledgeValidationRuleTableTest(
                 ) { report ->
                     assertThat(report.issuesOf(IssueCode.V005)).isEmpty()
                     assertThat(report.accepted.single().illustration)
-                        .isEqualTo(IllustrationRef.Asset("KY-0044", "KY-0044.jpg", quizUsable = true, hideableOnStudyCard = true))
+                        .isEqualTo(
+                            IllustrationRef.Asset(
+                                "KY-0044",
+                                "KY-0044.jpg",
+                                quizUsable = true,
+                                hideableOnStudyCard = true,
+                            ),
+                        )
                 },
             )
 
@@ -396,7 +409,13 @@ class KnowledgeValidationRuleTableTest(
                 "V009_aliasEqualToOwnName_isDropped" to RuleCase(
                     input = KnowledgeInput(
                         manifest(),
-                        listOf(validEntry(romaji = "Mae geri", hungarian = "Előre rúgás", aliases = listOf("mae geri", "előre rúgás"))),
+                        listOf(
+                            validEntry(
+                                romaji = "Mae geri",
+                                hungarian = "Előre rúgás",
+                                aliases = listOf("mae geri", "előre rúgás"),
+                            ),
+                        ),
                     ),
                 ) { report ->
                     assertThat(report.issuesOf(IssueCode.V009)).hasSize(2)
@@ -492,7 +511,6 @@ class KnowledgeValidationRuleTableTest(
  * egy szabályról, hanem a készlet egészéről szól.
  */
 class KnowledgeValidationRuleCoverageTest {
-
     @Test
     fun ruleCoverage_everyIssueCodeHasANamedCase_TR01() {
         assertThat(KnowledgeValidationRuleTableTest.coveredCodes())

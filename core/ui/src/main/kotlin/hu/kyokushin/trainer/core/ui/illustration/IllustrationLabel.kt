@@ -19,7 +19,6 @@ import hu.kyokushin.trainer.core.ui.R
  * programozói figyelmetlenség kérdése, hanem fordításilag lehetetlen.
  */
 sealed interface IllustrationLabel {
-
     /**
      * Tudástár (lista és részletező): a képet a technika neve azonosítja.
      *
@@ -74,7 +73,6 @@ sealed interface IllustrationLabel {
  * (Robolectric) – a NFR-04 szabály bizonyítéka így nem UI-teszt, hanem unit teszt.
  */
 object IllustrationContentDescription {
-
     /** A valódi képhez tartozó leírás; [IllustrationLabel.Decorative] esetén `null`. */
     fun forAsset(resources: Resources, label: IllustrationLabel): String? = when (label) {
         is IllustrationLabel.Technique -> resources.getString(

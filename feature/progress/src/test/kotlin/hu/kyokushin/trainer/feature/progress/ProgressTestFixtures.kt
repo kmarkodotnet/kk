@@ -12,7 +12,6 @@ import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
 import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
 import hu.kyokushin.trainer.core.data.repository.TechniqueProgress
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
-import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
@@ -23,11 +22,12 @@ import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
 import hu.kyokushin.trainer.core.quiz.scoring.Score
-import java.time.Instant
+import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 
 /**
  * Közös tesztsegédek a `feature/progress` modulhoz (T-503).
@@ -72,7 +72,6 @@ internal class FakeProgressOverviewRepository(
     needsPractice: List<TechniqueProgress> = emptyList(),
     studyReviewSummary: StudyReviewSummary = StudyReviewSummary(knownCount = 0, needsPracticeCount = 0),
 ) : ProgressRepository {
-
     private val overallProgressFlow = MutableStateFlow(overallProgress)
     private val categoryProgressFlow = MutableStateFlow(categoryProgress)
     private val needsPracticeFlow = MutableStateFlow(needsPractice)
@@ -88,31 +87,36 @@ internal class FakeProgressOverviewRepository(
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("A Haladás áttekintő nem rögzít kvízválaszt.")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("A Haladás áttekintő nem zár le menetet.")
-    }
 
     override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         throw UnsupportedOperationException("A Haladás áttekintő nem olvas vissza egyetlen kvízmenetet.")
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("A Haladás áttekintő nem rögzít önértékelést.")
-    }
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> = studyReviewSummaryFlow.asStateFlow()
 
     override fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress> =
-        throw UnsupportedOperationException("A Haladás áttekintő nem olvas technikánkénti bontást (ez a technika-részletező, T-506 felelőssége).")
+        throw UnsupportedOperationException(
+            "A Haladás áttekintő nem olvas technikánkénti bontást " +
+                "(ez a technika-részletező, T-506 felelőssége).",
+        )
 
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
         needsPracticeFlow.asStateFlow().map { it.take(limit) }
 
     override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
-        throw UnsupportedOperationException("A Haladás áttekintő nem olvas önértékelési előzményt (ez a technika-részletező, T-506 felelőssége).")
+        throw UnsupportedOperationException(
+            "A Haladás áttekintő nem olvas önértékelési előzményt " +
+                "(ez a technika-részletező, T-506 felelőssége).",
+        )
 
-    override suspend fun clearAllProgress() {
-        throw UnsupportedOperationException("A Haladás áttekintő nem törli a haladást (ez a `settings`, T-507 felelőssége).")
-    }
+    override suspend fun clearAllProgress(): Unit =
+        throw UnsupportedOperationException(
+            "A Haladás áttekintő nem törli a haladást (ez a `settings`, T-507 felelőssége).",
+        )
 }
 
 /**
@@ -131,7 +135,6 @@ internal class FakeProgressTechniqueRepository(
     private val techniqueById: Map<TechniqueId, Technique> = emptyMap(),
     contentState: ContentState = progressImportedState(),
 ) : TechniqueRepository {
-
     private val categoriesFlow = MutableStateFlow(categories)
     private val techniquesFlow = MutableStateFlow(techniques)
     private val contentStateFlow = MutableStateFlow(contentState)
@@ -160,7 +163,6 @@ internal class FakeProgressTechniqueRepository(
  * előtt egyszer sem, a végső megerősítés után pontosan egyszer hívódik (FR-35).
  */
 internal class FakeProgressSettingsRepository : ProgressRepository {
-
     var clearCallCount: Int = 0
         private set
 
@@ -174,16 +176,14 @@ internal class FakeProgressSettingsRepository : ProgressRepository {
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("A Beállítások nem rögzít kvízválaszt.")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("A Beállítások nem zár le menetet.")
-    }
 
     override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         throw UnsupportedOperationException("A Beállítások nem olvas vissza kvízmenetet.")
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("A Beállítások nem rögzít önértékelést.")
-    }
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
         throw UnsupportedOperationException(
@@ -230,7 +230,6 @@ internal class FakeResettableProgressRepository(
     needsPractice: List<TechniqueProgress> = emptyList(),
     studyReviewSummary: StudyReviewSummary = StudyReviewSummary(knownCount = 3, needsPracticeCount = 1),
 ) : ProgressRepository {
-
     private val overallProgressFlow = MutableStateFlow(overallProgress)
     private val categoryProgressFlow = MutableStateFlow(categoryProgress)
     private val needsPracticeFlow = MutableStateFlow(needsPractice)
@@ -262,16 +261,14 @@ internal class FakeResettableProgressRepository(
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("Ez a dublőr nem rögzít kvízválaszt (T-509).")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("Ez a dublőr nem zár le menetet (T-509).")
-    }
 
     override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         throw UnsupportedOperationException("Ez a dublőr nem olvas vissza kvízmenetet (T-509).")
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("Ez a dublőr nem rögzít önértékelést (T-509).")
-    }
 
     override fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress> =
         throw UnsupportedOperationException("Ez a dublőr nem olvassa a technikánkénti statisztikát (T-509).")
@@ -290,7 +287,6 @@ internal class FakeProgressTechniqueDetailRepository(
     techniqueProgress: TechniqueProgress,
     studyReviewHistory: List<StudyReview> = emptyList(),
 ) : ProgressRepository {
-
     private val techniqueProgressFlow = MutableStateFlow(techniqueProgress)
     private val studyReviewHistoryFlow = MutableStateFlow(studyReviewHistory)
 
@@ -306,19 +302,20 @@ internal class FakeProgressTechniqueDetailRepository(
     override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
         throw UnsupportedOperationException("A technika-részletező nem rögzít kvízválaszt.")
 
-    override suspend fun finishSession(id: SessionId) {
+    override suspend fun finishSession(id: SessionId): Unit =
         throw UnsupportedOperationException("A technika-részletező nem zár le menetet.")
-    }
 
     override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
         throw UnsupportedOperationException("A technika-részletező nem olvas vissza egyetlen kvízmenetet.")
 
-    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating): Unit =
         throw UnsupportedOperationException("A technika-részletező nem rögzít önértékelést.")
-    }
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
-        throw UnsupportedOperationException("A technika-részletező nem olvassa az összesített önértékelést (ez az áttekintő, T-505 felelőssége).")
+        throw UnsupportedOperationException(
+            "A technika-részletező nem olvassa az összesített önértékelést " +
+                "(ez az áttekintő, T-505 felelőssége).",
+        )
 
     override fun observeOverallProgress(): Flow<OverallProgress> =
         throw UnsupportedOperationException("A technika-részletező nem olvassa az aggregált statisztikát (T-501).")
@@ -327,11 +324,15 @@ internal class FakeProgressTechniqueDetailRepository(
         throw UnsupportedOperationException("A technika-részletező nem olvassa az aggregált statisztikát (T-501).")
 
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
-        throw UnsupportedOperationException("A technika-részletező nem olvassa a gyakorlást igénylő listát (ez az áttekintő, T-504 felelőssége).")
+        throw UnsupportedOperationException(
+            "A technika-részletező nem olvassa a gyakorlást igénylő listát " +
+                "(ez az áttekintő, T-504 felelőssége).",
+        )
 
-    override suspend fun clearAllProgress() {
-        throw UnsupportedOperationException("A technika-részletező nem törli a haladást (ez a `settings`, T-507 felelőssége).")
-    }
+    override suspend fun clearAllProgress(): Unit =
+        throw UnsupportedOperationException(
+            "A technika-részletező nem törli a haladást (ez a `settings`, T-507 felelőssége).",
+        )
 }
 
 /**
@@ -344,7 +345,6 @@ internal class FakeProgressTechniqueDetailRepository(
 internal class FakeContentImporter(
     private val report: ValidationReport?,
 ) : ContentImporter {
-
     var lastValidationReportCallCount: Int = 0
         private set
 

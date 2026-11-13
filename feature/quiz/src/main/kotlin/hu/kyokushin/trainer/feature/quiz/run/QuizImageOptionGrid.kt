@@ -9,13 +9,14 @@ package hu.kyokushin.trainer.feature.quiz.run
  * szakasz) – a pozíció-hozzárendelés sima JUnit teszttel bizonyítható.
  *
  * A pozíció **az [options] lista sorrendjéből** jön (1-alapú index), nem rendezi újra –
- * ez ugyanaz a seedelt keverési sorrend, amit a [hu.kyokushin.trainer.core.quiz.generator.QuizQuestion.optionTechniqueIds]
- * már hordoz (ADR-007). A pozíció az [hu.kyokushin.trainer.core.ui.illustration.IllustrationLabel.QuizOption]
+ * ez ugyanaz a seedelt keverési sorrend, amit a
+ * [hu.kyokushin.trainer.core.quiz.generator.QuizQuestion.optionTechniqueIds] már hordoz
+ * (ADR-007). A pozíció az
+ * [hu.kyokushin.trainer.core.ui.illustration.IllustrationLabel.QuizOption]
  * leírásának egyetlen bemenete – ha ez a sorrendtől eltérne, a TalkBack-felhasználó
  * rossz opciót azonosítana be a pozíció alapján (NFR-04).
  */
 internal object QuizImageOptionGrid {
-
     /** Egy rácscella: a 1-alapú pozíció és a hozzá tartozó opció. */
     data class Cell(
         val position: Int,

@@ -12,7 +12,7 @@ import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import java.time.Instant
 
-/**
+/*
  * A **felhasználói táblák** (DR-04, DR-07): a tanulás és a kvíz eredménye.
  *
  * A fájl egyetlen legfontosabb tulajdonsága az, ami **nincs** benne: a [QuizAttemptEntity]
@@ -124,7 +124,7 @@ internal data class StudyReviewEntity(
     val reviewedAt: Instant,
 )
 
-/**
+/*
  * Lekérdezés-projekciók a Haladás képernyő aggregált statisztikáihoz (FR-23–FR-27, T-501).
  *
  * Nem `@Entity`: ezek a sorok soha nem perzisztálódnak, kizárólag a [QuizAttemptDao]

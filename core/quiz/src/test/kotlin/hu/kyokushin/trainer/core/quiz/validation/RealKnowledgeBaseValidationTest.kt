@@ -29,7 +29,6 @@ import org.junit.Test
  * dőlne el, és éppen ezt jelzi.
  */
 class RealKnowledgeBaseValidationTest {
-
     private val validator = DefaultKnowledgeValidator()
 
     @Test

@@ -9,7 +9,6 @@ import org.junit.Test
  * sima JUnit teszttel (T-408, FR-12, NFR-04).
  */
 class QuizImageOptionGridTest {
-
     private fun option(id: String) = QuizOptionDisplay(
         techniqueId = TechniqueId.of(id),
         romaji = "$id-romaji",

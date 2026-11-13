@@ -15,7 +15,6 @@ import org.junit.Test
  * garanciát itt, a `core/quiz`-ben kell bizonyítani.
  */
 class QuizRunStateCodecTest {
-
     @Test
     fun encodePlan_thenDecode_restoresIdenticalPlan_FR19() {
         val plan = QuizPlan(
@@ -85,11 +84,12 @@ class QuizRunStateCodecTest {
         // A `TechniqueId`/`QuestionId` privát konstruktora a visszafejtéskor is érvényesít
         // (lásd `QuizIdSerializers.kt` KDoc-ja) – egy sérült mentett állapot nem tud üres
         // azonosítót becsempészni a domainbe.
-        val manipulated = """
+        val manipulated =
+            """
             {"questions":[{"id":"","type":"JP_TO_HU","correctTechniqueId":"KY-0001",
             "optionTechniqueIds":["KY-0001","KY-0002","KY-0003","KY-0004"]}],
             "skippedTypes":{},"shortfall":null}
-        """.trimIndent()
+            """.trimIndent()
 
         org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
             QuizRunStateCodec.decodePlan(manipulated)

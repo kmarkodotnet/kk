@@ -21,7 +21,6 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class VerificationBadgeTextTest {
-
     private lateinit var resources: Resources
 
     @Before
