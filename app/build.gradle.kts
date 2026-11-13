@@ -58,6 +58,25 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    lint {
+        // Minden könyvtármodul (`feature/*`, `core/*`, `navigation`) lint-találata is
+        // bekerül az `app` összevont jelentésébe – ez az egyetlen modul, amely minden
+        // másikra függ, tehát ez a reális "teljes app" nézet (T-607, NFR-11).
+        checkDependencies = true
+
+        // A `local.properties` gépspecifikus, `.gitignore`-olt fájl (lásd a fájl saját
+        // megjegyzését és docs/CONVENTIONS.md 3.5. szakasz "local.properties útvonal"
+        // sorát): a `sdk.dir` szándékosan PERJELLEL írt útvonalat tartalmaz, mert az
+        // escape-elt (`\\`) alak a `SdkLocator`-t egy VALÓDI `IOException`-nel buktatja
+        // Windows alatt. A "PropertyEscape" lint-ellenőrzés ugyanerre a sorra egy
+        // MÁSIK, a Java properties-fájlformátum szerint technikailag helytálló, de itt
+        // lényegtelen panaszt tesz (a kettőspont escape-elését kéri) egy fájlra, amely
+        // sosem kerül verziókezelésbe, és amelynek a tartalmát minden fejlesztői gépen
+        // a build környezet (nem a projekt) állítja elő. Elnyomva, hogy a build ne
+        // bukjon egy nem-commitolt, gépspecifikus fájl miatt.
+        disable += "PropertyEscape"
+    }
 }
 
 kotlin {
