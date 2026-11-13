@@ -104,4 +104,41 @@
     <string name="progress_technique_self_rating_knew">Tudtam</string>
     <string name="progress_technique_self_rating_needs_practice">Gyakorolnom kell</string>
 
+    <!-- Beállítások (`settings`, FUNCTIONAL_SPEC 6.3, FR-32, FR-35, NFR-09, T-507). -->
+
+    <string name="progress_settings_content_info_title">Tartalominformáció</string>
+    <string name="progress_settings_schema_version">Sémaverzió: %1$s</string>
+    <string name="progress_settings_content_version">Tartalom verziója: %1$s</string>
+    <!-- Ismeretlen/hiányzó verzió (még nem futott import, vagy a manifestből hiányzott
+         a mező) – lásd `ContentState.Imported` KDoc-ja. Nem „0" vagy üres string. -->
+    <string name="progress_settings_version_unknown">ismeretlen</string>
+    <string name="progress_settings_editorial_status">Szerkesztői állapot: %1$s</string>
+    <!-- A `DatasetTrust` két értékének szövege (ADR-010) – ugyanaz a bizalmi szint, mint a
+         lektorálatlanság-szalagon, csak itt tényként kimondva, nem figyelmeztetésként. -->
+    <string name="progress_settings_editorial_status_reviewed">Lektorált</string>
+    <string name="progress_settings_editorial_status_unreviewed">Lektorálatlan gyakorlóanyag</string>
+    <string name="progress_settings_record_count">%1$d technika, %2$d kategória</string>
+
+    <string name="progress_settings_version_license_title">Verzió és forrás</string>
+    <!-- Szó szerint a `knowledgebase/README.md` „Fontos korlátok" szakaszából – nem új
+         állítás, csak a Beállítások képernyőn is megjelenítve (CLAUDE.md: tartalmi
+         integritás, nincs kitalált jelentés). -->
+    <string name="progress_settings_translation_notice">A technikanevek és a magyar jelentések pedagógiai célú fordítások, nem hivatalos Kyokushin szabvány.</string>
+    <string name="progress_settings_illustration_license_notice">Az illusztrációk forrása és licence a tudástár manifestjében, rekordonként van nyilvántartva.</string>
+
+    <string name="progress_settings_clear_button">Előrehaladás törlése</string>
+
+    <!-- Első megerősítő párbeszéd (FR-35 „Kész ha" 1.): pontosan felsorolja, mi törlődik
+         és mi nem, és kimondja, hogy a művelet nem visszavonható. -->
+    <string name="progress_settings_clear_first_title">Haladás törlése</string>
+    <string name="progress_settings_clear_first_message">A következők véglegesen törlődnek: a kvízpróbálkozásaid, a kvízmunkameneteid és az önértékeléseid. A tudástár (a technikák és a kategóriák) nem törlődik. A művelet nem visszavonható.</string>
+    <string name="progress_settings_clear_first_confirm">Tovább</string>
+
+    <!-- Végső megerősítő párbeszéd – innen indul a tényleges törlés. -->
+    <string name="progress_settings_clear_final_title">Biztosan törlöd a haladásodat?</string>
+    <string name="progress_settings_clear_final_message">Ez a végső megerősítés: a törlés után a haladásod nem állítható vissza.</string>
+    <string name="progress_settings_clear_final_confirm">Törlés</string>
+
+    <string name="progress_settings_clear_cancel">Mégsem</string>
+
 </resources>

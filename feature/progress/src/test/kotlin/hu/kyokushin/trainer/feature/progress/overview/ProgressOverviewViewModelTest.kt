@@ -182,6 +182,82 @@ class ProgressOverviewViewModelTest {
     }
 
     /**
+     * T-501/FR-26: a „Gyakorlást igénylő" rendezés (sikerarány növekvő, majd legrégebbi
+     * gyakorlás elöl) a `ProgressRepository.observeNeedsPractice` **SQL-lekérdezés**
+     * felelőssége (lásd a repository KDoc-ja és a `RoomProgressRepositoryTest`, T-501) –
+     * a ViewModel ezt a sorrendet **nem** rendezi át másodszor. Ez a teszt azt
+     * bizonyítja, hogy a `buildNeedsPracticeItems` megőrzi a kapott sorrendet, nem egy
+     * saját (pl. névszerinti) rendezést alkalmaz (T-509 „Teendők" 2.).
+     */
+    @Test
+    fun progressOverview_needsPractice_preservesRepositoryOrder_FR26() = runTest {
+        val weakest = TechniqueId.of("KY-0010")
+        val second = TechniqueId.of("KY-0002")
+        val third = TechniqueId.of("KY-0099")
+        val techniques = listOf(
+            Technique(
+                id = third,
+                categoryId = CATEGORY_DACHI.id,
+                romaji = "zzz last",
+                romajiAscii = "zzz last",
+                hungarian = "harmadik",
+                datasetVersion = "test-1",
+            ),
+            Technique(
+                id = weakest,
+                categoryId = CATEGORY_DACHI.id,
+                romaji = "aaa first",
+                romajiAscii = "aaa first",
+                hungarian = "legrosszabb",
+                datasetVersion = "test-1",
+            ),
+            Technique(
+                id = second,
+                categoryId = CATEGORY_DACHI.id,
+                romaji = "mmm second",
+                romajiAscii = "mmm second",
+                hungarian = "második",
+                datasetVersion = "test-1",
+            ),
+        )
+        val viewModel = viewModel(
+            progressRepository = FakeProgressOverviewRepository(
+                // A `weakest` a legrosszabb sikerarányú, a `third` a legjobb – a
+                // bemeneti sorrend szándékosan **nem** egyezik a technikák
+                // (`techniques` lista, ábécé szerinti romaji) sorrendjével, hogy a
+                // teszt ne egyezzen véletlenül.
+                needsPractice = listOf(
+                    TechniqueProgress(
+                        techniqueId = weakest,
+                        score = Score(answered = 5, correct = 1, ratio = 0.2),
+                        lastPracticedAt = Instant.parse("2026-11-01T08:00:00Z"),
+                        byQuestionType = emptyMap(),
+                    ),
+                    TechniqueProgress(
+                        techniqueId = second,
+                        score = Score(answered = 5, correct = 3, ratio = 0.6),
+                        lastPracticedAt = Instant.parse("2026-11-02T08:00:00Z"),
+                        byQuestionType = emptyMap(),
+                    ),
+                    TechniqueProgress(
+                        techniqueId = third,
+                        score = Score(answered = 5, correct = 4, ratio = 0.8),
+                        lastPracticedAt = Instant.parse("2026-11-03T08:00:00Z"),
+                        byQuestionType = emptyMap(),
+                    ),
+                ),
+            ),
+            techniqueRepository = FakeProgressTechniqueRepository(techniques = techniques),
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as ProgressOverviewUiState.Content
+        assertThat(content.needsPractice.map { it.techniqueId }).containsExactly(weakest, second, third).inOrder()
+        job.cancel()
+    }
+
+    /**
      * T-504 „Figyelj rá": a sosem gyakorolt technika nem „gyenge pont" – ha a
      * `ProgressRepository` szerződésesen üres listát ad (lásd `observeNeedsPractice`
      * KDoc-ja), a képernyő is üres listát kap, nem kivételt.

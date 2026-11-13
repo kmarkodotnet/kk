@@ -133,7 +133,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 7.1 | `progress/overview`: összesítés, kategóriabontás, gyakorlást igénylő lista | FR-23, FR-24, FR-26 | ✅ **kész** (T-503, 2026-11-13; G-10 csoport: T-504, 2026-11-13) |
 | 7.2 | `progress/technique/{id}`: technikánkénti statisztika, visszavont jelölés | FR-25 | ✅ **kész** (G-10 csoport: T-506, 2026-11-13) |
 | 7.3 | Önértékelési blokk elkülönítve + magyarázó szöveg | FR-28 | ✅ **kész** (G-10 csoport: T-505, 2026-11-13) |
-| 7.4 | `settings`: tartalominfó, előrehaladás törlése, debug diagnosztika | FR-32, FR-35 | ⬜ |
+| 7.4 | `settings`: tartalominfó, előrehaladás törlése, debug diagnosztika | FR-32, FR-35 | 🟡 **részben kész** (G-11 csoport: T-507, 2026-11-13) – a tartalominfó és a kétlépcsős törlés megvan; a debug diagnosztika (T-508) még hátravan |
 
 ## Fázis 8 – Minőség, tesztek, dokumentáció, átadás
 
@@ -1273,3 +1273,43 @@ függősége teljesült).
 
 Következő: T-507, `feature/progress`: beállítások (G-11 csoport első tagja, T-509-cel;
 a T-502/T-503 függőségek teljesültek).
+
+- 2026-11-13 – **G-11 csoport kész (T-507, T-509):** a Beállítások (`settings`)
+  képernyő és a hozzá tartozó ViewModel-tesztek.
+  - **T-507 – Beállítások (FR-32, FR-35, NFR-09).** Új `feature/progress/settings`
+    csomag: `ProgressSettingsViewModel` + `ProgressSettingsUiState` +
+    `ProgressSettingsScreen`. A tartalominfó
+    (`schemaVersion`/`contentVersion`/szerkesztői állapot/rekord- és kategóriaszám) a
+    `TechniqueRepository.observeContentState()` + `.observeCategories()`-ből jön –
+    **teljesen független** forrás a törléstől. Az „Előrehaladás törlése" kétlépcsős
+    megerősítést kér (`ClearProgressStep.NONE → FIRST_WARNING → FINAL_WARNING`, a
+    `SavedStateHandle`-ben tárolva, ugyanazzal a mintával, mint a `QuizRunViewModel`
+    `closeConfirmationVisible` mezője): az első párbeszéd felsorolja, mi törlődik
+    (kvízpróbálkozások, munkamenetek, önértékelések) és mi nem (a tudástár), a második
+    a végső megerősítés – mindkettő kimondja, hogy a művelet nem visszavonható. Csak a
+    végső megerősítés hívja a `ProgressRepository.clearAllProgress()`-t (T-502-ből).
+    **Nyitva hagyva, dokumentáltan** (lásd `docs/CONVENTIONS.md` 5. szakasz): a
+    `navigation` modul `settings` ága még `PlaceholderScreen` – a bekötés külön,
+    `navigation`-feladat; és az app saját `BuildConfig.VERSION_NAME`-je
+    (`app/build.gradle.kts`) a modulhatár miatt nem érhető el a `feature/progress`-ből
+    (feature modulok nem függhetnek az `app`-ra) – a „Verzió és forrás" szakasz ezért a
+    tartalomverziót és a `knowledgebase/README.md`-ből szó szerint átvett korlátozó
+    mondatokat jeleníti meg, nem egy kitalált app-verziószámot.
+  - **T-509 – ViewModel tesztek (FR-26, FR-27, FR-35).** `ProgressSettingsViewModelTest`
+    (6 eset): importált/nem importált tartalominfó, a kétlépcsős megerősítés (törlés
+    csak a második lépés után hívódik), „Mégsem" bármelyik lépésben, és hogy a törlés
+    nem változtatja meg a tartalominfót. Egy dedikált teszt (ugyanazon
+    `ProgressRepository`-példányt megosztva egy `ProgressOverviewViewModel` és egy
+    `ProgressSettingsViewModel` között) bizonyítja, hogy a Beállításokon megerősített
+    törlés az áttekintő statisztikáját is nullázza, a tartalominfót nem. A „gyakorlást
+    igénylő" rendezés **megőrzését** (a tényleges rendezés a T-501 SQL-lekérdezése) egy
+    új `ProgressOverviewViewModelTest` eset fedi (`+1 → 10`); a „nincs adat" esetek és
+    az önértékelés-függetlenség a G-10 csoport tesztjei már lefedték.
+
+Új tesztek: `ProgressSettingsViewModelTest` (6), `ProgressOverviewViewModelTest` (+1 → 10).
+`.\gradlew.bat testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, 613 teszt,
+0 hiba, 606 → 613); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`).
+
+Következő: T-508, `feature/progress`: debug diagnosztika (a teljes `ValidationReport`
+megjelenítése) – T-117 és T-507 függőségei teljesültek. Ezt nem ez a csoport kapta
+feladatul (lásd a megbízás hatóköre), a `docs/backlog/` mappában marad.

@@ -3139,3 +3139,73 @@ időzónával, nem egy új időpontot kérdez le.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (mindhárom képernyő/állapot világos + sötét variánsa); a tényleges renderelés emulátort igényel (B-03). |
+
+## 2026-11-13 – T-507/T-509 kész (G-11 csoport): `feature/progress` beállítások + ViewModel tesztek
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat :feature:progress:testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 20s`, 76 actionable task. A `feature/progress` modul minden tesztosztálya `failures="0" errors="0"` (összesen 33 eset a modulban, köztük az új `ProgressSettingsViewModelTest` 6 esete). |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 39s` (első futás) / `BUILD SUCCESSFUL in 40s` (megerősítő, második teljes futás egy kiegészítő `@Preview` után), 311 actionable task – a teljes projekt, minden modul. Minden `build/test-results/**/*.xml` `failures="0" errors="0"`. |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 4s` (majd egy újabb, megerősítő futás `BUILD SUCCESSFUL in 2s`), `app/build/outputs/apk/debug/app-debug.apk` megvan (~21 MB). |
+
+A teljes projekt `tests` attribútumainak összege (minden modul, a kanonikus
+`testDebugUnitTest`/JVM-modul `test` eredménykönyvtárából, dupla számolás nélkül):
+**606 → 613** (+7), **0 hiba, 0 error**. Az érintett osztályok:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.progress.settings.ProgressSettingsViewModelTest` (új) | 6 | 0 |
+| `…feature.progress.overview.ProgressOverviewViewModelTest` (+1 → 10) | 10 | 0 |
+
+### Mi készült
+
+- **T-507 – Beállítások (FR-32, FR-35, NFR-09).** Új `feature/progress/settings`
+  csomag: `ProgressSettingsUiState` (`Loading`/`Content` – séma-/tartalomverzió,
+  szerkesztői állapot, rekord- és kategóriaszám, `ClearProgressStep`), a
+  `ProgressSettingsViewModel` (`TechniqueRepository.observeContentState()` +
+  `.observeCategories()` a tartalominfóhoz, `ProgressRepository.clearAllProgress()` a
+  törléshez) és a `ProgressSettingsScreen`/`Route`. A kétlépcsős megerősítés
+  (`NONE → FIRST_WARNING → FINAL_WARNING`) a `SavedStateHandle`-ben él (ugyanaz a
+  minta, mint a `QuizRunViewModel` `closeConfirmationVisible` mezője): az első
+  párbeszéd pontosan felsorolja, mi törlődik (kvízpróbálkozások, munkamenetek,
+  önértékelések) és mi nem (a tudástár), mindkét párbeszéd kimondja, hogy a művelet
+  nem visszavonható. A törlés gomb csak a végső megerősítés után hívja a
+  `clearAllProgress()`-t, és amíg a hívás fut, újra nem indítható
+  (`isClearing`/kétszeri-kattintás védelem). A „Verzió és forrás" szakasz a
+  tartalomverziót és a `knowledgebase/README.md`-ből szó szerint átvett két
+  korlátozó mondatot jeleníti meg – **nem** app-verziószámot: a `feature/progress`
+  modulhatár miatt nem éri el az `app` modul `BuildConfig.VERSION_NAME`-jét (lásd
+  `docs/CONVENTIONS.md` 5. szakasz, új sor). A `navigation` modul `SETTINGS` ága
+  szándékosan továbbra is `PlaceholderScreen` – a tényleges bekötés egy önálló,
+  `navigation`-feladat (ugyanaz a nyitott minta, mint a `quiz/setup`/`quiz/run`/
+  `quiz/result`-nál).
+- **T-509 – ViewModel tesztek (FR-26, FR-27, FR-35).** `ProgressSettingsViewModelTest`
+  (6 eset): importált/nem importált („nincs adat") tartalominfó, a kétlépcsős
+  megerősítés (a repository csak a végső megerősítés után híva, egyszer), „Mégsem"
+  bármelyik lépésben (sosem hív törlést), és hogy a törlés nem változtatja meg a
+  tartalominfót. Egy dedikált eset egyetlen `FakeResettableProgressRepository`
+  példányt oszt meg egy `ProgressOverviewViewModel` és egy
+  `ProgressSettingsViewModel` között, és bizonyítja, hogy a Beállításokon
+  megerősített törlés az áttekintő statisztikáját (`overallScore`,
+  kategóriánkénti `score`) is nullázza, a tartalominfót (rekord-/kategóriaszám)
+  nem érinti. A „gyakorlást igénylő" **rendezés megőrzését** (a tényleges rendezés a
+  T-501 SQL `@Query`-je) egy új `ProgressOverviewViewModelTest` eset fedi
+  (`progressOverview_needsPractice_preservesRepositoryOrder_FR26`, `+1 → 10`); a
+  „nincs adat" esetek és az önértékelés-függetlenség a G-10 csoport tesztjei már
+  lefedték, ezeket nem kellett megduplázni.
+
+### Rétegszabály, NFR-07
+
+A `ProgressSettingsViewModel` kizárólag a `ProgressRepository`/`TechniqueRepository`
+szerződést és a `core/model` domain típusokat (`Category`, `DatasetTrust`) látja – nincs
+Room entitás/DAO/DTO a `feature/progress`-ben (L3). Nincs közvetlen `Clock`/`Random`
+hívás: a `ClearProgressStep` állapotgép tisztán felhasználói akciókra (kattintás)
+reagál, nincs benne időfüggő vagy véletlen logika.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (5 állapotpár – betöltés, importált tartalom, nem importált tartalom, első/végső megerősítés – világos + sötét variánsa); a tényleges renderelés emulátort igényel (B-03). |
