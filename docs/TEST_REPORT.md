@@ -2919,3 +2919,69 @@ nincs közvetlen `Clock`/`Random` hívás.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `quiz/setup` ↔ `quiz/run` ↔ `quiz/result` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak a tárgya. |
+
+---
+
+## 2026-11-13 – T-501 kész: `core/data` aggregált statisztika `@Query`-k
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat :core:data:testDebugUnitTest --tests "hu.kyokushin.trainer.core.data.repository.RoomProgressRepositoryTest" --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 17s`, 41 actionable task. A `TEST-...RoomProgressRepositoryTest.xml`: `tests="21" skipped="0" failures="0" errors="0"` (12 meglévő + 9 új). |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 36s`, 294 actionable task (teljes, őszinte projektfutás, minden modul). Minden `build/test-results/**/*.xml` `failures="0" errors="0"`. |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 6s`, 300 actionable task (11 végrehajtva, 289 up-to-date); `app/build/outputs/apk/debug/app-debug.apk` megvan. |
+
+A teljes projekt `tests` attribútumainak összege (minden modul, a kanonikus
+`testDebugUnitTest`/JVM-modul `test` eredménykönyvtárából, dupla számolás nélkül):
+**569 → 578** (+9), **0 hiba, 0 error**. Az érintett osztály:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…core.data.repository.RoomProgressRepositoryTest` (12 → **21**) | 21 | 0 |
+
+### Mi készült
+
+A `ProgressRepository` négy új, **olvasó**, aggregált SQL `@Query`-re épülő taggal
+bővült (FR-23…FR-27, DR-09): `observeOverallProgress`, `observeCategoryProgress`,
+`observeTechniqueProgress(id)`, `observeNeedsPractice(limit)`. Részletek:
+`docs/IMPLEMENTATION_PLAN.md` Fázis 3.7 sora és a 2026-11-13-i changelog bejegyzés.
+
+Kilenc új teszt a `RoomProgressRepositoryTest`-ben, in-memory Room adatbázison:
+
+- „nincs adat" (nem 0%) mindkét granularitáson (összesített, egyetlen technika) –
+  FR-27.
+- a kategóriabontás **minden** kategóriát ad, a próbálkozásmentest is – FR-24.
+- a kategóriabontás helyesen összegez **két** technikát egy kategórián belül
+  (`GROUP BY categoryId` bizonyítása) – FR-24.
+- a technikánkénti bontás kérdéstípusonként **elkülönül**, és egy másik technika
+  próbálkozása nem szivárog bele – FR-25.
+- a „gyakorlást igénylő" lista **kihagyja** a sosem gyakorolt technikát – FR-26.
+- a lista rendezése sikerarány növekvő, majd azonos aránynál a régebben gyakorolt
+  elöl – FR-26.
+- a `limit` paraméter tényleg korlátoz – FR-26.
+
+A bővült interfész miatt a négy meglévő `ProgressRepository` tesztdublőr
+(`FakeLearnProgressRepository`, `FakeQuizProgressRepository`,
+`FakeQuizRunProgressRepository`, `FakeQuizResultProgressRepository`,
+`feature/learn`/`feature/quiz` teszt source setek) mind kapott négy új, kivételt dobó
+felülírást – ezek nélkül a build `ABSTRACT_MEMBER_NOT_IMPLEMENTED` hibával elhasalt
+volna (ez a köztes állapot egyszer tényleg elő is fordult, és a teljes
+`testDebugUnitTest` futás fogta meg).
+
+### Rétegszabály, NFR-07, NFR-10
+
+A `progressRepository_publicApiExposesNoRoomOrDatabaseTypes_NFR03` teszt (már
+meglévő, reflexiós) a négy új metódus `Flow<OverallProgress>`/
+`Flow<List<CategoryProgress>>`/`Flow<TechniqueProgress>`/`Flow<List<TechniqueProgress>>`
+visszatérési típusán is lefutott, és nem talált Room/DAO/Entity szivárgást. Nincs
+közvetlen `Clock`/`Random` hívás az új kódban (nincs is rá szükség: a próbálkozások
+időbélyege már tárolt adat). Nincs N+1 lekérdezés: a „gyakorlást igénylő" lista
+kérdéstípus-bontása egyetlen `IN (:techniqueIds)` lekérdezésből jön, nem
+technikánkénti egyenkénti hívásból.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| UI (`contentDescription`, 48 dp célpont, `@Preview`) | **NEM ALKALMAZHATÓ** – tisztán `core/data` adatréteg-feladat, nincs UI-t érintő változás. |

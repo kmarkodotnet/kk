@@ -7,6 +7,8 @@ import hu.kyokushin.trainer.core.data.db.QuizSessionEntity
 import hu.kyokushin.trainer.core.data.db.StudyReviewEntity
 import hu.kyokushin.trainer.core.data.db.toQuizAttempt
 import hu.kyokushin.trainer.core.data.db.toQuizSession
+import hu.kyokushin.trainer.core.data.db.toScore
+import hu.kyokushin.trainer.core.data.db.toTechniqueProgress
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
@@ -14,9 +16,13 @@ import hu.kyokushin.trainer.core.model.TechniqueId
 import java.time.Clock
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 /**
@@ -131,6 +137,40 @@ internal class RoomProgressRepository @Inject constructor(
         ) { known, needsPractice ->
             StudyReviewSummary(knownCount = known, needsPracticeCount = needsPractice)
         }.flowOn(ioDispatcher)
+
+    override fun observeOverallProgress(): Flow<OverallProgress> =
+        database.quizAttemptDao().observeOverallScore()
+            .map { row -> OverallProgress(row.toScore()) }
+            .flowOn(ioDispatcher)
+
+    override fun observeCategoryProgress(): Flow<List<CategoryProgress>> =
+        database.quizAttemptDao().observeCategoryScores()
+            .map { rows -> rows.map { CategoryProgress(categoryId = it.categoryId, score = it.toScore()) } }
+            .flowOn(ioDispatcher)
+
+    override fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress> =
+        combine(
+            database.quizAttemptDao().observeTechniqueScore(id),
+            database.quizAttemptDao().observeTechniqueScoreByQuestionType(id),
+        ) { overall, byType -> overall.toTechniqueProgress(byType) }
+            .flowOn(ioDispatcher)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
+        database.quizAttemptDao().observeNeedsPracticeScores(limit)
+            .flatMapLatest { rows ->
+                if (rows.isEmpty()) {
+                    // Nincs legalább egy próbálkozással rendelkező technika – a hívó
+                    // üres listát kap, nem `null`-t (lásd a `ProgressRepository` KDoc-ját).
+                    flowOf(emptyList<TechniqueProgress>())
+                } else {
+                    val ids = rows.map { it.techniqueId }
+                    database.quizAttemptDao().observeQuestionTypeScoresFor(ids).map { breakdown ->
+                        val byTechnique = breakdown.groupBy { it.techniqueId }
+                        rows.map { row -> row.toTechniqueProgress(byTechnique[row.techniqueId].orEmpty()) }
+                    }
+                }
+            }.flowOn(ioDispatcher)
 
     override suspend fun clearAllProgress() {
         withContext(ioDispatcher) {

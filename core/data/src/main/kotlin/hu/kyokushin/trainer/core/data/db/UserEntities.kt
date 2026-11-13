@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.SelfRating
@@ -121,4 +122,56 @@ internal data class StudyReviewEntity(
     val techniqueId: TechniqueId,
     val selfRating: SelfRating,
     val reviewedAt: Instant,
+)
+
+/**
+ * Lekérdezés-projekciók a Haladás képernyő aggregált statisztikáihoz (FR-23–FR-27, T-501).
+ *
+ * Nem `@Entity`: ezek a sorok soha nem perzisztálódnak, kizárólag a [QuizAttemptDao]
+ * aggregált `@Query`-inek kimenetei. Mindegyik `answered`/`correctCount` oszlopa
+ * `COUNT(*)`/`COALESCE(SUM(correct), 0)`-ból jön – a „nincs adat vs. 0%" döntést
+ * (FR-27) a mapper ([hu.kyokushin.trainer.core.data.db.toScore]) hozza meg, a `ratio`-t
+ * soha nem SQL számolja (DR-09: a levezetett érték egyetlen helyen él, lásd
+ * `core/quiz` [hu.kyokushin.trainer.core.quiz.scoring.Score]).
+ */
+
+/** [hu.kyokushin.trainer.core.data.repository.OverallProgress] forrása. */
+internal data class OverallScoreRow(
+    val answered: Int,
+    val correctCount: Int,
+)
+
+/** [hu.kyokushin.trainer.core.data.repository.CategoryProgress] egy sorának forrása. */
+internal data class CategoryScoreRow(
+    val categoryId: CategoryId,
+    val answered: Int,
+    val correctCount: Int,
+)
+
+/**
+ * [hu.kyokushin.trainer.core.data.repository.TechniqueProgress] összesített (nem
+ * kérdéstípus szerinti) részének forrása. Egyszerre szolgálja az egyetlen technikára
+ * szűrt lekérdezést ([QuizAttemptDao.observeTechniqueScore], ahol a `techniqueId`
+ * oszlop a bemeneti paraméter szó szerinti visszaadása) és a „gyakorlást igénylő"
+ * listát ([QuizAttemptDao.observeNeedsPracticeScores], ahol valódi `GROUP BY` oszlop) –
+ * nem kell két külön, majdnem azonos projekciós típus.
+ */
+internal data class TechniqueScoreRow(
+    val techniqueId: TechniqueId,
+    val answered: Int,
+    val correctCount: Int,
+    val lastPracticedAt: Instant?,
+)
+
+/**
+ * [hu.kyokushin.trainer.core.data.repository.TechniqueProgress.byQuestionType] egy
+ * bejegyzésének forrása. Ugyanaz a kettős felhasználás, mint a [TechniqueScoreRow]-nál:
+ * egyetlen technikára ([QuizAttemptDao.observeTechniqueScoreByQuestionType]) és több
+ * technikára egyszerre ([QuizAttemptDao.observeQuestionTypeScoresFor]).
+ */
+internal data class TechniqueQuestionTypeScoreRow(
+    val techniqueId: TechniqueId,
+    val questionType: QuestionType,
+    val answered: Int,
+    val correctCount: Int,
 )

@@ -1,5 +1,6 @@
 package hu.kyokushin.trainer.core.data.repository
 
+import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.QuizAttempt
@@ -7,6 +8,8 @@ import hu.kyokushin.trainer.core.model.QuizSession
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
+import hu.kyokushin.trainer.core.quiz.scoring.Score
+import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -19,21 +22,22 @@ import kotlinx.coroutines.flow.Flow
  *
  * ## Mi tartozik ehhez az interfészhez, és mi nem (még)
  *
- * Ez a felület a T-301 (tanulási/önértékelési rész), a T-401 (kvízrész) és a T-502
- * (törlés) tagjait fogja össze egy csoportban. Az aggregált, **olvasó** statisztikai
- * `Flow`-k (`observeOverallProgress`, `observeCategoryProgress`, `observeTechniqueProgress`,
- * `observeNeedsPractice`) az architektúra-vázlatban már szerepelnek, de a T-501 tárgya –
- * ide szándékosan nem kerültek bele, nehogy a felület olyan tagot ígérjen, amihez még
- * nincs `@Query`. A [observeStudyReviewSummary] ugyanilyen jellegű olvasó `Flow`, de az
- * ehhez tartozó adat (`study_review` darabszám besorolásonként) a T-301 hatókörébe esik,
- * ezért már itt megjelenik (FR-28, FUNCTIONAL_SPEC 6.1/5.).
+ * Ez a felület a T-301 (tanulási/önértékelési rész), a T-401 (kvízrész), a T-501
+ * (aggregált statisztika) és a T-502 (törlés) tagjait fogja össze egy csoportban. Az
+ * aggregált, **olvasó** statisztikai `Flow`-k ([observeOverallProgress],
+ * [observeCategoryProgress], [observeTechniqueProgress], [observeNeedsPractice], T-501,
+ * FR-23–FR-27, DR-09) **aggregált SQL `@Query`-kből** jönnek
+ * (lásd [hu.kyokushin.trainer.core.data.db.QuizAttemptDao]), nem memóriában összeszámolt
+ * listából – nincs mellettük külön számláló tábla vagy mező, amit az írásoknak
+ * (`recordAttempt` stb.) frissíteniük kellene (DR-09). A [observeStudyReviewSummary]
+ * ugyanilyen jellegű olvasó `Flow`, de az ehhez tartozó adat (`study_review` darabszám
+ * besorolásonként) a T-301 hatókörébe esik, ezért korábban jelent meg (FR-28,
+ * FUNCTIONAL_SPEC 6.1/5.).
  *
  * A [getSessionResult] is olvasó tag, de **nem** a T-501 aggregált, több-munkamenetes
- * statisztikája (az a `observeOverallProgress`/`observeCategoryProgress`/
- * `observeTechniqueProgress`/`observeNeedsPractice` négyes, még nincs megírva): ez
- * kizárólag **egyetlen, már ismert `SessionId`-jú** menet visszaolvasása, a kvíz
- * eredményképernyőjéhez (FR-20, FR-21, T-411/T-412, G-09 csoport). A kettő nem ütközik:
- * az eredményképernyő a saját menetét nézi, nem a felhasználó teljes előzményét.
+ * statisztikája: ez kizárólag **egyetlen, már ismert `SessionId`-jú** menet visszaolvasása,
+ * a kvíz eredményképernyőjéhez (FR-20, FR-21, T-411/T-412, G-09 csoport). A kettő nem
+ * ütközik: az eredményképernyő a saját menetét nézi, nem a felhasználó teljes előzményét.
  *
  * ## Négy szabály, amit a megvalósításnak be kell tartania
  *
@@ -122,6 +126,48 @@ interface ProgressRepository {
     fun observeStudyReviewSummary(): Flow<StudyReviewSummary>
 
     /**
+     * Összesített kvízstatisztika **minden** rögzített próbálkozásból (FR-23, T-501).
+     *
+     * A Haladás áttekintő kártyájának („összes megválaszolt kérdés, helyes válaszok,
+     * sikerarány") adatforrása. Nulla megválaszolt kérdés esetén a
+     * [OverallProgress.score]`.ratio` `null` (FR-27) – a hívó ilyenkor „Még nincs adat.
+     * Indíts egy kvízt!" szöveget ír ki, nem 0%-ot (FUNCTIONAL_SPEC 6.1/2.).
+     */
+    fun observeOverallProgress(): Flow<OverallProgress>
+
+    /**
+     * Kategóriánkénti kvízstatisztika (FR-24, T-501).
+     *
+     * **Minden** kategóriára pontosan egy bejegyzés érkezik, azokra is, amelyekben még
+     * egyetlen próbálkozás sem történt – ott a [CategoryProgress.score]`.ratio` `null`
+     * („nincs adat"), nem `0.0` (FUNCTIONAL_SPEC 6.1/3.). A lista a kategóriák tartalom
+     * által diktált sorrendjében érkezik (ugyanaz a sorrend, mint
+     * [hu.kyokushin.trainer.core.data.repository.TechniqueRepository.observeCategories]).
+     */
+    fun observeCategoryProgress(): Flow<List<CategoryProgress>>
+
+    /**
+     * Egy technika teljes kvízstatisztikája, kérdéstípus szerinti bontással (FR-25, T-501).
+     *
+     * Ismeretlen vagy még sosem gyakorolt technikára is ad eredményt – nem `null`-t –,
+     * ahol [TechniqueProgress.score]`.answered == 0`, [TechniqueProgress.lastPracticedAt]
+     * `null`, és [TechniqueProgress.byQuestionType] üres (FUNCTIONAL_SPEC 6.2).
+     */
+    fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress>
+
+    /**
+     * A legfeljebb [limit] legtöbb gyakorlást igénylő technika (FR-26, T-501).
+     *
+     * Rendezés (a) sikerarány **növekvő** (a legalacsonyabb elöl), majd (b) az utolsó
+     * gyakorlás **régisége** szerint (a legrégebben gyakorolt elöl) – FUNCTIONAL_SPEC
+     * 6.1/4. Csak olyan technika kerül bele, amelyre **legalább egy** próbálkozás már
+     * történt; a sosem gyakorolt technika szándékosan hiányzik ebből a listából (azt a
+     * tanulás, nem a Haladás kezeli). Üres lista, ha még egyetlen próbálkozás sincs –
+     * nem `null`.
+     */
+    fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>>
+
+    /**
      * Minden felhasználói adat törlése egyetlen tranzakcióban (FR-35, NFR-09).
      *
      * A `quiz_session`, a rá `CASCADE`-elő `quiz_attempt` és a `study_review` tábla ürül.
@@ -195,4 +241,66 @@ data class StudyReviewSummary(
 
     /** A leadott önértékelések összes száma – a Haladás képernyő üres állapotához kell. */
     val totalCount: Int get() = knownCount + needsPracticeCount
+}
+
+/**
+ * Az összes kvízpróbálkozásból számolt, összesített sikerarány – a
+ * [ProgressRepository.observeOverallProgress] kimenete (FR-23, T-501).
+ *
+ * A [score] ugyanazt a [Score] típust használja, mint a kvízmenet lezárásának
+ * eredményszámítása (`core/quiz`): ugyanaz a „0 megválaszolt kérdés → `ratio = null`,
+ * nem `0.0`" szabály (FR-27) vonatkozik rá, és nincs rá második, külön megfogalmazás
+ * (DR-09) – csak a bemenet más (aggregált SQL az összes próbálkozásra, nem egy adott
+ * munkamenet listája).
+ */
+data class OverallProgress(val score: Score)
+
+/**
+ * Egy kategória összesített kvízstatisztikája – a
+ * [ProgressRepository.observeCategoryProgress] egy eleme (FR-24, T-501).
+ *
+ * @property categoryId a kategória, amelyre a [score] vonatkozik.
+ * @property score a kategóriába eső technikákra érkezett próbálkozások összegzése. Ha a
+ *   kategóriában még nincs próbálkozás, `Score(0, 0, null)` – „nincs adat", nem „0%"
+ *   (FUNCTIONAL_SPEC 6.1/3.).
+ */
+data class CategoryProgress(
+    val categoryId: CategoryId,
+    val score: Score,
+)
+
+/**
+ * Egy technika teljes kvízstatisztikája, kérdéstípus szerinti bontással – a
+ * [ProgressRepository.observeTechniqueProgress] és a [ProgressRepository.observeNeedsPractice]
+ * közös eleme (FR-25, FR-26, T-501).
+ *
+ * @property techniqueId a technika, amelyre a statisztika vonatkozik.
+ * @property score az összesített próbálkozás/helyes/sikerarány (FR-25).
+ * @property lastPracticedAt az utolsó rögzített próbálkozás időpontja, vagy `null`, ha a
+ *   technikára még sosem érkezett kvízválasz – ugyanaz a feltétel, mint
+ *   [score]`.answered == 0`.
+ * @property byQuestionType ugyanez a bontás kérdéstípusonként (FUNCTIONAL_SPEC 6.2:
+ *   „melyik típusban hibázik"). Csak az a [hu.kyokushin.trainer.core.model.QuestionType],
+ *   amelyben tényleg volt legalább egy próbálkozás, szerepel kulcsként – egy hiányzó
+ *   típusra a hívó „nincs adat"-ot kap (a map egyszerűen nem tartalmazza), nem egy
+ *   `Score(0, 0, null)` bejegyzést.
+ */
+data class TechniqueProgress(
+    val techniqueId: TechniqueId,
+    val score: Score,
+    val lastPracticedAt: Instant?,
+    val byQuestionType: Map<QuestionType, Score>,
+) {
+    init {
+        if (score.answered == 0) {
+            // Soha gyakorolt technikára nincs utolsó gyakorlási időpont és nincs
+            // típusonkénti bontás – a kettő csak együtt ürül, a `score`-ral konzisztensen.
+            require(lastPracticedAt == null) {
+                "TechniqueProgress.lastPracticedAt csak próbálkozással rendelkező technikánál lehet nem null."
+            }
+            require(byQuestionType.isEmpty()) {
+                "TechniqueProgress.byQuestionType csak próbálkozással rendelkező technikánál lehet nem üres."
+            }
+        }
+    }
 }

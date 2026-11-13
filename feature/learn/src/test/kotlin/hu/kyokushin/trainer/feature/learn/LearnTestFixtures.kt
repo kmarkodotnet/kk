@@ -2,12 +2,15 @@ package hu.kyokushin.trainer.feature.learn
 
 import hu.kyokushin.trainer.core.data.content.ContentImporter
 import hu.kyokushin.trainer.core.data.content.ImportResult
+import hu.kyokushin.trainer.core.data.repository.CategoryProgress
 import hu.kyokushin.trainer.core.data.repository.ContentState
 import hu.kyokushin.trainer.core.data.repository.NewAttempt
+import hu.kyokushin.trainer.core.data.repository.OverallProgress
 import hu.kyokushin.trainer.core.data.repository.ProgressRepository
 import hu.kyokushin.trainer.core.data.repository.QuizSessionResult
 import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
 import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
+import hu.kyokushin.trainer.core.data.repository.TechniqueProgress
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
@@ -192,6 +195,18 @@ internal class FakeLearnProgressRepository : ProgressRepository {
 
     override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
         throw UnsupportedOperationException("A tanulókártya ViewModel nem olvassa az összegzést.")
+
+    override fun observeOverallProgress(): Flow<OverallProgress> =
+        throw UnsupportedOperationException("A tanulás nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeCategoryProgress(): Flow<List<CategoryProgress>> =
+        throw UnsupportedOperationException("A tanulás nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress> =
+        throw UnsupportedOperationException("A tanulás nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
+        throw UnsupportedOperationException("A tanulás nem olvassa az aggregált statisztikát (T-501).")
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A tanulás nem törli a haladást.")

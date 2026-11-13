@@ -96,6 +96,139 @@ internal interface QuizAttemptDao {
 
     @Query("SELECT COUNT(*) FROM quiz_attempt")
     suspend fun count(): Int
+
+    // --- Haladás: aggregált statisztika (FR-23–FR-27, DR-09, NFR-10, T-501) ---------
+    //
+    // Minden lekérdezés itt lent **aggregált SQL**: nincs mellette számláló tábla/oszlop,
+    // amit az írásnak (`insertIgnoringDuplicate`) karban kellene tartania (DR-09). A
+    // `ratio` számítása (és a „nincs adat vs. 0%" döntés, FR-27) sosem itt, SQL-ben
+    // történik, hanem a mapperben ([toScore], `UserEntityMappers.kt`) – egyetlen helyen,
+    // ugyanazzal a szabállyal, mint a `core/quiz` `Score`.
+
+    /**
+     * Összesített sikerarány **minden** próbálkozásból (FR-23).
+     *
+     * `COUNT(*)` és `COALESCE(SUM(correct), 0)` nélküli `WHERE`/`GROUP BY` esetén mindig
+     * ad egy sort, még 0 próbálkozásnál is (`answered = 0, correctCount = 0`) – a hívó
+     * ebből, nem egy `null` Flow-elemből dönt „nincs adat"-ot (FR-27).
+     */
+    @Query("SELECT COUNT(*) AS answered, COALESCE(SUM(correct), 0) AS correctCount FROM quiz_attempt")
+    fun observeOverallScore(): Flow<OverallScoreRow>
+
+    /**
+     * Kategóriánkénti sikerarány (FR-24).
+     *
+     * A `category` tábla a `FROM`, nem a `quiz_attempt` – ez a döntő, hogy **minden**
+     * kategória megjelenjen, azok is, amelyekben még nincs próbálkozás (FUNCTIONAL_SPEC
+     * 6.1/3.). A két `LEFT JOIN` (`category → technique → quiz_attempt`) ezt a
+     * technikán **keresztüli**, nem közvetlen kapcsolatot követi (a `quiz_attempt`-nek
+     * nincs `categoryId` oszlopa, csak `techniqueId`-ja).
+     */
+    @Query(
+        """
+        SELECT c.id AS categoryId,
+            COUNT(qa.id) AS answered,
+            COALESCE(SUM(qa.correct), 0) AS correctCount
+        FROM category c
+        LEFT JOIN technique t ON t.categoryId = c.id
+        LEFT JOIN quiz_attempt qa ON qa.techniqueId = t.id
+        GROUP BY c.id
+        ORDER BY c.sortOrder ASC, c.id ASC
+        """,
+    )
+    fun observeCategoryScores(): Flow<List<CategoryScoreRow>>
+
+    /**
+     * Egyetlen technika összesített próbálkozás/helyes/utolsó-gyakorlás adata (FR-25).
+     *
+     * A `:techniqueId` bemenet a `SELECT`-ben **és** a `WHERE`-ben is szerepel: az első
+     * előfordulás egyszerűen visszaadja a hívó paramétert eredményoszlopként, hogy a
+     * [TechniqueScoreRow] ugyanazzal a típussal használható legyen itt és az
+     * [observeNeedsPracticeScores]-nál is (ahol a `techniqueId` valódi `GROUP BY` oszlop)
+     * – nem kell két, majdnem azonos projekciós típus. A lekérdezés mindig pontosan egy
+     * sort ad, akkor is, ha a technikára még sosem érkezett válasz (`answered = 0`,
+     * `lastPracticedAt = null`): a `WHERE` szűrés nélküli aggregátum ilyenkor is egy sor.
+     */
+    @Query(
+        """
+        SELECT :techniqueId AS techniqueId,
+            COUNT(*) AS answered,
+            COALESCE(SUM(correct), 0) AS correctCount,
+            MAX(answeredAt) AS lastPracticedAt
+        FROM quiz_attempt
+        WHERE techniqueId = :techniqueId
+        """,
+    )
+    fun observeTechniqueScore(techniqueId: TechniqueId): Flow<TechniqueScoreRow>
+
+    /**
+     * Egy technika próbálkozásainak kérdéstípus szerinti bontása (FR-25,
+     * FUNCTIONAL_SPEC 6.2 „melyik típusban hibázik"). Lásd [observeTechniqueScore] a
+     * `:techniqueId` kettős előfordulásának indokáért.
+     */
+    @Query(
+        """
+        SELECT :techniqueId AS techniqueId, questionType,
+            COUNT(*) AS answered,
+            COALESCE(SUM(correct), 0) AS correctCount
+        FROM quiz_attempt
+        WHERE techniqueId = :techniqueId
+        GROUP BY questionType
+        """,
+    )
+    fun observeTechniqueScoreByQuestionType(
+        techniqueId: TechniqueId,
+    ): Flow<List<TechniqueQuestionTypeScoreRow>>
+
+    /**
+     * A legfeljebb [limit] legtöbb gyakorlást igénylő technika (FR-26).
+     *
+     * `GROUP BY techniqueId` miatt **csak** olyan technika kerül bele, amelyre van
+     * legalább egy próbálkozás – a sosem gyakorolt technika szándékosan hiányzik, nincs
+     * hozzá külön `HAVING COUNT(*) >= 1` szűrő, mert a csoportosítás ezt már eleve
+     * biztosítja. A rendezés (a) sikerarány **növekvő** (`CAST(SUM(correct) AS REAL) /
+     * COUNT(*)`, ugyanazon csoport aggregátumaiból, nem egy második lekérdezésből), majd
+     * (b) az utolsó gyakorlás **régisége** (`MAX(answeredAt) ASC` – a legkisebb, azaz
+     * legrégebbi időbélyeg elöl). A `ratio` itt **csak rendezési kulcs**: a visszaadott
+     * [TechniqueScoreRow] innentől a mapperben kapja meg a végleges
+     * [hu.kyokushin.trainer.core.quiz.scoring.Score]-ját, ugyanazzal a „nincs adat"
+     * szabállyal, mint minden más statisztika (FR-27, DR-09).
+     */
+    @Query(
+        """
+        SELECT techniqueId,
+            COUNT(*) AS answered,
+            COALESCE(SUM(correct), 0) AS correctCount,
+            MAX(answeredAt) AS lastPracticedAt
+        FROM quiz_attempt
+        GROUP BY techniqueId
+        ORDER BY (CAST(SUM(correct) AS REAL) / COUNT(*)) ASC, MAX(answeredAt) ASC
+        LIMIT :limit
+        """,
+    )
+    fun observeNeedsPracticeScores(limit: Int): Flow<List<TechniqueScoreRow>>
+
+    /**
+     * Kérdéstípus szerinti bontás **több** technikára egyszerre – a „gyakorlást igénylő"
+     * lista ([observeNeedsPracticeScores]) tételeihez kell, hogy a
+     * [hu.kyokushin.trainer.core.data.repository.TechniqueProgress] ugyanazt a
+     * `byQuestionType` mezőt kapja, mint az egyetlen technikára szűrt
+     * [observeTechniqueScoreByQuestionType]. Technikánkénti, egyenkénti lekérdezés N+1
+     * probléma lenne (NFR-10); ez egyetlen `IN (:techniqueIds)` lekérdezés.
+     */
+    @Query(
+        """
+        SELECT techniqueId, questionType,
+            COUNT(*) AS answered,
+            COALESCE(SUM(correct), 0) AS correctCount
+        FROM quiz_attempt
+        WHERE techniqueId IN (:techniqueIds)
+        GROUP BY techniqueId, questionType
+        """,
+    )
+    fun observeQuestionTypeScoresFor(
+        techniqueIds: List<TechniqueId>,
+    ): Flow<List<TechniqueQuestionTypeScoreRow>>
 }
 
 @Dao

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Verzió | 1.0 |
-| Utolsó frissítés | 2026-11-12 |
+| Utolsó frissítés | 2026-11-13 |
 | Alapja | `docs/REQUIREMENTS.md`, `docs/FUNCTIONAL_SPEC.md`, `docs/ARCHITECTURE.md` |
 
 Ez a dokumentum az **egyetlen** hely, ahol a projekt tényleges állása követhető.
@@ -93,7 +93,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ✅ **kész** – T-116: `KyokushinDatabase` (`version = 1`, `exportSchema = true`), 5 tartalom- és 3 felhasználói tábla, 8 `internal` DAO (minden művelet `suspend` vagy `Flow`), `KyokushinTypeConverters` (`Instant` ↔ epoch milli, enum ↔ **név**, azonosító value classok az `of()` gyárukon át). A felhasználói táblák `techniqueId`-jén **nincs** idegen kulcs a tartalomra (ADR-004) |
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
 | 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ✅ **kész** – T-117: publikus `ContentImporter` + `ImportResult`, `internal RoomContentImporter` (verziókapu a tárolt `dataset_version`-re, validáció, **upsert egyetlen tranzakcióban**, a csomagból kimaradt technika `retired = true` – fizikai törlés nincs), `content_state` összegzés, `lastValidationReport()` a diagnosztikához, injektált `Clock` és `@IoDispatcher`. Tartalom oldali entitás ↔ domain mapperek. 16 új teszt |
-| 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | 🔄 **részben** – T-201: publikus `TechniqueRepository` + `ContentState` domain modell (`NotImported` / `Imported`), `internal RoomTechniqueRepository` (`@Inject`, `@IoDispatcher`). A `retired` szűrés **SQL-ben**, a listán és a kvízjelölteknél (ADR-004); a `getTechnique` a dokumentált kivétel, mert a Haladás képernyőnek a visszavont technikát is fel kell oldania (DR-07). Aliasok egyetlen lekérdezésből (nincs N+1), szinonimacsoportok a `synonym_group`-ból a szűrés utáni készletre vágva (CR-07). 12 új teszt, köztük egy reflexiós, ami a publikus API-t Room típusokra vizsgálja (TR-07). T-202: a keresés **SQL-be** költözött – előre normalizált `technique.search_romaji` / `search_hungarian` oszlopok, `LIKE '%…%' ESCAPE` a három normalizált oszlopon (alias-ág `EXISTS` altkérdéssel), az egyező alias ugyanabból a lekérdezésből a `TechniqueMatch`-ben; séma `version` 1 → 2 explicit `KyokushinMigrations.MIGRATION_1_2`-vel, `2.json` exporttal és `MigrationTestHelper` teszttel (ADR-012, DR-08). **G-01 csoport (T-301, T-401, T-402, T-502):** publikus `ProgressRepository` + `internal RoomProgressRepository` (`@Inject`, injektált `Clock`, `@IoDispatcher`) – `startSession`/`recordAttempt`/`finishSession` (T-401, a `Boolean` visszatérés és a `UNIQUE(sessionId, questionId)` ütközés `-1`-je adja az egyszeri-válasz szerződést, ADR-005; `recordAttempt` tranzakcióban írja a próbálkozást és növeli a menet `answeredCount`-ját), `recordStudyReview`/`observeStudyReviewSummary` (T-301, FR-28 – külön a kvízstatisztikától, a `StudyReviewDao.observeCountByRating` darabszámlálásával), `clearAllProgress` (T-502, egy tranzakcióban üríti a `quiz_session`-t – a `CASCADE` viszi a `quiz_attempt`-et is – és a `study_review`-t, a tartalomtáblákhoz nem nyúl). `getQuizCandidates` (T-402) immár tölti a `QuizCandidateSet.illustrationDigests` térképet a csomagolt illusztrációfájl **nevéből** (nincs SHA-256 oszlop a sémában, és becsült ujjlenyomatot nem gyártunk – a fájlnév-egyezés korrekt és elegendő, lásd `RoomTechniqueRepository` KDoc); a `quiz_excluded`/`INCOMPLETE` szűrés szándékosan **nem** a repositoryban van, azt a `QuizEligibility` kapu végzi (ADR-010), ahogy a `QuizCandidateSet` szerződése is kimondja. A kötések a `RepositoryModule`-ban és a `KyokushinGraph`/`HiltGraphTest`-ben is bekerültek. 10 új teszt (451 teszt, 0 hiba); `assembleDebug` exit 0. Hátra: aggregált statisztika (`T-501`) |
+| 3.7 | Repository implementációk (`internal`), mapperek, aggregált statisztika query-k | NFR-03, DR-09 | ✅ **kész** – T-201: publikus `TechniqueRepository` + `ContentState` domain modell (`NotImported` / `Imported`), `internal RoomTechniqueRepository` (`@Inject`, `@IoDispatcher`). A `retired` szűrés **SQL-ben**, a listán és a kvízjelölteknél (ADR-004); a `getTechnique` a dokumentált kivétel, mert a Haladás képernyőnek a visszavont technikát is fel kell oldania (DR-07). Aliasok egyetlen lekérdezésből (nincs N+1), szinonimacsoportok a `synonym_group`-ból a szűrés utáni készletre vágva (CR-07). 12 új teszt, köztük egy reflexiós, ami a publikus API-t Room típusokra vizsgálja (TR-07). T-202: a keresés **SQL-be** költözött – előre normalizált `technique.search_romaji` / `search_hungarian` oszlopok, `LIKE '%…%' ESCAPE` a három normalizált oszlopon (alias-ág `EXISTS` altkérdéssel), az egyező alias ugyanabból a lekérdezésből a `TechniqueMatch`-ben; séma `version` 1 → 2 explicit `KyokushinMigrations.MIGRATION_1_2`-vel, `2.json` exporttal és `MigrationTestHelper` teszttel (ADR-012, DR-08). **G-01 csoport (T-301, T-401, T-402, T-502):** publikus `ProgressRepository` + `internal RoomProgressRepository` (`@Inject`, injektált `Clock`, `@IoDispatcher`) – `startSession`/`recordAttempt`/`finishSession` (T-401, a `Boolean` visszatérés és a `UNIQUE(sessionId, questionId)` ütközés `-1`-je adja az egyszeri-válasz szerződést, ADR-005; `recordAttempt` tranzakcióban írja a próbálkozást és növeli a menet `answeredCount`-ját), `recordStudyReview`/`observeStudyReviewSummary` (T-301, FR-28 – külön a kvízstatisztikától, a `StudyReviewDao.observeCountByRating` darabszámlálásával), `clearAllProgress` (T-502, egy tranzakcióban üríti a `quiz_session`-t – a `CASCADE` viszi a `quiz_attempt`-et is – és a `study_review`-t, a tartalomtáblákhoz nem nyúl). `getQuizCandidates` (T-402) immár tölti a `QuizCandidateSet.illustrationDigests` térképet a csomagolt illusztrációfájl **nevéből** (nincs SHA-256 oszlop a sémában, és becsült ujjlenyomatot nem gyártunk – a fájlnév-egyezés korrekt és elegendő, lásd `RoomTechniqueRepository` KDoc); a `quiz_excluded`/`INCOMPLETE` szűrés szándékosan **nem** a repositoryban van, azt a `QuizEligibility` kapu végzi (ADR-010), ahogy a `QuizCandidateSet` szerződése is kimondja. A kötések a `RepositoryModule`-ban és a `KyokushinGraph`/`HiltGraphTest`-ben is bekerültek. 10 új teszt (451 teszt, 0 hiba); `assembleDebug` exit 0. **T-501:** a `ProgressRepository` négy új, **olvasó**, aggregált SQL `@Query`-re épülő taggal bővült: `observeOverallProgress` (FR-23), `observeCategoryProgress` (FR-24, `category` tábláról induló két `LEFT JOIN`, hogy a próbálkozásmentes kategória is megjelenjen „nincs adat"-tal), `observeTechniqueProgress(id)` (FR-25, kérdéstípus-bontással) és `observeNeedsPractice(limit)` (FR-26, `GROUP BY techniqueId` + `ORDER BY` sikerarány, majd régiség). Minden ráta a `core/quiz` `Score` típusán megy át (DR-09: a „nincs adat ≠ 0%" szabály, FR-27, egyetlen helyen él); a mapperek (`UserEntityMappers.kt`) és a két új Room-projekció (`TechniqueScoreRow`/`TechniqueQuestionTypeScoreRow`, kettős felhasználással az egyetlen-technikás és a „gyakorlást igénylő" lekérdezések között) a `core/data/db`-ben. Nincs új számlálótábla/oszlop. A négy `feature/quiz`/`feature/learn` tesztdublőr (`FakeLearnProgressRepository`, `FakeQuizProgressRepository`, `FakeQuizRunProgressRepository`, `FakeQuizResultProgressRepository`) a bővült interfész miatt mind kapott négy új, kivételt dobó felülírást. 11 új teszt (összesen 0 hiba minden modulban); `assembleDebug` exit 0. Hátra: ezt a felületet a `feature/progress` (T-503…T-506) és a `library/detail` (T-209 nyitott pontja) köti be |
 | 3.8 | **Tartalomfrissítés teszt**: előrehaladás megőrzése, átnevezés, visszavonás | **TR-05** | ✅ **kész** – T-118: `ContentUpdateProgressTest` 10 `TR05` jelölésű teszt in-memory Roomon (v1 → előrehaladás → v2 → v3): a `quiz_attempt`/`study_review` sorok és a belőlük levezetett statisztika **bitre azonos** a frissítés előttivel; átnevezésnél az `id` marad és az előrehaladás az új névre oldódik fel (DR-06); a kimaradt és a tartalom által visszavont technika próbálkozásai feloldhatók maradnak (ADR-004); ugyanaz a verzió kétszer nem duplikál (FR-30); az elutasított frissítés sem a tartalomhoz, sem az előrehaladáshoz nem nyúl |
 | 3.9 | **Hilt modulok** (`DatabaseModule`, `ContentModule`, `RepositoryModule`, `TimeModule`, `DispatcherModule`, `QuizModule`) | NFR-03, NFR-07 | ✅ **kész** – T-203: a Room/olvasó/repository kötések a `core/data`-ban (a típusok `internal`-ok), a `Clock`, a két dispatcher, a `QuizGenerator`, a `KnowledgeValidator` és az RNG a `di`-ben. Az adatbázis `addMigrations(*KyokushinMigrations.ALL)`-lal épül, destruktív tartalék nélkül (DR-08). `@DefaultDispatcher` qualifier hozzáadva. A gráfot a `KyokushinGraph` `@EntryPoint` fordítási időben, a `HiltGraphTest` (Robolectric) futásidőben ellenőrzi; 7 új teszt |
 
@@ -166,9 +166,17 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-501** – `core/data`: aggregált statisztika lekérdezések. Függősége (T-401) kész.
-   (**T-413 – akadálymentesség** és **T-414 – ViewModel tesztek** – mindkettő
+1. **T-503** – `feature/progress`: áttekintő képernyő. Függőségei (T-501, T-206) készek.
+   (**T-501 – aggregált statisztika lekérdezések** – 2026-11-13-án elkészült, lásd
+   lejjebb; **T-413 – akadálymentesség** és **T-414 – ViewModel tesztek** – mindkettő
    2026-11-12-én elkészült, lásd lejjebb.)
+
+(**A T-501 kész, 2026-11-13:** a `ProgressRepository` négy aggregált, olvasó taggal
+bővült (`observeOverallProgress`/`observeCategoryProgress`/`observeTechniqueProgress`/
+`observeNeedsPractice`, FR-23…FR-27, DR-09) – lásd a 3.7 sor részletezését. Ezzel a
+`library/detail` (T-209) „már gyakoroltam" összegzése és a `feature/progress` teljes
+epikja (T-503…T-506) immár az adatrétegre épülhet; mindkettő önálló, még hátralévő
+feladat.)
 
 (**A G-09 csoport – T-411, T-412, T-415 – kész, 2026-11-12:** a `quiz/result`
 eredményképernyő, a „Hibák újragyakorlása" és a lektorálatlanság jelzése. A
@@ -187,11 +195,11 @@ a `quiz/setup`/`quiz/run`/`quiz/result` teljes navigációs gráfja egyetlen, ö
 (T-401, `Boolean` visszatérés az egyszeri válaszhoz, ADR-005), `recordStudyReview`/
 `observeStudyReviewSummary` (T-301, FR-28), `clearAllProgress` (T-502, FR-35), és a
 `getQuizCandidates` immár az `illustrationDigests` térképet is tölti (T-402, a csomagolt
-fájl nevéből, lásd `docs/CONVENTIONS.md`). **Nyitott, immár T-506/T-501-re váró
+fájl nevéből, lásd `docs/CONVENTIONS.md`). **Nyitott, immár a T-501 utánra felszabadult
 hiányosság:** a `library/detail` „már gyakoroltam" összegzése (FUNCTIONAL_SPEC 3.2 11.)
-még nincs bekötve – ehhez a T-501 aggregált, technikánkénti lekérdezése kell, amit a
-`ProgressRepository` interfész még nem tartalmaz (`observeTechniqueProgress`); a
-`LibraryDetailUiState`/`LibraryDetailRoute` bekötése a T-501 utáni, önálló feladat.)
+még nincs bekötve – a T-501 (2026-11-13, lásd lejjebb) már tartalmazza a szükséges
+`observeTechniqueProgress`-t, de a `LibraryDetailUiState`/`LibraryDetailRoute` tényleges
+bekötése önálló, még hátralévő feladat.)
 
 (**A T-203 kész:** a Hilt gráf teljes és felépül. Egy ViewModel a `TechniqueRepository`-t,
 a `ProgressRepository`-t, a `ContentImporter`-t, a `Clock`-ot, az RNG-t és a két
@@ -1150,3 +1158,45 @@ előtt és egy nem kiválasztott helytelen opciónál nincs `stateDescription`/i
 Következő: T-414, `feature/quiz`: ViewModel tesztek (a `docs/backlog/GROUPS.md`
 szerint szándékosan nem csoportosítva a T-413-mal; a legkisebb azonosítójú, kész
 függőségű feladat T-414 és T-501 közül).
+
+**2026-11-13 – T-501 kész (Fázis 3.7): `core/data` aggregált statisztika `@Query`-k.**
+A `docs/backlog/GROUPS.md` szerint szándékosan **önálló** (`L` méretű, aggregált SQL).
+A `ProgressRepository` négy új, **olvasó** taggal bővült, mindegyik aggregált SQL
+`@Query`-ből, nem memóriabeli listából (DR-09, NFR-10):
+- `observeOverallProgress()` (FR-23) – `COUNT(*)`/`COALESCE(SUM(correct), 0)` a teljes
+  `quiz_attempt` táblán.
+- `observeCategoryProgress()` (FR-24) – a `FROM category` indul, két `LEFT JOIN`-nal
+  (`category → technique → quiz_attempt`), hogy **minden** kategória megjelenjen, a
+  próbálkozásmentes is „nincs adat"-tal (nem `0%`-kal, FUNCTIONAL_SPEC 6.1/3.).
+- `observeTechniqueProgress(id)` (FR-25) – egyetlen technika összesítése +
+  kérdéstípus-bontás (két `@Query` `combine`-olva).
+- `observeNeedsPractice(limit)` (FR-26) – `GROUP BY techniqueId` (ettől magától csak a
+  ≥ 1 próbálkozású technika kerül bele), `ORDER BY` sikerarány növekvő, majd
+  `MAX(answeredAt)` növekvő (a legrégebben gyakorolt elöl); a kérdéstípus-bontást egy
+  második, `IN (:techniqueIds)` lekérdezés adja a top-N azonosítóra (nem N+1).
+
+Minden ráta a `core/quiz` már tesztelt `Score` típusán megy át (DR-09: a „nincs adat ≠
+0%" szabály, FR-27, egyetlen helyen él, nem egy második SQL-beli megfogalmazásban) – két
+új, kettős felhasználású Room-projekció (`TechniqueScoreRow`/
+`TechniqueQuestionTypeScoreRow`, `UserEntities.kt`) szolgálja ki egyszerre az
+egyetlen-technikás és a „gyakorlást igénylő" lekérdezést, a mapperek (`toScore`/
+`toTechniqueProgress`, `UserEntityMappers.kt`) pedig mindkét hívási útra ugyanazt az
+összeállítást futtatják. Nincs új számlálótábla/oszlop, nincs séma-/migrációváltozás.
+
+A bővült interfész miatt mind a négy `ProgressRepository` tesztdublőr
+(`FakeLearnProgressRepository`, `FakeQuizProgressRepository`,
+`FakeQuizRunProgressRepository`, `FakeQuizResultProgressRepository`) négy új, kivételt
+dobó felülírást kapott (ugyanaz a „nem várt hívás azonnal kiderül" minta, mint a
+meglévő tagjaiknál).
+
+Új tesztek: `RoomProgressRepositoryTest` (+11, in-memory Roomon – „nincs adat" mindkét
+granularitáson, kategóriák közötti csoportosítás, kérdéstípus-bontás, a „gyakorlást
+igénylő" lista rendezése és limitje). `.\gradlew.bat testDebugUnitTest --rerun-tasks`
+**exit 0** (teljes projekt, minden modul 0 hiba); `.\gradlew.bat assembleDebug`
+**exit 0** (`app-debug.apk`).
+
+*Nyitva marad:* ezt a felületet még nem köti be UI – a `feature/progress` epikja
+(T-503…T-506) és a `library/detail` (T-209) „már gyakoroltam" összegzése mindkettő
+önálló, hátralévő feladat.
+
+Következő: T-503, `feature/progress`: áttekintő képernyő (T-501 és T-206 is kész).

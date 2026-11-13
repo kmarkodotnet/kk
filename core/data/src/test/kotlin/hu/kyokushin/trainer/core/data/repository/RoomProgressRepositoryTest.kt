@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.data.db.CategoryEntity
 import hu.kyokushin.trainer.core.data.db.KyokushinDatabase
+import hu.kyokushin.trainer.core.data.db.QuizAttemptEntity
 import hu.kyokushin.trainer.core.data.db.TechniqueEntity
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.QuestionId
@@ -53,6 +54,10 @@ class RoomProgressRepositoryTest {
     private val clock = Clock.fixed(fixedInstant, ZoneOffset.UTC)
 
     private val techniqueId = TechniqueId.of("KY-0001")
+    private val secondTechniqueId = TechniqueId.of("KY-0002")
+    private val thirdTechniqueId = TechniqueId.of("KY-0003")
+    private val tsukiCategoryId = CategoryId.of("tsuki")
+    private val geriCategoryId = CategoryId.of("geri")
 
     @Before
     fun setUp() {
@@ -248,6 +253,152 @@ class RoomProgressRepositoryTest {
             assertThat(database.quizAttemptDao().count()).isEqualTo(0)
         }
 
+    // --- FR-23 / FR-27 / DR-09: összesített statisztika, aggregált SQL-ből ------
+
+    @Test
+    fun observeOverallProgress_noAttemptsYieldsNullRatioNotZero_FR27() = repositoryTest {
+        val progress = repository.observeOverallProgress().first()
+
+        assertThat(progress.score.answered).isEqualTo(0)
+        assertThat(progress.score.correct).isEqualTo(0)
+        assertThat(progress.score.ratio).isNull()
+    }
+
+    @Test
+    fun observeOverallProgress_sumsAnsweredAndCorrectAcrossSessions_FR23() = repositoryTest {
+        seedCategoriesAndTechniques()
+        val firstSession = repository.startSession(requestedCount = 5, seed = 1L)
+        val secondSession = repository.startSession(requestedCount = 5, seed = 2L)
+        insertAttempt(firstSession, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = true, fixedInstant)
+        insertAttempt(firstSession, "q-2", secondTechniqueId, QuestionType.JP_TO_HU, correct = false, fixedInstant)
+        insertAttempt(secondSession, "q-1", techniqueId, QuestionType.HU_TO_JP, correct = true, fixedInstant)
+
+        val progress = repository.observeOverallProgress().first()
+
+        assertThat(progress.score.answered).isEqualTo(3)
+        assertThat(progress.score.correct).isEqualTo(2)
+        assertThat(progress.score.ratio).isWithin(1e-9).of(2.0 / 3.0)
+    }
+
+    // --- FR-24 / DR-09: kategóriánkénti bontás, „nincs adat" a próbálkozásmentes --
+    // --- kategórián --------------------------------------------------------------
+
+    @Test
+    fun observeCategoryProgress_includesEveryCategoryEvenWithoutAttempts_FR24() = repositoryTest {
+        seedCategoriesAndTechniques()
+        val sessionId = repository.startSession(requestedCount = 5, seed = 1L)
+        // Csak a `tsuki` kategória technikáira érkezik próbálkozás – a `geri`
+        // kategóriának (thirdTechniqueId) egyre sem.
+        insertAttempt(sessionId, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = true, fixedInstant)
+
+        val categories = repository.observeCategoryProgress().first()
+
+        assertThat(categories.map { it.categoryId }).containsExactly(tsukiCategoryId, geriCategoryId).inOrder()
+        val geri = categories.first { it.categoryId == geriCategoryId }
+        assertThat(geri.score.answered).isEqualTo(0)
+        assertThat(geri.score.ratio).isNull()
+    }
+
+    @Test
+    fun observeCategoryProgress_groupsAttemptsFromAllTechniquesInTheSameCategory_FR24() =
+        repositoryTest {
+            seedCategoriesAndTechniques()
+            val sessionId = repository.startSession(requestedCount = 5, seed = 1L)
+            // `techniqueId` és `secondTechniqueId` mindketten a `tsuki` kategóriában vannak.
+            insertAttempt(sessionId, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = true, fixedInstant)
+            insertAttempt(sessionId, "q-2", secondTechniqueId, QuestionType.JP_TO_HU, correct = false, fixedInstant)
+
+            val tsuki = repository.observeCategoryProgress().first().first { it.categoryId == tsukiCategoryId }
+
+            assertThat(tsuki.score.answered).isEqualTo(2)
+            assertThat(tsuki.score.correct).isEqualTo(1)
+            assertThat(tsuki.score.ratio).isWithin(1e-9).of(0.5)
+        }
+
+    // --- FR-25: technikánkénti statisztika, kérdéstípus-bontással ----------------
+
+    @Test
+    fun observeTechniqueProgress_neverPracticedTechniqueHasNullLastPracticedAndEmptyBreakdown_FR25() =
+        repositoryTest {
+            val progress = repository.observeTechniqueProgress(techniqueId).first()
+
+            assertThat(progress.techniqueId).isEqualTo(techniqueId)
+            assertThat(progress.score.answered).isEqualTo(0)
+            assertThat(progress.score.ratio).isNull()
+            assertThat(progress.lastPracticedAt).isNull()
+            assertThat(progress.byQuestionType).isEmpty()
+        }
+
+    @Test
+    fun observeTechniqueProgress_tracksLastPracticedAtAndBreaksDownByQuestionType_FR25() =
+        repositoryTest {
+            val sessionId = repository.startSession(requestedCount = 5, seed = 1L)
+            val earlier = fixedInstant.minusSeconds(60)
+            insertAttempt(sessionId, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = true, earlier)
+            insertAttempt(sessionId, "q-2", techniqueId, QuestionType.HU_TO_JP, correct = false, fixedInstant)
+            // Másik technika próbálkozása nem szivároghat bele.
+            insertAttempt(sessionId, "q-3", secondTechniqueId, QuestionType.JP_TO_HU, correct = true, fixedInstant)
+
+            val progress = repository.observeTechniqueProgress(techniqueId).first()
+
+            assertThat(progress.score.answered).isEqualTo(2)
+            assertThat(progress.score.correct).isEqualTo(1)
+            assertThat(progress.lastPracticedAt).isEqualTo(fixedInstant)
+            assertThat(progress.byQuestionType.keys).containsExactly(QuestionType.JP_TO_HU, QuestionType.HU_TO_JP)
+            assertThat(progress.byQuestionType[QuestionType.JP_TO_HU]!!.correct).isEqualTo(1)
+            assertThat(progress.byQuestionType[QuestionType.HU_TO_JP]!!.correct).isEqualTo(0)
+        }
+
+    // --- FR-26: „gyakorlást igénylő" lista: sikerarány, majd régiség, limit ------
+
+    @Test
+    fun observeNeedsPractice_excludesTechniquesWithoutAnyAttempt_FR26() = repositoryTest {
+        val sessionId = repository.startSession(requestedCount = 5, seed = 1L)
+        insertAttempt(sessionId, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = true, fixedInstant)
+
+        val needsPractice = repository.observeNeedsPractice(limit = 10).first()
+
+        assertThat(needsPractice.map { it.techniqueId }).containsExactly(techniqueId)
+    }
+
+    @Test
+    fun observeNeedsPractice_ordersByAscendingRatioThenByOldestLastPractice_FR26() = repositoryTest {
+        val sessionId = repository.startSession(requestedCount = 5, seed = 1L)
+        // `techniqueId`: 100% (1/1) – jó sikerarány, kerüljön hátra.
+        insertAttempt(sessionId, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = true, fixedInstant)
+        // `secondTechniqueId`: 0% (0/1), régebben gyakorolva – a legrosszabb, elöl kell lennie.
+        insertAttempt(
+            sessionId,
+            "q-2",
+            secondTechniqueId,
+            QuestionType.JP_TO_HU,
+            correct = false,
+            fixedInstant.minusSeconds(120),
+        )
+        // `thirdTechniqueId`: 0% (0/1), de frissebben gyakorolva – azonos arány esetén
+        // a régebbi (`secondTechniqueId`) előzi meg (FUNCTIONAL_SPEC 6.1/4.).
+        insertAttempt(sessionId, "q-3", thirdTechniqueId, QuestionType.JP_TO_HU, correct = false, fixedInstant)
+
+        val needsPractice = repository.observeNeedsPractice(limit = 10).first()
+
+        assertThat(needsPractice.map { it.techniqueId })
+            .containsExactly(secondTechniqueId, thirdTechniqueId, techniqueId)
+            .inOrder()
+        assertThat(needsPractice.first().score.ratio).isWithin(1e-9).of(0.0)
+    }
+
+    @Test
+    fun observeNeedsPractice_respectsLimit_FR26() = repositoryTest {
+        val sessionId = repository.startSession(requestedCount = 5, seed = 1L)
+        insertAttempt(sessionId, "q-1", techniqueId, QuestionType.JP_TO_HU, correct = false, fixedInstant)
+        insertAttempt(sessionId, "q-2", secondTechniqueId, QuestionType.JP_TO_HU, correct = false, fixedInstant)
+        insertAttempt(sessionId, "q-3", thirdTechniqueId, QuestionType.JP_TO_HU, correct = false, fixedInstant)
+
+        val needsPractice = repository.observeNeedsPractice(limit = 2).first()
+
+        assertThat(needsPractice).hasSize(2)
+    }
+
     // --- FR-35 / NFR-09: a törlés csak a felhasználói táblákat üríti ------------
 
     @Test
@@ -328,6 +479,72 @@ class RoomProgressRepositoryTest {
                     searchRomaji = "seiken chudan tsuki",
                     searchHungarian = "okol utes",
                 ),
+            ),
+        )
+    }
+
+    /**
+     * Két kategória, három technika – a [tsukiCategoryId] a [techniqueId]-t és a
+     * [secondTechniqueId]-t tartalmazza, a [geriCategoryId] a [thirdTechniqueId]-t. A
+     * T-501 kategóriabontás-tesztjeihez kell: a `tsuki` kategóriának **két** technikából
+     * kell összegeznie (FR-24, "GROUP BY categoryId, próbálkozásszámmal").
+     */
+    private suspend fun seedCategoriesAndTechniques() {
+        database.categoryDao().upsertAll(
+            listOf(
+                CategoryEntity(id = tsukiCategoryId, nameHu = "Ütések", sortOrder = 0),
+                CategoryEntity(id = geriCategoryId, nameHu = "Rúgások", sortOrder = 1),
+            ),
+        )
+        database.techniqueDao().upsertAll(
+            listOf(
+                technique(techniqueId, tsukiCategoryId),
+                technique(secondTechniqueId, tsukiCategoryId),
+                technique(thirdTechniqueId, geriCategoryId),
+            ),
+        )
+    }
+
+    private fun technique(id: TechniqueId, categoryId: CategoryId) = TechniqueEntity(
+        id = id,
+        categoryId = categoryId,
+        romaji = id.value,
+        romajiAscii = id.value,
+        hungarian = id.value,
+        status = VerificationStatus.AWAITING_REVIEW,
+        quizExcluded = false,
+        retired = false,
+        datasetVersion = "2026.11.01",
+        searchRomaji = id.value.lowercase(),
+        searchHungarian = id.value.lowercase(),
+    )
+
+    /**
+     * Egy próbálkozás **közvetlen** beszúrása a DAO-n, a [repository]`.recordAttempt`
+     * megkerülésével – a T-501 tesztjeinek kézzel kell állítania az `answeredAt`
+     * időpontot (a régiség szerinti rendezés bizonyításához, FR-26), ami a
+     * `ProgressRepository.recordAttempt` szerződése szerint mindig az injektált
+     * [clock]-ból jönne, nem a hívótól (NFR-07) – itt viszont a **teszt**, nem az
+     * üzleti kód állítja be közvetlenül, ugyanazzal a mintával, mint a
+     * [seedContent]/[seedCategoriesAndTechniques] a tartalomtáblákra.
+     */
+    private suspend fun insertAttempt(
+        sessionId: SessionId,
+        questionId: String,
+        techniqueId: TechniqueId,
+        questionType: QuestionType,
+        correct: Boolean,
+        answeredAt: Instant,
+    ) {
+        database.quizAttemptDao().insertIgnoringDuplicate(
+            QuizAttemptEntity(
+                sessionId = sessionId,
+                questionId = QuestionId.of(questionId),
+                techniqueId = techniqueId,
+                questionType = questionType,
+                selectedTechniqueId = techniqueId,
+                correct = correct,
+                answeredAt = answeredAt,
             ),
         )
     }
