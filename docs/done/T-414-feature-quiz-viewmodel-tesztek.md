@@ -63,7 +63,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-12 |
-| Commit | `<ide kerül a tényleges hash a dokumentációs commit után>` |
+| Commit | `e22e78e` |
 
 **Futtatott parancsok:**
 
