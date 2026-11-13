@@ -55,7 +55,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-13 |
-| Commit | (a lezáró commit után rögzítve) |
+| Commit | `c8addec` |
 
 200%-os font_scale, kb. 411 dp álló szélesség; négy fő cél és kártya/kvíz forgatása. Szövegmérés és screenshotok, görgethető elrendezések, mentett állapot ellenőrizve.
 

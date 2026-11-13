@@ -58,7 +58,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-13 |
-| Commit | (a lezáró commit után rögzítve) |
+| Commit | `c8addec` |
 
 Meglévő API 37 AVD használatba véve; B-03 lezárva. Hat ténylegesen lefutott eszközteszt, navigáció, kártya, teljes kvíz, kategóriaátadás, nagy betű, TalkBack.
 

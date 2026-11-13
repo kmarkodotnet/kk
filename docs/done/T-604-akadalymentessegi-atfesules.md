@@ -54,7 +54,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-13 |
-| Commit | (a lezáró commit után rögzítve) |
+| Commit | `c8addec` |
 
 WCAG-palettatesztek, szemantika- és célpontaudit, tényleges TalkBack szolgáltatással futó teljes accessibility kvízpróba. Az emberi felolvasásértékelés külön korlát, lásd TEST_REPORT.
 

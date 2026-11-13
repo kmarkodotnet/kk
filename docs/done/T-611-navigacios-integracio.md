@@ -27,7 +27,7 @@ a beállítások helyőrzők voltak. Ez az integráció az emulátoros elfogadá
 | | |
 |---|---|
 | Dátum | 2026-11-13 |
-| Commit | (a lezáró commit után rögzítve) |
+| Commit | `c8addec` |
 
 Setup/run/result/settings/diagnostics bekötve. Explicit SavedStateHandle-bemenet, újragyakorlás, megszakítás, tanulási kategóriák megőrzése; unit és eszközteszt igazolja.
 

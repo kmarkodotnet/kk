@@ -58,7 +58,7 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 | | |
 |---|---|
 | Dátum | 2026-11-13 |
-| Commit | (a lezáró commit után rögzítve) |
+| Commit | `c8addec` |
 
 README, TEST_REPORT, ACCEPTANCE és ENVIRONMENT frissítve. APK útvonal, méret, SHA-256; AC-01…AC-08 egyenként rögzítve. AC-08 tartalmi kézi próbája részben igazoltként, nem kész tesztként szerepel.
 

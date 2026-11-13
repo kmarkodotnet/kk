@@ -3601,3 +3601,4 @@ betűmérettel is; mind a 6 eszközteszt hibamentes. Az alkalmazáskód nem vál
 a teljes unit/build/lint futás óta, csak az eszközteszt lett erősebb.
 
 APK SHA-256: `f846fb85a98a776330483906b85db3e5f37bbcd0970c9d288160d45f870cfff7`.
+`2026-11-13`: a telefonra kért külön `.\gradlew.bat assembleDebug --console=plain` futás is exit 0 (2s, 307 up-to-date). Azonos SHA-256-ú másolat: `output/Kyokushin-Trainer.apk`.
