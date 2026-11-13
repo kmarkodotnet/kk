@@ -140,9 +140,9 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 8.1 | Rétegszabály-ellenőrzés (import audit, `/kyo-doc-sync`, `kyo-spec-auditor`) | TR-07 | ✅ **kész** (T-602, 2026-11-13) |
-| 8.2 | Manifest permission teszt | TR-08 | ⬜ |
+| 8.2 | Manifest permission teszt | TR-08 | ✅ **kész** (T-603, 2026-11-13) |
 | 8.3 | Compose UI tesztek (emulátor esetén): navigáció, tanulókártya, teljes kvíz | TR-06 | ⬜ |
-| 8.4 | Lint + formázás | NFR-11 | ⬜ |
+| 8.4 | Lint + formázás | NFR-11 | ✅ **kész** (T-607, 2026-11-13) |
 | 8.5 | `docs/QUIZ_RULES.md` kiadott változata | — | ⬜ |
 | 8.6 | `README.md`: előfeltételek, futtatás, build, használat, ismert korlátok | NFR-11 | ⬜ |
 | 8.7 | `docs/TEST_REPORT.md`: a **tényleges** parancsok és kimenetek | NFR-12 | ⬜ |
@@ -1425,3 +1425,60 @@ kész függőségű feladat.
   Következő: T-603, „TR-08 manifest-teszt – nincs `android.permission.INTERNET`"
   (Fázis 8.2/E6) – nincs függősége; a `docs/backlog/` legkisebb azonosítójú, kész
   függőségű feladata.
+
+- 2026-11-13 – **T-603 kész (Fázis 8.2, E6): TR-08 manifest permission teszt.** Új
+  `app` teszt (`ManifestPermissionTest.mergedManifest_doesNotRequestInternetPermission_TR08`)
+  Robolectric alatt (`@Config(application = Application::class)`, szándékosan **nem** a
+  `HiltTestApplication`-t használja – a Hilt gráf felépítése itt nem kell, csak az
+  összevont manifest) lekéri a `PackageManager.getPackageInfo(GET_PERMISSIONS)` eredményét,
+  és kifejezetten az `android.permission.INTERNET` **hiányát** ellenőrzi
+  (`doesNotContain`), nem a permissionök számát – a task „Figyelj rá" pontja szerint az
+  AndroidX saját, aláírásszintű permissiont ad hozzá az összevont manifesthez, amit egy
+  „nulla permission" assertion hamisan buktatna. `.\gradlew.bat
+  :app:testDebugUnitTest --tests "...ManifestPermissionTest" --rerun-tasks` **exit 0**.
+
+  Következő: T-607, „Lint és kódformázás" (Fázis 8.4/E6, gyökér modul) – ugyanaz a
+  csoport (G-12), nincs függősége.
+
+- 2026-11-13 – **T-607 kész (Fázis 8.4, E6): lint és kódformázás bekötve.** Android
+  Lint már alapból fut (AGP), egyetlen valódi hibát talált: a gépspecifikus, gitignore-olt
+  `local.properties` `PropertyEscape` panaszát (a perjeles `sdk.dir` szándékos, lásd
+  `docs/CONVENTIONS.md` 3.5. szakasz) – ez `app/build.gradle.kts` `lint { disable +=
+  "PropertyEscape" }`-jével elnyomva, indoklással; emellé `checkDependencies = true`
+  került (a könyvtármodulok lint-találatai is bekerülnek az `app` összevont jelentésébe –
+  ez a reális "teljes app" nézet egy 9 modulos projektben). Egy triviális, valódi találat
+  (`RedundantLabel` a `MainActivity`-n) javítva.
+
+  A ktlint-gradle plugin (14.2.0, a plugins.gradle.org legfrissebb stabil kiadása;
+  a bundle-özött ktlint motor 1.5.0, a plugin saját, tesztelt default verziója – nem
+  felülírva) minden modulra bekötve a gyökér `build.gradle.kts` `subprojects {}`
+  blokkjából. A szabályokat a gyökér `.editorconfig` adja (ktlint 1.x óta ez a kanonikus
+  hely). Három felfedezés, mind dokumentálva a `docs/CONVENTIONS.md` 6. szakaszában:
+  (1) a `ktlint_code_style = android` érték **érvénytelen** ktlint 1.5.0-ban (csendben
+  `ktlint_official`-ra esik vissza, figyelmeztetéssel) – törölve; (2) a ktlint 1.x újabb
+  sortörés-szabályai (`function-signature`, `multiline-expression-wrapping`,
+  `argument-list-wrapping`, `parameter-list-wrapping`, `class-signature`,
+  `property-wrapping`, `chain-method-continuation`) a projekt meglévő kódján nem
+  konvergálnak stabilan – kikapcsolva, indoklással; (3) a `function-naming` a Compose
+  PascalCase `@Composable` függvényeket hibásan jelölné – kikapcsolva. A `filename`
+  szabály négy, lezárt feladatok dokumentációja által szó szerint idézett fájlnevet
+  (`ProgressMessages.kt` stb.) jelölt volna – kikapcsolva, hogy a historikus
+  `docs/done/`/`TEST_REPORT.md`/`IMPLEMENTATION_PLAN.md` bejegyzések ne essenek szét egy
+  átnevezés miatt.
+
+  A tényleges formázási eltéréseket (sorhossz, üres sor osztálytest elején, import-sorrend
+  stb.) a `ktlintFormat` automatikusan kijavította a teljes forrásfán; a maradék,
+  automatikusan nem javítható eseteket (Markdown-táblázat KDoc-ban, hosszú referenciák)
+  kézzel tördeltem, két helyen (`DefaultKnowledgeValidator.resolveIllustration`,
+  `DefaultQuizGenerator`, `KyokushinDatabase`) `@Suppress("ktlint:standard:max-line-length")`
+  elszigetelt elnyomással, mert a táblázatcellák tördelése eltörné a Markdown-renderelést.
+
+  `.\gradlew.bat lint --rerun-tasks` **exit 0** (teljes projekt, 9 Android modul).
+  `.\gradlew.bat ktlintCheck --rerun-tasks` **exit 0** (teljes projekt, 77 task,
+  mindegyik futott, nincs `UP-TO-DATE`-re bízott bizonyíték). `.\gradlew.bat
+  testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, **642 teszt**, 0 hiba,
+  641 → 642, az új `ManifestPermissionTest`-tel). `.\gradlew.bat assembleDebug
+  --rerun-tasks` **exit 0** (`app-debug.apk`).
+
+  Következő: a `docs/backlog/` legkisebb azonosítójú, kész függőségű feladata (T-608,
+  G-13).

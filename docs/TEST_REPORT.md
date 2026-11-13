@@ -3374,3 +3374,97 @@ modulokban"-ra/„feature modulbeli"-re írása megoldotta.
 |---|---|
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03); nem is érinti ezt a feladatot (nincs UI). |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+
+## 2026-11-13 – T-603 kész: TR-08 manifest permission teszt (NFR-01)
+
+Új teszt: `app/src/test/kotlin/hu/kyokushin/trainer/ManifestPermissionTest.kt`
+(`mergedManifest_doesNotRequestInternetPermission_TR08`). Robolectric alatt
+(`@Config(sdk = [34], application = Application::class)`) a `PackageManager`-től
+lekéri a csomagolt (összevont) manifest `requestedPermissions` tömbjét, és
+`doesNotContain(Manifest.permission.INTERNET)`-tel ellenőrzi – **nem** „nulla
+permission"-t vár, mert a 2026-11-11-i build igazolta, hogy az AndroidX (Hilt)
+transitive manifest merge-je saját, aláírásszintű permissiont ad hozzá
+(`…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`), amit egy ilyen assertion hamisan
+buktatna.
+
+A teszt szándékosan a sima `Application`-t használja, nem a `HiltTestApplication`-t
+(mint a `HiltGraphTest`): a valódi `KyokushinApplication` `@HiltAndroidApp`, aminek
+felépítése a teljes Hilt gráfot igényelné – ennek a tesztnek viszont csak az összevont
+manifestre van szüksége.
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew :app:testDebugUnitTest --tests "hu.kyokushin.trainer.ManifestPermissionTest" --rerun-tasks` | 0 | 1 teszt, 0 hiba |
+| `./gradlew testDebugUnitTest --rerun-tasks` (T-607 végén, együtt) | 0 | **642 teszt** (641 → 642, +1), 0 hiba, teljes projekt |
+
+## 2026-11-13 – T-607 kész: lint és kódformázás bekötve (NFR-11)
+
+### Android Lint
+
+Az AGP-ből a `lint` task modulonként már alapból él (`app`, `core/data`, `core/ui`,
+`feature/*`, `navigation`, `di`); a `core/model`/`core/quiz` (tiszta Kotlin JVM
+modulok, ADR-001 L1) nincs benne, és nem is kap `com.android.lint`-et, mert az a
+rétegszabály által védett modulhatárt sértené egy kozmetikai jelentés-aggregálásért.
+
+Az első (konfiguráció előtti) teljes futás **1 hibát és 5 figyelmeztetést** adott:
+
+| Találat | Típus | Döntés |
+|---|---|---|
+| `PropertyEscape` a `local.properties`-en (gépspecifikus, gitignore-olt fájl, a `sdk.dir` szándékosan perjeles) | hiba | elnyomva (`app/build.gradle.kts` `lint { disable += "PropertyEscape" } `), indoklással a kódban |
+| `RedundantLabel` a `MainActivity`-n (az `android:label` megegyezik az `application` tagéval) | figyelmeztetés | javítva (törölve a redundáns attribútum) |
+| `OldTargetApi` ×2 (`targetSdk = 36` < `compileSdk = 37`) | figyelmeztetés | szándékos, dokumentált verziómátrix (ADR-008/ADR-009) – meghagyva |
+| `NewerVersionAvailable` (`kotlinx-serialization-json` 1.12.0 → 1.13.0) | figyelmeztetés | meghagyva – verziófrissítés ADR-folyamat tárgya, nem lint-reaktív |
+| `ObsoleteSdkInt` (`mipmap-anydpi-v26` felesleges, `minSdk = 26`) | figyelmeztetés | meghagyva – kozmetikai, nem blokkoló |
+
+Emellett `checkDependencies = true` bekerült az `app` lint-konfigjába: ez az egyetlen
+modul, amely minden másikra függ, tehát ez adja a reális, teljes-app lint-nézetet egy
+9 modulos projektben (figyelmeztetést ad a `core/model`/`core/quiz` „external
+dependency, not analyzed" státuszáról – ez elvárt, nem hiba).
+
+### ktlint
+
+A `org.jlleitschuh.gradle.ktlint` plugin (14.2.0, a plugins.gradle.org legfrissebb
+stabil kiadása) a gyökér `build.gradle.kts` `subprojects {}` blokkjából minden
+modulra bekötve. A szabályokat a gyökér `.editorconfig` adja. A bundle-özött ktlint
+motor verziója (1.5.0, a plugin saját, tesztelt default értéke) **nincs felülírva** –
+ez a dokumentáltan kompatibilis pár.
+
+Az első (konfiguráció utáni, de formázás előtti) `ktlintCheck` futás **~3000 sornyi**
+találatot adott a teljes forrásfán. A `ktlintFormat` ezt automatikusan a nagy
+többségében kijavította (indentálás, sortörés, üres sor szabályok, import-sorrend,
+trailing comma). Három, formázással nem javítható kategória kézi beavatkozást
+igényelt:
+
+1. **Sorhossz (max 120)** – kb. 40 előfordulás, túlnyomórészt az
+   `override … = throw UnsupportedOperationException("…")` tesztdublőr-minta és
+   néhány `@Preview(..., uiMode = …UI_MODE_NIGHT_YES)` annotáció. Mind tördelve (nem
+   elnyomva) – lásd `docs/CONVENTIONS.md` 6. szakasz.
+2. **KDoc Markdown-táblázat sora nem rövidíthető** – 3 hely
+   (`DefaultKnowledgeValidator.resolveIllustration`, `DefaultQuizGenerator`,
+   `KyokushinDatabase`): `@Suppress("ktlint:standard:max-line-length")` a dokumentált
+   deklaráción, elszigetelt indoklással.
+3. **Fájl-áttekintő KDoc + az első deklaráció saját KDoc-ja egymás után**
+   (`standard:no-consecutive-comments`) – 7 fájl: az áttekintő komment `/**` → `/*`
+   (tartalom változatlan).
+
+Három `.editorconfig` szabály-kikapcsolás, mindegyik indokolva a fájlban és a
+`docs/CONVENTIONS.md` 6. szakaszában: `ktlint_standard_function-naming` (a Compose
+`@Composable` PascalCase konvenció ütközik a generikus lowerCamelCase-elvárással),
+négy sortörés-szabály (`function-signature`, `multiline-expression-wrapping`,
+`argument-list-wrapping`, `parameter-list-wrapping`, `class-signature`,
+`property-wrapping`, `chain-method-continuation` – nem konvergálnak stabilan a
+projekt meglévő kódján) és `ktlint_standard_filename` (négy, lezárt feladatok
+dokumentációja által szó szerint idézett fájlnév). A `ktlint_code_style = android`
+kísérletként beírva **érvénytelen** ktlint 1.5.0-ban (figyelmeztetéssel
+`ktlint_official`-ra esik vissza) – törölve, dokumentálva.
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew lint --rerun-tasks` | 0 | 9 Android modul, `PropertyEscape` elnyomva, `RedundantLabel` javítva, a többi figyelmeztetés dokumentáltan meghagyva |
+| `./gradlew ktlintCheck --rerun-tasks` | 0 | teljes projekt, **77 task**, mindegyik tényleg futott (nincs `UP-TO-DATE` a bizonyítékban) |
+| `./gradlew testDebugUnitTest --rerun-tasks` | 0 | **642 teszt**, 0 hiba, teljes projekt |
+| `./gradlew assembleDebug --rerun-tasks` | 0 | `app-debug.apk`, `BUILD SUCCESSFUL` |
