@@ -22,7 +22,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app ✅ **elérve** (T-209, 2026-11-12) |
 | 5 – Tanulás | T-302…T-308 | **M4** – tanulható app ✅ **elérve** (T-306/T-308, 2026-11-12) |
 | 6 – Kvíz UI | T-403…T-415 | **M5** – kvízelhető app |
-| 7 – Haladás és beállítások | T-503…T-509 | **M6** – mérhető app |
+| 7 – Haladás és beállítások | T-503…T-509 | **M6** – mérhető app ✅ **elérve** (T-508, 2026-11-13) |
 | 8 – minőség és átadás | T-602…T-610 | **M7** – átadható app |
 
 ---
@@ -133,7 +133,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 7.1 | `progress/overview`: összesítés, kategóriabontás, gyakorlást igénylő lista | FR-23, FR-24, FR-26 | ✅ **kész** (T-503, 2026-11-13; G-10 csoport: T-504, 2026-11-13) |
 | 7.2 | `progress/technique/{id}`: technikánkénti statisztika, visszavont jelölés | FR-25 | ✅ **kész** (G-10 csoport: T-506, 2026-11-13) |
 | 7.3 | Önértékelési blokk elkülönítve + magyarázó szöveg | FR-28 | ✅ **kész** (G-10 csoport: T-505, 2026-11-13) |
-| 7.4 | `settings`: tartalominfó, előrehaladás törlése, debug diagnosztika | FR-32, FR-35 | 🟡 **részben kész** (G-11 csoport: T-507, 2026-11-13) – a tartalominfó és a kétlépcsős törlés megvan; a debug diagnosztika (T-508) még hátravan |
+| 7.4 | `settings`: tartalominfó, előrehaladás törlése, debug diagnosztika | FR-32, FR-35 | ✅ **kész** (G-11 csoport: T-507, 2026-11-13; önálló: T-508, 2026-11-13) – a tartalominfó, a kétlépcsős törlés és a debug-only „Tartalomdiagnosztika" (teljes `ValidationReport`) is megvan |
 
 ## Fázis 8 – Minőség, tesztek, dokumentáció, átadás
 
@@ -1313,3 +1313,43 @@ a T-502/T-503 függőségek teljesültek).
 Következő: T-508, `feature/progress`: debug diagnosztika (a teljes `ValidationReport`
 megjelenítése) – T-117 és T-507 függőségei teljesültek. Ezt nem ez a csoport kapta
 feladatul (lásd a megbízás hatóköre), a `docs/backlog/` mappában marad.
+
+**2026-11-13 – T-508 kész (a `docs/backlog/GROUPS.md` szerint szándékosan önálló, nem
+a G-11 csoport tagja; Fázis 7 lezárva, M6 mérföldkő elérve, az E5 epik lezárva):**
+`feature/progress`: fejlesztői diagnosztika.
+
+Új `feature/progress/diagnostics` csomag: `ProgressDiagnosticsViewModel` +
+`ProgressDiagnosticsUiState` + `ProgressDiagnosticsScreen`, a már meglévő
+`ContentImporter.lastValidationReport()` (`core/data`, T-203-ban megkötve) **ebben a
+processzben** lefutott jelentését jeleníti meg (FR-32) – a részletes észrevételek
+dokumentáltan nem perzisztálódnak, ezért a VM egy pontszerű `suspend` hívást zár egy
+`Loading`/`Loaded` belső állapotba, nem `Flow`-t figyel. Három ág: `Loading` (a hívás
+fut), `NoReport` (ebben a munkamenetben nem futott validáció, mert az import
+`ImportResult.UpToDate` miatt kimaradt – **nem** hibaállapot), `Content` (kódonkénti
+bontás, `IssueCode` szerint rendezve, V001 < … < V010; érintett rekordok száma;
+súlyosságszűrő). A csoportosítás és szűrés `@Composable`-mentes `object`-ben
+(`ProgressDiagnosticsGrouping`), a rekordleírás-/felirat-leképezés egy másik, pure
+`object`-ben (`ProgressDiagnosticsIssueLabels`) él – ugyanaz a minta, mint a
+`QuizOptionFeedbackResolver`/`ProgressNeedsPracticeAccessibility`. A súlyosságszűrő a
+`SavedStateHandle`-ben él, forgatás alatt is megmarad.
+
+A `feature/progress/settings` (T-507) debug-only menüpontja (`ProgressSettingsScreen`,
+`ProgressSettingsDiagnosticsButton`, `OutlinedButton`) ugyanazt a
+`BuildConfig.DEBUG`-mintát követi, mint a `feature/library` „Diagnosztika" gombja
+(T-210): `onOpenDiagnostics` csak debug buildben nem-`null`, release buildben a gomb
+egyáltalán nem rajzolódik ki. A `feature/progress/build.gradle.kts` kapott egy
+`buildFeatures.buildConfig = true` sort ehhez. A tényleges navigációs bekötés
+(`settings` → `progress/diagnostics`) a `navigation` modul tárgya, szándékosan
+továbbra is nyitva marad, ugyanaz a dokumentált, nyitott minta, mint a
+`quiz/setup`/`quiz/run`/`quiz/result`/`settings` útvonalaknál
+(`docs/CONVENTIONS.md` 5. szakasz) – a debug build mindkét oldalon (gomb láthatósága,
+célképernyő) kész, csak a köztük lévő navigáció nincs.
+
+Új tesztek: `ProgressDiagnosticsGroupingTest` (4), `ProgressDiagnosticsIssueLabelsTest`
+(5), `ProgressDiagnosticsViewModelTest` (4).
+`.\gradlew.bat testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, 626 teszt,
+0 hiba, 613 → 626); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`).
+
+Következő: T-601, „A tudástár bemásolása az assets alá" (`app` modul, Fázis 3/E6) – a
+T-117 függősége teljesült; a `docs/backlog/GROUPS.md` szerinti legkisebb azonosítójú,
+kész függőségű feladat.

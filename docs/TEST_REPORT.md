@@ -3209,3 +3209,70 @@ reagál, nincs benne időfüggő vagy véletlen logika.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (5 állapotpár – betöltés, importált tartalom, nem importált tartalom, első/végső megerősítés – világos + sötét variánsa); a tényleges renderelés emulátort igényel (B-03). |
+
+## 2026-11-13 – T-508 kész: `feature/progress` fejlesztői diagnosztika
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 1m 56s`, 312 actionable task – a teljes projekt, minden modul. Minden `build/test-results/**/*.xml` `failures="0" errors="0"`. |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL in 11s`, `app/build/outputs/apk/debug/app-debug.apk` megvan (~20 MB). |
+
+A teljes projekt `tests` attribútumainak összege (minden modul, a kanonikus
+`testDebugUnitTest`/JVM-modul `test` eredménykönyvtárából, dupla számolás nélkül):
+**613 → 626** (+13), **0 hiba, 0 error**. Az érintett (új) osztályok:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.progress.diagnostics.ProgressDiagnosticsGroupingTest` (új) | 4 | 0 |
+| `…feature.progress.diagnostics.ProgressDiagnosticsIssueLabelsTest` (új) | 5 | 0 |
+| `…feature.progress.diagnostics.ProgressDiagnosticsViewModelTest` (új) | 4 | 0 |
+
+### Mi készült
+
+- **T-508 – Fejlesztői diagnosztika (FR-32, US-19).** Új `feature/progress/diagnostics`
+  csomag: `ProgressDiagnosticsUiState` (`Loading`/`NoReport`/`Content` –
+  súlyosságszűrő, teljes-elutasítás jelző, elfogadott/elvetett rekordszám,
+  kódonkénti csoportok), `ProgressDiagnosticsViewModel` (a már meglévő
+  `ContentImporter.lastValidationReport()` **egyszeri, pontszerű** `suspend`
+  hívását egy belső `Loading`/`Loaded` állapotba zárja, nem `Flow`-t figyel – a
+  jelentés dokumentáltan nem perzisztálódik), `ProgressDiagnosticsGrouping`
+  (`@Composable`-mentes, `IssueCode` szerint `V001 < … < V010` rendezett
+  csoportosítás és súlyosságszűrés – az ESETI, nem a kód alapértelmezett
+  súlyossága szerint szűr), `ProgressDiagnosticsIssueLabels` (érintett rekord
+  leírása ismert/ismeretlen azonosítóval, 1-alapú bejegyzés-sorszámmal) és a
+  `ProgressDiagnosticsScreen`/`Route` (súlyosságszűrő `FilterChip`-sor, kódonkénti
+  kártyák, „nincs ilyen súlyosságú észrevétel" üres állapot, „teljes tudástár
+  elutasítva" figyelmeztetés). A `ValidationIssue.detail` szándékosan **nem**
+  `strings.xml`-ből jön (a `core/quiz` KDoc-ja már korábban is kimondja: fejlesztői
+  diagnosztikai szöveg, nem végfelhasználói UI-felirat).
+- **A `feature/progress/settings` (T-507) debug-only menüpontja.** A korábban
+  félkész `ProgressSettingsScreen` módosítás hiányzó darabja, a
+  `ProgressSettingsDiagnosticsButton` composable (`OutlinedButton`, `MIN_TOUCH_TARGET`
+  = 48 dp) most elkészült, és a `stringResource(R.string.progress_settings_diagnostics_button)`
+  = „Tartalomdiagnosztika" (FUNCTIONAL_SPEC 6.3 szó szerinti felirata) jelenik meg
+  rajta. Ugyanaz a `BuildConfig.DEBUG`-minta, mint a `feature/library` „Diagnosztika"
+  gombjánál (T-210): `ProgressSettingsRoute` `onOpenDiagnostics = if (BuildConfig.DEBUG) ({}) else null` –
+  release buildben a gomb egyáltalán nem rajzolódik ki, mert az `onOpenDiagnostics != null`
+  feltétel hamis. Ehhez a `feature/progress/build.gradle.kts` kapott egy
+  `buildFeatures.buildConfig = true` sort. A `settings → progress/diagnostics`
+  tényleges navigációs bekötés a `navigation` modul tárgya, szándékosan nyitva
+  marad (ugyanaz a dokumentált minta, mint a `quiz/setup`/`quiz/run`/
+  `quiz/result`/`settings` útvonalaknál, `docs/CONVENTIONS.md` 5. szakasz).
+
+### Rétegszabály, NFR-07
+
+A `ProgressDiagnosticsViewModel` kizárólag a `core/data` `ContentImporter`
+szerződését és a `core/quiz` validációs típusait (`ValidationReport`,
+`ValidationIssue`, `IssueCode`, `Severity`) látja – nincs Room entitás/DAO/DTO a
+`feature/progress`-ben (L3), és a `ContentImporter` már a `core/data`
+`RepositoryModule`-ban kötve van (T-203), nem igényelt új DI modult. Nincs közvetlen
+`Clock`/`Random` hívás: a súlyosságszűrő egy tiszta felhasználói választás, a
+jelentés betöltése pedig a már injektált `ContentImporter`-en keresztül megy.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (a diagnosztika négy állapota – betöltés, nincs jelentés, jelentés, teljes elutasítás – és a beállítások debug-gombos variánsa, mindegyik világos + sötét); a tényleges renderelés emulátort igényel (B-03). |
