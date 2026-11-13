@@ -164,7 +164,8 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 9.1 | Indítóképernyő – kék kandzsi logó fehér háttéren (`asserts/kyo.png` vektorizálva: `asserts/kyo_kanji.svg`, `asserts/ic_kyo_kanji.xml`) | FR-36 | ✅ **kész** (T-701, 2026-11-13) |
-| 9.2 | Vizuális arculat terv ("ne hasson webes űrlapnak") | FR-36 | 🔴 **nyitott** – T-702 |
+| 9.2 | Vizuális arculat terv ("ne hasson webes űrlapnak") | FR-36 | ✅ **kész** (T-702, 2026-11-13) – `docs/DESIGN_NOTES.md` |
+| 9.2b | `core/ui`: a terv (9.2) kódba ültetése – `Typography`/`Shapes` | FR-36, CR-08 | 🔴 **nyitott** – T-712 (új, a T-702 nyomán felvett) |
 | 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | 🔴 **nyitott** – T-703 |
 | 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | 🔴 **nyitott** – T-704 |
 | 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | 🔴 **nyitott** – T-705 |
@@ -193,8 +194,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 ## Következő lépés
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
-igénysor: a soron következő, `/dev`-del indítható feladat a **T-702** (nincs
-függősége – a T-701 2026-11-13-án elkészült). A T-709…T-711 szándékosan **nem**
+igénysor: a soron következő, `/dev`-del indítható feladat a **T-703** (nincs
+függősége – a T-701 és T-702 2026-11-13-án elkészült). A T-709…T-711 szándékosan **nem**
 indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
 
 <details>
@@ -1608,3 +1609,12 @@ kész függőségű feladat.
   `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**, 648 teszt
   (647 → +1), 0 hiba, `app-debug.apk` ≈ 22,75 MB. `.\gradlew.bat ktlintCheck lint
   --console=plain` **exit 0**, nincs új találat. Soron következő: **T-702**.
+- 2026-11-13 – **T-702 kész (Fázis 9.2, E7): vizuális arculat terv.** Új
+  `docs/DESIGN_NOTES.md`: diagnózis (nincs egyedi `Typography`/`Shapes` a
+  `Theme.kt`-ban, nyolc fájl duplikálja a `RoundedCornerShape(12.dp)`-t,
+  `OutlinedTextField` adja a "webes űrlap" hatás nagy részét), CR-08 keretezés
+  (visszafogott márka, nem harcművészeti klisé), szín-/tipográfia-/forma-javaslatok
+  a T-701 logóból levezetve, explicit "mit NEM szabad" lista. Tisztán dokumentációs
+  task, nincs Kotlin/Compose-kód változás, build/teszt nem futott (nem is volt
+  tárgya). A kódba ültetést egy új task viszi: **T-712** (`core/ui: Typography`/
+  `Shapes` bevezetése, Függ: T-702). Soron következő: **T-703**.

@@ -29,7 +29,8 @@ funkcióvisszajelzése alapján **új, önálló taskok** kerültek fel – ezek
 | Task | Indítható `/dev`-vel? | Megjegyzés |
 |---|---|---|
 | ~~T-701~~ | — | **kész, 2026-11-13** (`docs/done/`) – indítóképernyő, kék kandzsi logó |
-| T-702…T-706 | igen | vizuális arculat és navigáció (`BACKLOG.md` E7) |
+| ~~T-702~~ | — | **kész, 2026-11-13** (`docs/done/`) – `docs/DESIGN_NOTES.md` tervjegyzet |
+| T-703…T-706, T-712 | igen | vizuális arculat és navigáció (`BACKLOG.md` E7); a T-712 a T-702 tervét ülteti kódba |
 | T-707…T-708 | igen | tartalom-munkafolyamat (`BACKLOG.md` E8) |
 | T-709…T-711 | **nem** | hangos kiejtés, kiejtés-alapú kvíztípus, többnyelvűsítés – a „Függ" mezőjük szándékosan egy nyitott kérdésre (`OQ-05`/`OQ-06`/`OQ-07`) mutat, nem egy elvégezhető taskra, mert a mesterprompt 9/10. pontja MOST kizárja őket (`BACKLOG.md` E9) |
 

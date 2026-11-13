@@ -54,3 +54,4 @@ minden tagjának minden külső függősége teljesült.
 | T-701, T-702 | A splash-asset bekötés és az arculati tervdokumentum különböző jellegű munka (kód vs. dizájnjavaslat-dokumentum). |
 | T-707, T-708 | A képbefogadási munkafolyamat és a fordítás-ellenőrzés különböző tartalmi kérdést érint. |
 | T-709, T-710, T-711 | **Nincs csoportosítva, mert nem indítható** – lásd `BACKLOG.md` E9 és a jelen fájl bevezetője. |
+| T-712 | A `docs/DESIGN_NOTES.md` (T-702) tervét ülteti kódba – más modulkör (`core/ui` + a nyolc hívó hely), mint T-705/T-706, és csak a terv lezárása után indítható. |

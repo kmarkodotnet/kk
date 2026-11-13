@@ -8,6 +8,10 @@
 A normatív szabályok máshol vannak (`CLAUDE.md`, `docs/REQUIREMENTS.md`, `docs/adr/`).
 Ez a lap nem helyettesíti őket, hanem a *gyakorlati* tudást gyűjti.
 
+A **vizuális arculat** konkrét szín-/forma-/tipográfia-döntéseit (T-702, 2026-11-13) a
+[`docs/DESIGN_NOTES.md`](DESIGN_NOTES.md) tartalmazza – mielőtt bármilyen `core/ui`
+téma- vagy új komponens-stílus munkába kezdesz, azt olvasd el előbb.
+
 ---
 
 ## 1. Domain és modulszerkezet

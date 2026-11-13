@@ -82,7 +82,7 @@ Egy task akkor kész, ha **mind** teljesül:
 | **E4** | Kvíz | US-12…US-16 | T-401…T-415 | 6 |
 | **E5** | Haladás és beállítások | US-17…US-19 | T-501…T-509 | 7 |
 | **E6** | Minőség, akadálymentesség, átadás | US-20…US-21 | T-601…T-610 | 8 |
-| **E7** | Vizuális arculat és navigáció (2026-11-13 bővítés) | US-22…US-26 | T-701…T-706 | — |
+| **E7** | Vizuális arculat és navigáció (2026-11-13 bővítés) | US-22…US-26 | T-701…T-706, T-712 | — |
 | **E8** | Tartalom-munkafolyamat (2026-11-13 bővítés) | US-27…US-28 | T-707…T-708 | — |
 | **E9** | Kiejtés, hangalapú kvíz, többnyelvűség – **jövőbeli, jelenleg NEM indítható** | — | T-709…T-711 | — |
 
@@ -659,6 +659,7 @@ logika változatlan, csak a beállítás helye kerül a fülekre.
 | Task | Cím | Modul | Méret | Függ |
 |---|---|---|---|---|
 | **T-706** | `feature/learn` kártya képernyő – felső `TabRow` („Japán nevek" / „Magyar nevek") az eddigi elrejtési-irány beállítás felváltására, `SavedStateHandle`-ben tárolt fülállapottal | feature/learn | M | T-705 |
+| **T-712** | `core/ui`: egyedi `Typography`/`Shapes` bevezetése a `docs/DESIGN_NOTES.md` (T-702) döntései szerint – `primary` szín a splash-logóból, megnevezett `Shapes` a ma nyolcszor duplikált `RoundedCornerShape(12.dp)` helyett, romaji/magyar tipográfiai hangsúly | core/ui, feature/learn, feature/quiz, feature/progress | M | T-702 |
 
 ---
 
