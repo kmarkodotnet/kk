@@ -126,6 +126,11 @@
     <string name="progress_settings_translation_notice">A technikanevek és a magyar jelentések pedagógiai célú fordítások, nem hivatalos Kyokushin szabvány.</string>
     <string name="progress_settings_illustration_license_notice">Az illusztrációk forrása és licence a tudástár manifestjében, rekordonként van nyilvántartva.</string>
 
+    <!-- A FUNCTIONAL_SPEC 6.3 szó szerint ezt a feliratot adja a debug-only menüpontra
+         (FR-32, T-508): „Debug buildben: „Tartalomdiagnosztika" – a teljes validációs
+         jelentés". -->
+    <string name="progress_settings_diagnostics_button">Tartalomdiagnosztika</string>
+
     <string name="progress_settings_clear_button">Előrehaladás törlése</string>
 
     <!-- Első megerősítő párbeszéd (FR-35 „Kész ha" 1.): pontosan felsorolja, mi törlődik
@@ -140,5 +145,41 @@
     <string name="progress_settings_clear_final_confirm">Törlés</string>
 
     <string name="progress_settings_clear_cancel">Mégsem</string>
+
+    <!-- Fejlesztői diagnosztika (`progress/diagnostics`, FUNCTIONAL_SPEC 6.3, FR-32,
+         T-508) – a `ContentImporter.lastValidationReport()` teljes jelentése, kizárólag
+         debug buildben elérhető. -->
+
+    <!-- Ebben a processzben nem futott validáció (`ContentState`/`ImportResult.UpToDate`
+         – lásd a ViewModel KDoc-ja). Nem hibaállapot. -->
+    <string name="progress_diagnostics_no_report_title">Nincs friss validációs jelentés</string>
+    <string name="progress_diagnostics_no_report_message">Ebben a munkamenetben nem futott tartalombetöltés, ezért nincs részletes jelentés. Indítsd újra az appot egy módosított tudástárral a diagnosztikához.</string>
+
+    <!-- Összegzés: elfogadott és elvetett rekordok száma (FR-32 „érintett rekordok"). -->
+    <string name="progress_diagnostics_summary">Elfogadva: %1$d rekord · Elvetve: %2$d rekord</string>
+
+    <!-- A teljes tudástár elutasítva (V001/V010, IssueScope.DATASET) – az elfogadott/
+         elvetett számok ilyenkor nem a jelenleg érvényben lévő tartalomra vonatkoznak. -->
+    <string name="progress_diagnostics_dataset_rejected_notice">A teljes tudástár elutasítva. A korábban betöltött tartalom maradt érvényben.</string>
+
+    <!-- Súlyosságszűrő után nincs megjelenítendő csoport (FR-32 „Szűrés súlyosságra"). -->
+    <string name="progress_diagnostics_empty_after_filter">Nincs ilyen súlyosságú észrevétel.</string>
+
+    <!-- Kódonkénti csoport címe (FR-32 „kódonkénti bontás"): a szabálykód és az alá
+         tartozó észrevételek száma. -->
+    <string name="progress_diagnostics_group_title">%1$s (%2$d találat)</string>
+
+    <string name="progress_diagnostics_severity_blocking">Blokkoló</string>
+    <string name="progress_diagnostics_severity_warning">Figyelmeztetés</string>
+
+    <string name="progress_diagnostics_filter_all">Összes</string>
+    <string name="progress_diagnostics_filter_blocking">Blokkoló</string>
+    <string name="progress_diagnostics_filter_warning">Figyelmeztetés</string>
+
+    <!-- Az érintett rekord leírása: ismert azonosítóval, illetve ismeretlen/hiányzó
+         azonosítóval (V002, amikor éppen az `id` mező hiányzik) – mindkettő a fájlbeli,
+         1-alapúra emelt sorszámot is kimondja. -->
+    <string name="progress_diagnostics_record_known">Érintett rekord: %1$s (%2$d. bejegyzés)</string>
+    <string name="progress_diagnostics_record_unknown_id">Érintett rekord: ismeretlen azonosító (%1$d. bejegyzés)</string>
 
 </resources>

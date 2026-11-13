@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,17 +31,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
+import hu.kyokushin.trainer.feature.progress.BuildConfig
 import hu.kyokushin.trainer.feature.progress.R
 
 /**
  * A Beállítások (`settings`) route-szintű bekötése (FUNCTIONAL_SPEC 6.3, FR-32, FR-35,
- * NFR-09, T-507).
+ * NFR-09, T-507, T-508).
  *
  * Ugyanaz a minta, mint a többi `feature/progress` route-nál: ez az egyetlen composable,
- * amely [ProgressSettingsViewModel]-t lát (L5). Nincs kifelé adott navigációs lambda –
- * ez a legmélyebb képernyő a Haladás szekcióban, a vissza-navigáció a `navigation` modul
- * dolga (a tényleges bekötés, ugyanúgy, mint a `quiz/setup`/`quiz/run` útvonalaknál, nem
- * ennek a feladatnak a tárgya, lásd `docs/CONVENTIONS.md` 5. szakasz).
+ * amely [ProgressSettingsViewModel]-t lát (L5). Nincs kifelé adott navigációs lambda a
+ * vissza-navigációhoz – ez a legmélyebb képernyő a Haladás szekcióban, az a `navigation`
+ * modul dolga (a tényleges bekötés, ugyanúgy, mint a `quiz/setup`/`quiz/run` útvonalaknál,
+ * nem ennek a feladatnak a tárgya, lásd `docs/CONVENTIONS.md` 5. szakasz).
+ *
+ * ### A „Tartalomdiagnosztika" menüpont debug kapuja (FR-32, T-508)
+ *
+ * Ugyanaz a mintázat, mint a `feature/library` „Diagnosztika" gombjánál (T-210): a
+ * [BuildConfig.DEBUG] a `feature/progress` **saját** build config-ja (nem az `app`-é,
+ * lásd `docs/CONVENTIONS.md` „Egy feature modul nem érheti el az `app` modul
+ * `BuildConfig.VERSION_NAME`-jét" sora – a `DEBUG` mező ugyanígy modulszintű). Release
+ * buildben `onOpenDiagnostics` `null`, és a [ProgressSettingsScreen] ekkor nem rajzol
+ * gombot. A tényleges célképernyő ([hu.kyokushin.trainer.feature.progress.diagnostics.ProgressDiagnosticsScreen])
+ * T-508-cal elkészült, de a navigációs bekötés (a `navigation` modulban) továbbra sem a
+ * tárgya – addig a debug build csak a gomb **láthatóságát** garantálja, a kattintás no-op.
  */
 @Composable
 fun ProgressSettingsRoute(
@@ -55,11 +68,18 @@ fun ProgressSettingsRoute(
         onClearFirstWarningConfirmed = viewModel::onClearFirstWarningConfirmed,
         onClearCancelled = viewModel::onClearCancelled,
         onClearConfirmed = viewModel::onClearConfirmed,
+        // A navigációs bekötés a `navigation` modul tárgya (lásd a fenti KDoc).
+        onOpenDiagnostics = if (BuildConfig.DEBUG) ({}) else null,
         modifier = modifier,
     )
 }
 
-/** A Beállítások képernyő – stateless (FUNCTIONAL_SPEC 6.3). */
+/**
+ * A Beállítások képernyő – stateless (FUNCTIONAL_SPEC 6.3).
+ *
+ * @param onOpenDiagnostics a „Tartalomdiagnosztika" akció, vagy `null`, ha ezúttal nem
+ *   jár menüpont (release build, FR-32, T-508).
+ */
 @Composable
 fun ProgressSettingsScreen(
     uiState: ProgressSettingsUiState,
@@ -67,6 +87,7 @@ fun ProgressSettingsScreen(
     onClearFirstWarningConfirmed: () -> Unit,
     onClearCancelled: () -> Unit,
     onClearConfirmed: () -> Unit,
+    onOpenDiagnostics: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -81,6 +102,7 @@ fun ProgressSettingsScreen(
                 onClearFirstWarningConfirmed = onClearFirstWarningConfirmed,
                 onClearCancelled = onClearCancelled,
                 onClearConfirmed = onClearConfirmed,
+                onOpenDiagnostics = onOpenDiagnostics,
             )
         }
     }
@@ -93,6 +115,7 @@ private fun ProgressSettingsContent(
     onClearFirstWarningConfirmed: () -> Unit,
     onClearCancelled: () -> Unit,
     onClearConfirmed: () -> Unit,
+    onOpenDiagnostics: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -103,6 +126,9 @@ private fun ProgressSettingsContent(
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         ProgressSettingsContentInfoCard(state = state)
+        if (onOpenDiagnostics != null) {
+            ProgressSettingsDiagnosticsButton(onClick = onOpenDiagnostics)
+        }
         ProgressSettingsVersionLicenseCard()
         ProgressSettingsClearSection(
             isClearing = state.isClearing,
@@ -210,6 +236,26 @@ private fun ProgressSettingsVersionLicenseCard(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodySmall,
             )
         }
+    }
+}
+
+/**
+ * A „Tartalomdiagnosztika" menüpont (FUNCTIONAL_SPEC 6.3, FR-32, T-508) – csak debug
+ * buildben kap gombot, ezt a hívó ([ProgressSettingsContent]) dönti el az [onClick]
+ * paraméter `null`/nem-`null` voltával (lásd a [ProgressSettingsRoute] KDoc-ja).
+ *
+ * Semleges (nem destruktív) szín, hogy vizuálisan megkülönböztethető legyen az alatta
+ * álló „Előrehaladás törlése" gombtól – a tartalomdiagnosztika olvasó jellegű akció.
+ */
+@Composable
+private fun ProgressSettingsDiagnosticsButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = MIN_TOUCH_TARGET),
+    ) {
+        Text(text = stringResource(R.string.progress_settings_diagnostics_button))
     }
 }
 
@@ -346,6 +392,26 @@ private fun ProgressSettingsScreenNotImportedPreview() {
             onClearFirstWarningConfirmed = {},
             onClearCancelled = {},
             onClearConfirmed = {},
+        )
+    }
+}
+
+@Preview(name = "Debug – Tartalomdiagnosztika menüpont – világos", showBackground = true)
+@Preview(
+    name = "Debug – Tartalomdiagnosztika menüpont – sötét",
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun ProgressSettingsScreenDiagnosticsButtonPreview() {
+    KyokushinTrainerTheme(dynamicColor = false) {
+        ProgressSettingsScreen(
+            uiState = PREVIEW_CONTENT,
+            onClearProgressClicked = {},
+            onClearFirstWarningConfirmed = {},
+            onClearCancelled = {},
+            onClearConfirmed = {},
+            onOpenDiagnostics = {},
         )
     }
 }

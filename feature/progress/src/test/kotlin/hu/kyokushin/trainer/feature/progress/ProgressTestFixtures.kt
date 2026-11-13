@@ -1,5 +1,7 @@
 package hu.kyokushin.trainer.feature.progress
 
+import hu.kyokushin.trainer.core.data.content.ContentImporter
+import hu.kyokushin.trainer.core.data.content.ImportResult
 import hu.kyokushin.trainer.core.data.repository.CategoryProgress
 import hu.kyokushin.trainer.core.data.repository.ContentState
 import hu.kyokushin.trainer.core.data.repository.NewAttempt
@@ -10,6 +12,7 @@ import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
 import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
 import hu.kyokushin.trainer.core.data.repository.TechniqueProgress
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
+import hu.kyokushin.trainer.core.quiz.validation.ValidationReport
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
@@ -328,5 +331,28 @@ internal class FakeProgressTechniqueDetailRepository(
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A technika-részletező nem törli a haladást (ez a `settings`, T-507 felelőssége).")
+    }
+}
+
+/**
+ * A [ContentImporter] tesztdublőre a fejlesztői diagnosztika ViewModeljéhez (T-508).
+ *
+ * Kizárólag [lastValidationReport] kell a `ProgressDiagnosticsViewModel`-nek – az import
+ * futtatása ([importIfNeeded]) az app indulásának felelőssége, nem a diagnosztika
+ * képernyőé, ezért az kivételt dob, ugyanazzal a mintával, mint a többi dublőr.
+ */
+internal class FakeContentImporter(
+    private val report: ValidationReport?,
+) : ContentImporter {
+
+    var lastValidationReportCallCount: Int = 0
+        private set
+
+    override suspend fun importIfNeeded(): ImportResult =
+        throw UnsupportedOperationException("A fejlesztői diagnosztika nem futtat importot.")
+
+    override suspend fun lastValidationReport(): ValidationReport? {
+        lastValidationReportCallCount++
+        return report
     }
 }

@@ -24,6 +24,10 @@ android {
 
     buildFeatures {
         compose = true
+        // `BuildConfig.DEBUG` dönti el a „Tartalomdiagnosztika" menüpont láthatóságát
+        // (FR-32, T-508) – ugyanaz a minta, mint a `feature/library` „Diagnosztika"
+        // gombjánál (T-210): kizárólag ehhez kell, nem a tartalmi logikának.
+        buildConfig = true
     }
 
     testOptions {
