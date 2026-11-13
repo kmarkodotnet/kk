@@ -50,3 +50,32 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-13 |
+| Commit | lásd `docs/IMPLEMENTATION_PLAN.md` G-13 bejegyzése a commit után |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | 642 teszt, 0 hiba (változatlan – tisztán dokumentációs módosítás) |
+| `./gradlew.bat assembleDebug` | 0 | `app-debug.apk`, `BUILD SUCCESSFUL` |
+
+**Megjegyzés:** A `docs/KNOWLEDGE_BASE.md` a tényleges, csomagolt `manifest.json`/
+`entries.json` mezőit írja le (ADR-011 kanonikus séma), a `KnowledgeInputMapper.kt`
+leképezését a validátor bemenetére, a tényleges V001…V010 szabálytáblát, az új
+technika/kép hozzáadásának kódmódosítás-mentes menetét (AC-08), a kétszintű
+hitelesítési folyamatot (rekordszintű `review_status` vs. manifest-szintű
+`editorial_status`/`DatasetTrust` – ez utóbbi **nem** azonos a kvízjogosultsággal,
+lásd `docs/QUIZ_RULES.md`), a licenctáblázatot és a migráció négy esetét (rendes
+tartalomkiadás, átnevezés, visszavonás – kódmódosítás nélkül; `schema_version`
+major-emelés – ehhez igen kell kód, elhatárolva a Room séma verziójától). Az OQ-02
+(szakmai hitelesítő személye) nyitva marad, dokumentáltan – a felhasználóra várva,
+nem kitalálva. Nincs új teszt (a task fejléce szerint `Teszt | —`); a dokumentum
+minden mezőleírása közvetlenül a csomagolt fájlból és a forráskódból lett kiolvasva.

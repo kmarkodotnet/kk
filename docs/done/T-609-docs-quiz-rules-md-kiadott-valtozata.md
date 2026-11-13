@@ -49,3 +49,31 @@ A task-specifikus pontokon felül a **globális DoD** is érvényes (`docs/BACKL
 - `docs/FUNCTIONAL_SPEC.md` – a képernyő és a viselkedés leírása
 - `docs/ARCHITECTURE.md` + `docs/adr/` – a szerkezeti döntések
 - `.claude/skills/` – `kyo-quiz-engine`, `kyo-knowledge-base`, `kyo-android-module`, `kyokushin-content`
+
+---
+
+## Elkészült
+
+| | |
+|---|---|
+| Dátum | 2026-11-13 |
+| Commit | lásd `docs/IMPLEMENTATION_PLAN.md` G-13 bejegyzése a commit után |
+
+**Futtatott parancsok:**
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | 642 teszt, 0 hiba (változatlan – tisztán dokumentációs módosítás) |
+| `./gradlew.bat assembleDebug` | 0 | `app-debug.apk`, `BUILD SUCCESSFUL` |
+
+**Megjegyzés:** A `docs/QUIZ_RULES.md` a tényleges `DefaultQuizGenerator`/
+`DistractorSelector`/`QuizCandidateFilter`/`QuizEligibility`/`QuizScoring` kódot írja
+le, minden állítást egy létező, zöld teszthez kötve (`DefaultQuizGeneratorTest`,
+`DistractorSelectorTest`, `RealContentQuizGenerationTest`, `QuizPlanInvariantTest`,
+`QuizScoringTest`/`QuizScoringTr04Test` – mind a T-112/T-113/T-114 alatt készült). A
+`/kyo-doc-sync` parancs egy audit-utasítás, nem determinisztikus check – az
+összevetést a dokumentum megírása közben, forrásról forrásra végeztem el. Rögzített,
+kódból levezetett, korábban dokumentálatlan tény: a `DatasetTrust` mindkét értéke
+átengedi a `QuizEligibility` kaput, tehát a lektoráltsági szint ma nem zár ki
+technikát a kvízből, csak a UI szalagját vezérli. Nincs új teszt (a task fejléce
+szerint `Teszt | —`).

@@ -89,7 +89,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|---|
 | 3.1 | A kanonikus séma implementálása (ADR-011): manifest + `entries`, `schema_version` string | FR-29 | ✅ **kész** – T-115: `core/data` `internal` DTO-k (`ManifestDto`, `CategoryDto`, `IllustrationDto`, `EntriesFileDto`, `EntryDto`) `@SerialName` snake_case leképezéssel és `ignoreUnknownKeys = true`, `KnowledgeAssetSource` + `AndroidKnowledgeAssetSource` (assets-olvasás, képfájllista), `KnowledgeContentReader` (`Parsed` / `Unreadable` → **V010**), DTO → `KnowledgeInput` mapper. 16 új teszt, a valódi 161 rekordon is |
 | 3.2 | A `knowledgebase/` tartalom bemásolása `app/src/main/assets/knowledge/` alá + `editorial_status` alapú `datasetTrust` (ADR-010) | CR-01, CR-03 | ✅ **kész** – a `datasetTrust` levezetése már a T-115/T-117-tel elkészült (`DefaultKnowledgeValidator.resolveDatasetTrust`, `core/quiz`); a hiányzó darab, a tényleges másolás, **T-601**-tel zárult (2026-11-13): a `knowledgebase_transfer/manifest.json`, `entries.json`, `illustrations/` (10 kép) bitre azonos, kézi másolata az `app/src/main/assets/knowledge/` alatt. Új teszt (`app`, `KnowledgeAssetImportTest`, 2 db) a valódi `AssetManager`-en és a teljes `ContentImporter`-en át igazolja a 161 rekord betöltését (`acceptedCount = 161`, `rejectedCount = 0`) és a verziókaput (FR-30). `assembleDebug` exit 0, az APK `assets/knowledge/` alatt tartalmazza mind a 10 képet, mérete ≈ 22,0 MiB |
-| 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ⬜ |
+| 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ✅ **kész** (G-13 csoport: T-608, 2026-11-13) |
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ✅ **kész** – T-116: `KyokushinDatabase` (`version = 1`, `exportSchema = true`), 5 tartalom- és 3 felhasználói tábla, 8 `internal` DAO (minden művelet `suspend` vagy `Flow`), `KyokushinTypeConverters` (`Instant` ↔ epoch milli, enum ↔ **név**, azonosító value classok az `of()` gyárukon át). A felhasználói táblák `techniqueId`-jén **nincs** idegen kulcs a tartalomra (ADR-004) |
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
 | 3.6 | `ContentImporter`: DTO → validátor → upsert, idempotens, `retired` jelölés | FR-31, FR-33 | ✅ **kész** – T-117: publikus `ContentImporter` + `ImportResult`, `internal RoomContentImporter` (verziókapu a tárolt `dataset_version`-re, validáció, **upsert egyetlen tranzakcióban**, a csomagból kimaradt technika `retired = true` – fizikai törlés nincs), `content_state` összegzés, `lastValidationReport()` a diagnosztikához, injektált `Clock` és `@IoDispatcher`. Tartalom oldali entitás ↔ domain mapperek. 16 új teszt |
@@ -143,7 +143,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 8.2 | Manifest permission teszt | TR-08 | ✅ **kész** (T-603, 2026-11-13) |
 | 8.3 | Compose UI tesztek (emulátor esetén): navigáció, tanulókártya, teljes kvíz | TR-06 | ⬜ |
 | 8.4 | Lint + formázás | NFR-11 | ✅ **kész** (T-607, 2026-11-13) |
-| 8.5 | `docs/QUIZ_RULES.md` kiadott változata | — | ⬜ |
+| 8.5 | `docs/QUIZ_RULES.md` kiadott változata | — | ✅ **kész** (G-13 csoport: T-609, 2026-11-13) |
 | 8.6 | `README.md`: előfeltételek, futtatás, build, használat, ismert korlátok | NFR-11 | ⬜ |
 | 8.7 | `docs/TEST_REPORT.md`: a **tényleges** parancsok és kimenetek | NFR-12 | ⬜ |
 | 8.8 | `./gradlew assembleDebug` → debug APK, útvonal jelentése | AC-07 | ⬜ |
@@ -1482,3 +1482,41 @@ kész függőségű feladat.
 
   Következő: a `docs/backlog/` legkisebb azonosítójú, kész függőségű feladata (T-608,
   G-13).
+
+- 2026-11-13 – **G-13 csoport kész (Fázis 3.3 + 8.5, E6): a tudástár és a kvízszabályok
+  kiadott dokumentációja.** `docs/KNOWLEDGE_BASE.md` (**T-608**) és `docs/QUIZ_RULES.md`
+  (**T-609**) a korábbi, tervezett (VÁZLAT) szöveg helyett a **tényleges** kódhoz mérve.
+
+  **T-608** a csomagolt `app/src/main/assets/knowledge/manifest.json`/`entries.json`
+  mezőit írja le (ADR-011 kanonikus séma, snake_case), a `KnowledgeInputMapper.kt`
+  leképezését a validátor camelCase bemenetére (`core/quiz` `KnowledgeInput`), a tényleges
+  V001…V010 szabálytáblát (`DefaultKnowledgeValidator.kt`, `ValidationIssue.kt`), az új
+  technika/kép hozzáadásának lépéseit (`knowledgebase/` → `convert.py` →
+  `knowledgebase_transfer/` → kézi másolás az `app` csomagba → `dataset_version` léptetés –
+  mind kódmódosítás nélkül, AC-08), a kétszintű hitelesítési folyamatot (rekordszintű
+  `review_status` a Tudástár-badge-hez, manifest-szintű `editorial_status` a
+  `DatasetTrust`/szalaghoz – **egyik sem** azonos a kvízjogosultsággal, lásd lent), a
+  licenctáblázatot (mind a 10 kép `ai_generated`/`project-internal`, 3 feliratos →
+  `quiz_usable: false`) és a migráció négy esetét (rendes tartalomkiadás, átnevezés,
+  visszavonás – mind kódmódosítás nélkül; `schema_version` major-emelés – **ez igen**
+  kódot igényel, elhatárolva a Room séma 2-es verziójától). Rögzített nyitott kérdés:
+  OQ-02 (a szakmai hitelesítő személye) változatlanul a felhasználóra várva.
+
+  **T-609** a tényleges `DefaultQuizGenerator`/`DistractorSelector`/`QuizCandidateFilter`/
+  `QuizEligibility`/`QuizScoring` kódot írja le, minden állítást egy létező teszthez kötve
+  (`DefaultQuizGeneratorTest`, `DistractorSelectorTest`, `RealContentQuizGenerationTest`,
+  `QuizPlanInvariantTest`, `QuizScoringTest`/`QuizScoringTr04Test`, T-112). Rögzített,
+  kódból levezetett, nem nyilvánvaló tény: a `DatasetTrust` két értéke (`REVIEWED`,
+  `PRACTICE_ON_UNREVIEWED`) **mindkettő** átengedi a `QuizEligibility` kaput – a bizalmi
+  szint ma **nem** zár ki technikát a kvízből, csak a UI szalagját vezérli; a tényleges
+  szűrés a `status != INCOMPLETE`, a `quizExcluded`/`retired` és a mezőteljesség.
+
+  Mindkét dokumentum a már meglévő, teljes tesztkészletre hivatkozik; a task fejléce
+  szerint (`Teszt | —`) új teszt nem tartozik hozzájuk. `.\gradlew.bat testDebugUnitTest
+  --rerun-tasks` **exit 0** (teljes projekt, változatlanul **642 teszt**, 0 hiba – a
+  változás tisztán dokumentáció). `.\gradlew.bat assembleDebug` **exit 0**.
+  `connectedDebugAndroidTest` és `lint`/`ktlintCheck` ebben a körben **nem futott** (nem
+  kódváltozás; a legutóbbi, T-607/T-602-beli futásuk változatlanul érvényes).
+
+  Következő: a `docs/backlog/` legkisebb azonosítójú, kész függőségű feladata (**T-604**,
+  „Akadálymentességi átfésülés" – függőségei, T-413 és T-503, már a `docs/done/`-ban).

@@ -3468,3 +3468,50 @@ kísérletként beírva **érvénytelen** ktlint 1.5.0-ban (figyelmeztetéssel
 | `./gradlew ktlintCheck --rerun-tasks` | 0 | teljes projekt, **77 task**, mindegyik tényleg futott (nincs `UP-TO-DATE` a bizonyítékban) |
 | `./gradlew testDebugUnitTest --rerun-tasks` | 0 | **642 teszt**, 0 hiba, teljes projekt |
 | `./gradlew assembleDebug --rerun-tasks` | 0 | `app-debug.apk`, `BUILD SUCCESSFUL` |
+
+## 2026-11-13 – G-13 csoport kész: `docs/KNOWLEDGE_BASE.md` (T-608) és `docs/QUIZ_RULES.md` (T-609)
+
+Tisztán dokumentációs feladatcsoport (`docs` modul, nincs kódváltozás) – a task fejléce
+mindkettőnél `Teszt | —`-t ad, tehát nem tartozik hozzá új automatizált teszt; a „Kész,
+ha" pont ehelyett azt kéri, hogy minden állítás visszavezethető legyen egy **létező**
+tesztre, és hogy a dokumentum a tényleges kódot/sémát írja le, nem a tervezettet.
+
+**Ellenőrzés módja:** mindkét dokumentumot közvetlenül a forráskódból és a csomagolt
+tartalomból írtam (nem a korábbi VÁZLAT-ból kiindulva) – elolvasva a tényleges
+`app/src/main/assets/knowledge/manifest.json`/`entries.json` mezőit, a
+`KnowledgeInputMapper.kt`, `DefaultKnowledgeValidator.kt`, `ValidationIssue.kt`,
+`DefaultQuizGenerator.kt`, `DistractorSelector.kt`, `QuizCandidateFilter.kt`,
+`QuizEligibility.kt` és `QuizScoring.kt` forrását, és minden `docs/QUIZ_RULES.md`
+állítást egy konkrét, meglévő teszt nevéhez kötve (`DefaultQuizGeneratorTest`,
+`DistractorSelectorTest`, `RealContentQuizGenerationTest`, `QuizPlanInvariantTest`,
+`QuizScoringTest`/`QuizScoringTr04Test` – mind a T-112/T-113/T-114 alatt készült,
+meglévő, zöld tesztek). Ez a `/kyo-doc-sync` parancs által elvégzett összevetést
+helyettesíti, mert a parancs maga egy audit-utasítás (Bash/Read/Grep/Glob), nem egy
+determinisztikus check – a tényleges összevetést a dokumentum megírása közben, forrásról
+forrásra végeztem el, nem utólag, külön lépésként.
+
+**Mivel a változás tisztán dokumentáció**, a teljes tesztkészlet és a build a
+változatlan, korábban (T-607) már bizonyított állapotában marad; az alábbi két parancs
+ezt **újra, tényleges futtatással** igazolja (nem a korábbi eredményre hivatkozva):
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | **642 teszt**, 0 hiba, teljes projekt (változatlan a T-607-es állapothoz képest – a módosítás nem érintett forráskódot) |
+| `./gradlew.bat assembleDebug` | 0 | `app-debug.apk`, `BUILD SUCCESSFUL` (minden Android alprojekt `UP-TO-DATE` – nincs kódváltozás, amit újra kellett volna fordítani) |
+
+**NEM FUTOTT:**
+
+- `connectedDebugAndroidTest` – nincs emulátor/eszköz (B-03, változatlan).
+- `./gradlew lint` / `./gradlew ktlintCheck` – nem kódváltozás, és a globális DoD listája
+  (`docs/BACKLOG.md`) ezt a két parancsot nem írja elő kötelezőként (csak
+  `assembleDebug` és `testDebugUnitTest`); a legutóbbi, T-607-beli futásuk
+  (exit 0, teljes projekt) változatlanul érvényes, mert a `docs/*.md` fájlokat sem a
+  lint, sem a ktlint nem vizsgálja.
+
+**Megjegyzés a dokumentumok tartalmáról (nem hiba, de érdemes tudni):** a
+`docs/QUIZ_RULES.md` megírása közben megerősítettem egy a kódból levezetett, nem
+nyilvánvaló tényt: a `DatasetTrust` enum mindkét értéke (`REVIEWED`,
+`PRACTICE_ON_UNREVIEWED`) átengedi a `QuizEligibility.isEligible` kaput – a bizalmi
+szint tehát **ma nem zár ki technikát** a kvízből, csak a UI „Lektorálatlan
+gyakorlóanyag" szalagját vezérli. Ez nem új hiba, csak egy a kódban már így élő,
+korábban dokumentálatlan viselkedés, amit most a kiadott `QUIZ_RULES.md` explicit kimond.

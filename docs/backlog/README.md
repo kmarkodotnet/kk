@@ -26,8 +26,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 | [T-604](T-604-akadalymentessegi-atfesules.md) | Akadálymentességi átfésülés | E6 | minden feature | L | T-413, T-503 |
 | [T-605](T-605-nagy-betumeret-es-forgatas-ellenorzese.md) | Nagy betűméret és forgatás ellenőrzése | E6 | minden feature | M | T-604 |
 | [T-606](T-606-tr-06-avd-es-ui-tesztek.md) | TR-06: AVD és UI tesztek | E6 | `app` | L | T-412, T-503 |
-| [T-608](T-608-docs-knowledge-base-md-kiadott-valtozata.md) | docs/KNOWLEDGE_BASE.md kiadott változata | E6 | `docs` | M | T-117 |
-| [T-609](T-609-docs-quiz-rules-md-kiadott-valtozata.md) | docs/QUIZ_RULES.md kiadott változata | E6 | `docs` | M | T-112 |
 | [T-610](T-610-atadas-readme-tesztjelentes-apk-elfogadasi-krite.md) | Átadás: README, tesztjelentés, APK, elfogadási kritériumok | E6 | `docs` | M | T-606 |
 
 ## Kapcsolódó
