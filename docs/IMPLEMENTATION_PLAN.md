@@ -139,7 +139,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 8.1 | Rétegszabály-ellenőrzés (import audit, `/kyo-doc-sync`, `kyo-spec-auditor`) | TR-07 | ⬜ |
+| 8.1 | Rétegszabály-ellenőrzés (import audit, `/kyo-doc-sync`, `kyo-spec-auditor`) | TR-07 | ✅ **kész** (T-602, 2026-11-13) |
 | 8.2 | Manifest permission teszt | TR-08 | ⬜ |
 | 8.3 | Compose UI tesztek (emulátor esetén): navigáció, tanulókártya, teljes kvíz | TR-06 | ⬜ |
 | 8.4 | Lint + formázás | NFR-11 | ⬜ |
@@ -1387,3 +1387,41 @@ kész függőségű feladat.
   Következő: T-602, „TR-07 rétegszabály-ellenőrzés automatizálva" (Fázis 8/E6) – a
   T-110 függősége teljesült; a `docs/backlog/` legkisebb azonosítójú, kész függőségű
   feladata.
+
+- 2026-11-13 – **T-602 kész (Fázis 8.1, E6): TR-07 rétegszabály-ellenőrzés
+  automatizálva.** A `core/model`/`core/quiz` Kotlin JVM modul volta (ADR-001 L1) és a
+  `core/data` Room-típusainak `internal` láthatósága (ADR-001 L5) már fordítási időben
+  kikényszeríti a rétegszabályt – ez a feladat a **forráskód-szintű**, olvasható
+  bizonyítékot adja hozzá, három új teszttel a `core/quiz` modulban (a task modulmezője
+  szerint):
+
+  1. `coreModelAndCoreQuiz_haveNoForbiddenImport_TR07_NFR03` – a `core/model`/`core/quiz`
+     `src/main/kotlin` fáján nincs `android.`/`androidx.`/`room`/`compose` importsor;
+  2. `coreModelAndCoreQuiz_haveNoDirectClockOrRandomCall_TR07_NFR07` – ugyanott nincs
+     közvetlen `Random.Default`/`System.currentTimeMillis`/`Instant.now`/`Math.random`
+     hívás (NFR-07) – a modulok KDoc-jai **dokumentáltan**, szó szerint idézik ezeket a
+     hívásokat a hiányukat magyarázva (pl. `QuizGenerator.kt`, `SeededShuffle.kt`), ezért
+     a kereső előbb kommentet (blokk- és sorvégi) távolít el, különben a modul a saját
+     dokumentációján bukna el;
+  3. `featureModules_doNotImportRoomEntityDaoOrDtoType_TR07_NFR03` – a négy `feature/*`
+     modul `src/main/kotlin` fáján nincs `androidx.room` import, és nincs `Entity`/`Dao`/
+     `Dto` végű típusnévre mutató import.
+
+  A szabálylogika (`LayeringRuleDetector`, `core/quiz` teszt forráskészlet) sima
+  `String`-eken dolgozik, elválasztva a fájlrendszer-bejárástól – ez adja a task „Kész,
+  ha" pontjának (**„a teszt elbukik, ha valaki véletlenül behúz egy tiltott importot"**)
+  tényleges bizonyítását: a `LayeringRuleDetectorTest` 10 szintetikus esettel (pozitív:
+  tényleg elkapja a tiltott importot/hívást; negatív: a megengedett domain-importot és a
+  csak KDoc-ban/sorvégi megjegyzésben szereplő mentést nem téveszti össze találattal)
+  mutatja meg, hogy a detektor valódi hibát is jelezne, nem csak azt, hogy a mai forrás
+  éppen tiszta. A valódi forrásfák ellenőrzése (`LayeringRuleTest`, 3 teszt) a
+  `kyo.repoRoot` rendszertulajdonságon (már a `core/quiz/build.gradle.kts`-ben beállítva
+  a T-01-es `RealKnowledgeBaseFixture`-höz) ugyanazt a detektort hívja.
+
+  Új tesztek: `LayeringRuleDetectorTest` (10), `LayeringRuleTest` (3). `.\gradlew.bat
+  testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, **641 teszt**, 0 hiba,
+  628 → 641); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`).
+
+  Következő: T-603, „TR-08 manifest-teszt – nincs `android.permission.INTERNET`"
+  (Fázis 8.2/E6) – nincs függősége; a `docs/backlog/` legkisebb azonosítójú, kész
+  függőségű feladata.

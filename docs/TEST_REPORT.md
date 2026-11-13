@@ -3323,3 +3323,54 @@ APK-tartalom ellenőrzve (`unzip -l`): `assets/knowledge/manifest.json`,
 |---|---|
 | Valódi eszközön/emulátoron történő indítás és a 161 rekord UI-ban való megjelenésének vizuális ellenőrzése | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A `KnowledgeAssetImportTest` ugyanezt a betöltési láncot (valódi `AssetManager` → `ContentImporter` → Room) Robolectric alatt, emulátor nélkül bizonyítja, de a tényleges UI-renderelést és indítási élményt nem. A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
+
+---
+
+## 2026-11-13 – T-602: TR-07 rétegszabály-ellenőrzés automatizálva (NFR-03, NFR-07)
+
+### Mi készült
+
+Három új JUnit teszt a `core/quiz` modulban (a task modulmezője szerint), amely a
+rétegszabály (ADR-001) és a determinizmus (NFR-07) maradék, fordítás által nem elkapott
+eseteit forráskód-szinten ellenőrzi:
+
+- `LayeringRuleTest.coreModelAndCoreQuiz_haveNoForbiddenImport_TR07_NFR03` – a
+  `core/model`/`core/quiz` `src/main/kotlin` fáján nincs `android.`/`androidx.`/`room`/
+  `compose` importsor.
+- `LayeringRuleTest.coreModelAndCoreQuiz_haveNoDirectClockOrRandomCall_TR07_NFR07` –
+  ugyanott nincs közvetlen `Random.Default`/`System.currentTimeMillis`/`Instant.now`/
+  `Math.random` hívás (a keresés előbb komment-mentesít, mert a két modul KDoc-jai
+  dokumentáltan, szó szerint idézik ezeket a hívásokat a hiányukat magyarázva).
+- `LayeringRuleTest.featureModules_doNotImportRoomEntityDaoOrDtoType_TR07_NFR03` – a
+  négy `feature/*` modul `src/main/kotlin` fáján nincs `androidx.room` import, és nincs
+  `Entity`/`Dao`/`Dto` végű típusnévre mutató import.
+
+A szabálylogika (`LayeringRuleDetector`) sima `String`-eken dolgozik, elválasztva a
+fájlrendszer-bejárástól. A task „Kész, ha" pontja („a teszt elbukik, ha valaki
+véletlenül behúz egy tiltott importot") ezáltal **tényleg bizonyított**, nem csak
+feltételezett: `LayeringRuleDetectorTest` 10 szintetikus esettel mutatja meg, hogy a
+detektor pozitív esetben (tiltott import/hívás van a bemenetben) talál, negatív esetben
+(megengedett domain-import, vagy a hiányt magyarázó KDoc/sorvégi megjegyzés) nem téveszt.
+A valódi forrásfák ellenőrzése a `kyo.repoRoot` rendszertulajdonságon (már a
+`core/quiz/build.gradle.kts`-ben beállítva a `RealKnowledgeBaseFixture`-höz) keresztül
+megy – a teszt JVM munkakönyvtára a modul saját könyvtára, nem a repó gyökere.
+
+Fordítási közben előjött a `docs/CONVENTIONS.md` 6. szakaszában már rögzített „KDoc `/*`
+karakterpár" csapda: egy KDoc-ban szó szerint leírt `feature/*` glob a Kotlin beágyazott
+blokk-megjegyzés szabálya miatt `Unclosed comment` hibát adott – a szöveg „feature
+modulokban"-ra/„feature modulbeli"-re írása megoldotta.
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew :core:quiz:test --tests "hu.kyokushin.trainer.core.quiz.architecture.*" --rerun-tasks` | 0 | 13 teszt (`LayeringRuleDetectorTest`: 10, `LayeringRuleTest`: 3), 0 hiba |
+| `./gradlew testDebugUnitTest --rerun-tasks` | 0 | **641 teszt** (628 → 641, +13), 0 hiba, 0 error, teljes projekt |
+| `./gradlew assembleDebug` | 0 | `app-debug.apk`, `BUILD SUCCESSFUL` |
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03); nem is érinti ezt a feladatot (nincs UI). |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |
