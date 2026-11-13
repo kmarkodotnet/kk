@@ -1,0 +1,60 @@
+root = true
+
+# ktlint (T-607, NFR-11) ezt a fájlt olvassa a szabályokhoz – ktlint 1.x óta ez a
+# kanonikus konfigurációs hely, nem a Gradle DSL.
+[*.{kt,kts}]
+charset = utf-8
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+# A ktlint 1.5.0 (lásd gradle/libs.versions.toml, T-607) `ktlint_code_style`
+# property-je NEM ismeri az "android" értéket (a régebbi ktlint-kiadások Android
+# stílusa a mai, egységes `ktlint_official` stílusba olvadt) – próbaképpen beírva
+# a Gradle log figyelmeztetést adott ("invalid value 'android'... 'ktlint_official'
+# used instead"), tehát a sor hatástalanul csak zajt okozott volna. A projekt ezért
+# tudatosan a (egyetlen érvényes, alapértelmezett) `ktlint_official` stílust
+# használja, a lent felsorolt, indokolt kivételekkel.
+
+# Jetpack Compose a `@Composable` függvényeket szándékosan PascalCase-ben nevezi
+# (mint egy osztályt/gyártófüggvényt) – ez a projekt minden képernyőjén és
+# `core/ui` komponensén következetesen alkalmazott, dokumentált konvenció
+# (`.claude/skills/kyo-android-module.md` 3. szakasz). A ktlint "standard"
+# szabálykészlet ezt generikus lowerCamelCase-ként kéri számon, ami minden
+# Composable függvényt hibásan jelölne. Elnyomva, indoklással (T-607).
+ktlint_standard_function-naming = disabled
+
+# A ktlint 1.x újabb, "sortöréses" szabályai (function-signature,
+# multiline-expression-wrapping, argument-list-wrapping, class-signature,
+# property-wrapping, chain-method-continuation) a projekt meglévő, mélyen
+# ágazó Compose/ViewModel kódján NEM konvergálnak stabilan – a `ktlintFormat`
+# ezekkel bekapcsolva ellentmondó "Unexpected indentation" hibákat hagy maga
+# után (lásd docs/CONVENTIONS.md 6. szakasz). Ezek a szabályok a közösségben is
+# vitatottak (sokszor kikapcsolva), ezért a projekt az alapvető, stabil
+# formázási szabályokat (indentálás, import-sorrend, trailing comma,
+# sorvég/sorhossz, üres sor szabályok) tartja meg, ezeket a négy sortörés-
+# szabályt pedig kikapcsolja (T-607, "Figyelj rá": indokolt elnyomás).
+ktlint_standard_function-signature = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_parameter-list-wrapping = disabled
+ktlint_standard_class-signature = disabled
+ktlint_standard_property-wrapping = disabled
+ktlint_standard_chain-method-continuation = disabled
+
+# A "filename" szabály négy, korábbi feladatokban (T-208, T-411, T-503) szándékosan
+# tematikus (nem az egyetlen top-level deklaráció nevét tükröző) néven létrehozott
+# fájlt jelölne (pl. `ProgressMessages.kt` a `progressScoreDisplay`-hez) – ezeket a
+# fájlneveket a `docs/done/`, a `docs/TEST_REPORT.md` és a `docs/IMPLEMENTATION_PLAN.md`
+# már lezárt, historikus bejegyzései szó szerint idézik. Az átnevezés ezért nem egy
+# egyszerű, kockázatmentes formázási javítás lenne, hanem a lezárt feladatok
+# dokumentációjának szétesését kockáztatná. Elnyomva, indoklással (T-607).
+ktlint_standard_filename = disabled
+
+[*.{xml,gradle.kts,toml,md,json}]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true

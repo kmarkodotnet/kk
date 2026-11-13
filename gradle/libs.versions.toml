@@ -46,6 +46,13 @@ androidxTestCore = "1.7.0"
 espresso = "3.7.0"
 truth = "1.4.5"
 robolectric = "4.17"
+# --- minőség (T-607) ---
+# A ktlint-gradle 14.2.0 (plugins.gradle.org) a legfrissebb stabil kiadás. A belső
+# ktlint motor verzióját NEM írjuk felül: a plugin ehhez a kiadáshoz tesztelt,
+# alapértelmezett ktlint-verziója 1.5.0 (lásd a plugin forrása,
+# `KtlintExtension.version` property default-ja) – ez a dokumentáltan egymással
+# kompatibilis pár, nem kitalált szám.
+ktlintGradle = "14.2.0"
 
 [libraries]
 # --- Compose (verzió a BOM-ból) ---
@@ -103,3 +110,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
