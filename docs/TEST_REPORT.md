@@ -2985,3 +2985,70 @@ technikánkénti egyenkénti hívásból.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | UI (`contentDescription`, 48 dp célpont, `@Preview`) | **NEM ALKALMAZHATÓ** – tisztán `core/data` adatréteg-feladat, nincs UI-t érintő változás. |
+
+---
+
+## 2026-11-13 – T-503 kész: `feature/progress` áttekintő képernyő
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat :feature:progress:testDebugUnitTest :navigation:test --console=plain` | 0 | `BUILD SUCCESSFUL in 8s`, 105 actionable task. `ProgressMessagesTest`: `tests="4"`; `ProgressOverviewViewModelTest`: `tests="5"` – mindkettő `failures="0" errors="0"`. |
+| `./gradlew.bat testDebugUnitTest --rerun-tasks --console=plain` | 0 | `BUILD SUCCESSFUL in 39s`, 302 actionable task (teljes, őszinte projektfutás, minden modul). Minden `build/test-results/**/*.xml` `failures="0" errors="0"`. |
+| `./gradlew.bat assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL in 2s`, 304 actionable task (16 végrehajtva, 288 up-to-date); `app/build/outputs/apk/debug/app-debug.apk` megvan. |
+
+A teljes projekt `tests` attribútumainak összege (minden modul, a kanonikus
+`testDebugUnitTest`/JVM-modul `test` eredménykönyvtárából, dupla számolás nélkül):
+**578 → 587** (+9), **0 hiba, 0 error**. Az érintett osztályok (mindkettő új):
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.progress.overview.ProgressMessagesTest` | 4 | 0 |
+| `…feature.progress.overview.ProgressOverviewViewModelTest` | 5 | 0 |
+
+### Mi készült
+
+A Haladás áttekintő képernyője (FUNCTIONAL_SPEC 6.1, FR-23, FR-24, FR-27, US-17) – a
+`docs/backlog/GROUPS.md` G-10 csoportja szerint szándékosan csak a **keret**: összesítő
+kártya + kategóriánkénti bontás. A „Gyakorlást igénylő" lista (T-504) és az
+önértékelési blokk (T-505) hiányzik, azokat a következő két feladat adja hozzá.
+
+- `ProgressOverviewViewModel` a `ProgressRepository.observeOverallProgress()` +
+  `observeCategoryProgress()` és a `TechniqueRepository.observeCategories()` +
+  `observeContentState()` négyes `combine`-ja; a kategórianevet a
+  `TechniqueRepository`, a pontszámot a `ProgressRepository` adja, `CategoryId`
+  szerint párosítva.
+- `progressScoreDisplay(score)` (`ProgressMessages.kt`) a „0 megválaszolt kérdés →
+  nincs adat, nem 0%" (FR-27) elágazás egyetlen, `@Composable`-mentes megfogalmazása.
+- `ProgressOverviewScreen`: lektorálatlanság-szalag (ADR-010 – a „Haladás" sor eddig
+  nem volt bekötve), összesítő kártya (nulla próbálkozásnál a kártya helyén „Még nincs
+  adat. Indíts egy kvízt!" + gomb, a `progress.noData` szöveg szó szerint a
+  FUNCTIONAL_SPEC 8.-ból), kategóriánkénti bontás sávval és szöveges értékkel,
+  „Beállítások" link.
+- Navigációs bekötés: a `KyokushinNavHost` `progress/overview` ága mostantól
+  `ProgressOverviewRoute`-ot hívja (nem helyőrzőt).
+
+### Accessibility-csapda, amit a kód elkerül (FR-27, NFR-04)
+
+Próbálkozás nélküli kategóriánál a sor **nem rajzol sávot**: egy `0f` értékű
+`LinearProgressIndicator` a Material 3 beépített `ProgressBarRangeInfo` szemantikájával
+„0 százalék"-ot jelentene be a TalkBacknek, miközben a látható szöveg „nincs adat"-ot
+mond – pontosan az a félreértés, amit az FR-27 kizár. Új sor a
+`docs/CONVENTIONS.md`-ben.
+
+### Rétegszabály, NFR-07
+
+A `feature/progress` build.gradle.kts-e (már meglévő, a modul létrehozásakor felvett
+megjegyzés) tiltja a Room/DTO típusokat; az új kód kizárólag `core/model`/`core/quiz`
+domain típust és a `core/data` repository-szerződést látja. Nincs közvetlen
+`Clock`/`Random` hívás (nincs is rá szükség: a ViewModel csak olvas, nem ír). A
+`ProgressOverviewViewModel`-nek nincs `SavedStateHandle`-je (a `progress/overview`
+route nem vesz át argumentumot), ezért a ViewModel-teszt Robolectric nélkül, sima
+JUnittal fut.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (`ProgressOverviewScreenLoadingPreview`/`WithDataPreview`/`NoDataPreview`, világos + sötét); a tényleges renderelés emulátort igényel (B-03). |

@@ -37,6 +37,7 @@ import hu.kyokushin.trainer.feature.learn.setup.LearnSetupRoute
 import hu.kyokushin.trainer.feature.library.detail.LibraryDetailRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListViewModel
+import hu.kyokushin.trainer.feature.progress.overview.ProgressOverviewRoute
 
 /**
  * Helyőrző azonosítók a navigációs váz bejárásához.
@@ -44,7 +45,6 @@ import hu.kyokushin.trainer.feature.library.list.LibraryListViewModel
  * Nem tartalom: egyik sem a tudástárból jön, és egyik sem állít semmit egy technikáról.
  * A funkciómodulok képernyői (T-207-től) a tényleges azonosítókat adják át.
  */
-private const val PLACEHOLDER_TECHNIQUE_ID = "placeholder-technique"
 private const val PLACEHOLDER_SESSION_ID = "placeholder-session"
 
 /**
@@ -185,9 +185,11 @@ private fun NavController.navigateToBottomNavDestination(destination: BottomNavD
  * A funkciómodulok képernyői sorban cserélik le az eredeti [PlaceholderScreen]-t;
  * az útvonalak, az argumentumnevek és a bottom nav viselkedése nem változik. A
  * `library/list` (T-208: [LibraryListRoute]), a `library/detail` (T-209:
- * [LibraryDetailRoute]), a `learn/setup` (T-302: [LearnSetupRoute]) és a `learn/cards`
- * (T-304: [LearnCardsRoute]) útvonal már a valódi képernyőt mutatja, a többi cél
- * egyelőre helyőrző.
+ * [LibraryDetailRoute]), a `learn/setup` (T-302: [LearnSetupRoute]), a `learn/cards`
+ * (T-304: [LearnCardsRoute]) és a `progress/overview` (T-503: [ProgressOverviewRoute])
+ * útvonal már a valódi képernyőt mutatja, a többi cél egyelőre helyőrző – a `quiz/setup`,
+ * `quiz/run` és `quiz/result` elkészült képernyőjének a bekötése szándékosan nyitva
+ * maradt (lásd `docs/CONVENTIONS.md` 5. szakasz).
  */
 @Composable
 private fun KyokushinNavGraph(
@@ -311,18 +313,17 @@ private fun KyokushinNavGraph(
         }
 
         composable(KyokushinScreen.PROGRESS_OVERVIEW.routePattern) {
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.PROGRESS_OVERVIEW.titleRes,
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_open_technique_progress) {
-                        navController.navigate(
-                            KyokushinRoutes.progressTechnique(PLACEHOLDER_TECHNIQUE_ID),
-                        )
-                    },
-                    PlaceholderAction(R.string.nav_placeholder_open_settings) {
-                        navController.navigate(KyokushinScreen.SETTINGS.routePattern)
-                    },
-                ),
+            // A T-503 a kereten (összesítő kártya + kategóriánkénti bontás) túl még nem
+            // adja a „Gyakorlást igénylő" listát (T-504) és az önértékelési blokkot
+            // (T-505) – ezért innen még nem nyílik technika-részletező (lásd
+            // `docs/CONVENTIONS.md` 5. szakasz).
+            ProgressOverviewRoute(
+                onStartQuiz = {
+                    navController.navigate(KyokushinScreen.QUIZ_SETUP.routePattern)
+                },
+                onOpenSettings = {
+                    navController.navigate(KyokushinScreen.SETTINGS.routePattern)
+                },
             )
         }
 

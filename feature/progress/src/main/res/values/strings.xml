@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A Haladás áttekintő képernyő felhasználói szövegei.
+    Minden szöveg magyar és KIZÁRÓLAG itt él (NFR-02, FUNCTIONAL_SPEC 8.).
+-->
+<resources>
+
+    <!--
+        Nulla megválaszolt kérdés (FUNCTIONAL_SPEC 6.1/2., FR-27). A FUNCTIONAL_SPEC 8.
+        a `progress.noData` kulcs alatt szó szerint ezt a szöveget adja.
+    -->
+    <string name="progress_overview_no_data_message">Még nincs adat. Indíts egy kvízt!</string>
+
+    <!-- A nulla állapot gombja (FUNCTIONAL_SPEC 6.1/2.) – ugyanaz a szöveg, mint a
+         `quiz/setup` „Kvíz indítása" gombján, de saját erőforrásként (a feature modulok
+         nem függnek egymásra, ADR-001 L5). -->
+    <string name="progress_overview_start_quiz">Kvíz indítása</string>
+
+    <!-- Az összesített és a kategóriánkénti sikerarány közös formátuma
+         (FUNCTIONAL_SPEC 6.1/2–3., FR-23, FR-24). -->
+    <string name="progress_overview_score_fraction">%1$d / %2$d helyes</string>
+    <string name="progress_overview_score_percent">Sikerarány: %1$d%%</string>
+
+    <!-- Kategóriánkénti bontás (FUNCTIONAL_SPEC 6.1/3., FR-24). -->
+    <string name="progress_overview_categories_title">Kategóriánkénti bontás</string>
+
+    <!-- Próbálkozás nélküli kategória (FUNCTIONAL_SPEC 6.1/3., FR-27): „nincs adat", nem
+         „0%". -->
+    <string name="progress_overview_category_no_data">Nincs adat</string>
+
+    <!-- Alul: „Beállítások" link (FUNCTIONAL_SPEC 6.1/6., FR-35) – a tényleges
+         beállítások-képernyő tartalma a T-507 tárgya, ez csak a bekötés. -->
+    <string name="progress_overview_settings_link">Beállítások</string>
+
+</resources>

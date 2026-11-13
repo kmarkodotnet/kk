@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-503](T-503-feature-progress-attekinto-kepernyo.md) | feature/progress: áttekintő képernyő | E5 | `feature/progress` | L | T-501, T-206 |
 | [T-504](T-504-feature-progress-gyakorlast-igenylo-lista.md) | feature/progress: gyakorlást igénylő lista | E5 | `feature/progress` | M | T-503 |
 | [T-505](T-505-feature-progress-onertekelesi-blokk.md) | feature/progress: önértékelési blokk | E5 | `feature/progress` | S | T-503 |
 | [T-506](T-506-feature-progress-technika-reszletezo.md) | feature/progress: technika-részletező | E5 | `feature/progress` | M | T-503 |

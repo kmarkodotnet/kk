@@ -1199,4 +1199,37 @@ igénylő" lista rendezése és limitje). `.\gradlew.bat testDebugUnitTest --rer
 (T-503…T-506) és a `library/detail` (T-209) „már gyakoroltam" összegzése mindkettő
 önálló, hátralévő feladat.
 
-Következő: T-503, `feature/progress`: áttekintő képernyő (T-501 és T-206 is kész).
+**2026-11-13 – T-503 kész (Fázis 7 kezdete, E5 epik): `feature/progress` áttekintő
+képernyő.** A `docs/backlog/GROUPS.md` szerint szándékosan **önálló**: ez a képernyő a
+G-10 csoport (T-504/T-505/T-506) kerete – a „Gyakorlást igénylő" lista és az
+önértékelési blokk **nincs** benne, azokat a két soron következő feladat adja hozzá.
+
+- `ProgressOverviewViewModel` a `ProgressRepository.observeOverallProgress()` +
+  `observeCategoryProgress()` és a `TechniqueRepository.observeCategories()` +
+  `observeContentState()` négyes `combine`-ja (FR-23, FR-24): a kategórianevet és a
+  sorrendet a `TechniqueRepository` adja, a pontszámot a `ProgressRepository` –
+  `CategoryId` szerint párosítva, nem index szerint.
+- `progressScoreDisplay(score)` (`ProgressMessages.kt`) a „0 megválaszolt kérdés → nincs
+  adat, nem 0%" (FR-27) elágazás egyetlen, `@Composable`-mentes megfogalmazása – ezt
+  hívja mind az összesítő kártya, mind egy kategóriasor (ugyanaz a minta, mint a
+  `feature/quiz` `quizResultSummary`-je, CONVENTIONS 4.1).
+- `ProgressOverviewScreen`: lektorálatlanság-szalag (ADR-010 – a táblázat „Haladás”
+  sora eddig nem volt bekötve, ez zárta le), összesítő kártya (nulla próbálkozásnál a
+  kártya **helyén** „Még nincs adat. Indíts egy kvízt!” + gomb, `progress.noData` szó
+  szerint a FUNCTIONAL_SPEC 8.-ból), kategóriánkénti bontás sávval és szöveges értékkel,
+  „Beállítások” link. **Próbálkozás nélküli kategóriánál szándékosan nincs sáv** – egy
+  `0f` értékű `LinearProgressIndicator` a Material 3 beépített szemantikájával „0
+  százalék"-ot jelentene be a TalkBacknek, pontosan azt a félreértést keltve, amit az
+  FR-27 kizár (lásd a komponens KDoc-ja és az új CONVENTIONS-sor).
+- Navigációs bekötés: a `KyokushinNavHost` `progress/overview` ága mostantól
+  `ProgressOverviewRoute`-ot hív (nem helyőrzőt) – „Kvíz indítása” → `quiz/setup`,
+  „Beállítások” → `settings` (mindkettő már létező útvonal/helyőrző). A már nem
+  hivatkozott `PLACEHOLDER_TECHNIQUE_ID` konstans eltávolítva.
+
+Új tesztek: `ProgressMessagesTest` (4) + `ProgressOverviewViewModelTest` (5) – nincs
+`SavedStateHandle` (a route nem vesz át argumentumot), ezért Robolectric sem kellett.
+`.\gradlew.bat testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, 587 teszt,
+0 hiba, 578 → 587); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`).
+
+Következő: T-504, `feature/progress`: gyakorlást igénylő lista (G-10 csoport, T-503
+függősége teljesült).
