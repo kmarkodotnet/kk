@@ -8,10 +8,12 @@ import hu.kyokushin.trainer.core.data.db.StudyReviewEntity
 import hu.kyokushin.trainer.core.data.db.toQuizAttempt
 import hu.kyokushin.trainer.core.data.db.toQuizSession
 import hu.kyokushin.trainer.core.data.db.toScore
+import hu.kyokushin.trainer.core.data.db.toStudyReview
 import hu.kyokushin.trainer.core.data.db.toTechniqueProgress
 import hu.kyokushin.trainer.core.data.di.IoDispatcher
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.TechniqueId
 import java.time.Clock
 import javax.inject.Inject
@@ -171,6 +173,11 @@ internal class RoomProgressRepository @Inject constructor(
                     }
                 }
             }.flowOn(ioDispatcher)
+
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        database.studyReviewDao().observeForTechnique(techniqueId)
+            .map { entities -> entities.map { it.toStudyReview() } }
+            .flowOn(ioDispatcher)
 
     override suspend fun clearAllProgress() {
         withContext(ioDispatcher) {

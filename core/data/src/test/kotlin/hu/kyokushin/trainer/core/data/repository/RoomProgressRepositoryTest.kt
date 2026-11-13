@@ -399,6 +399,30 @@ class RoomProgressRepositoryTest {
         assertThat(needsPractice).hasSize(2)
     }
 
+    // --- FR-28 / T-506: önértékelési előzmény technikánként, legfrissebb elöl ---
+
+    @Test
+    fun observeStudyReviewHistory_mostRecentFirstAndOnlyForTheRequestedTechnique_FR28() =
+        repositoryTest {
+            repository.recordStudyReview(techniqueId, SelfRating.NEEDS_PRACTICE)
+            repository.recordStudyReview(techniqueId, SelfRating.KNEW)
+            repository.recordStudyReview(secondTechniqueId, SelfRating.KNEW)
+
+            val history = repository.observeStudyReviewHistory(techniqueId).first()
+
+            assertThat(history.map { it.selfRating })
+                .containsExactly(SelfRating.KNEW, SelfRating.NEEDS_PRACTICE)
+                .inOrder()
+            assertThat(history.map { it.techniqueId }).containsExactly(techniqueId, techniqueId)
+        }
+
+    @Test
+    fun observeStudyReviewHistory_noReviewsYieldsEmptyListNotNull_FR28() = repositoryTest {
+        val history = repository.observeStudyReviewHistory(techniqueId).first()
+
+        assertThat(history).isEmpty()
+    }
+
     // --- FR-35 / NFR-09: a törlés csak a felhasználói táblákat üríti ------------
 
     @Test

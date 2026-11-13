@@ -3052,3 +3052,90 @@ JUnittal fut.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (`ProgressOverviewScreenLoadingPreview`/`WithDataPreview`/`NoDataPreview`, világos + sötét); a tényleges renderelés emulátort igényel (B-03). |
+
+---
+
+## 2026-11-13 – T-504/T-505/T-506 kész (G-10 csoport): a Haladás áttekintő két alszakasza
+## és a technika-részletező
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"` + `./gradlew.bat :feature:progress:compileDebugKotlin :core:data:compileDebugKotlin :navigation:compileDebugKotlin --console=plain` | 0 | `BUILD SUCCESSFUL in 21s` – csak a már ismert `hiltViewModel()` deprecation figyelmeztetés, hiba nincs. |
+| `./gradlew.bat :feature:progress:testDebugUnitTest :core:data:testDebugUnitTest :navigation:testDebugUnitTest :feature:learn:testDebugUnitTest :feature:quiz:testDebugUnitTest --console=plain --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 29s`, 198 actionable task. Minden érintett modul `build/test-results/testDebugUnitTest/*.xml` `failures="0" errors="0"`. |
+| `./gradlew.bat testDebugUnitTest --console=plain --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 40s`, 311 actionable task (teljes, őszinte projektfutás, minden modul). Minden `build/test-results/**/*.xml` `failures="0" errors="0"`. |
+| `./gradlew.bat assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL in 5s`, 304 actionable task (24 végrehajtva, 280 up-to-date); `app/build/outputs/apk/debug/app-debug.apk` megvan. |
+
+A teljes projekt `tests` attribútumainak összege (minden modul, a kanonikus
+`testDebugUnitTest`/JVM-modul `test` eredménykönyvtárából, dupla számolás nélkül):
+**587 → 606** (+19), **0 hiba, 0 error**. Az érintett osztályok:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.progress.ProgressFormattingTest` (új) | 2 | 0 |
+| `…feature.progress.overview.ProgressNeedsPracticeAccessibilityTest` (új) | 2 | 0 |
+| `…feature.progress.overview.ProgressOverviewViewModelTest` (+4) | 9 | 0 |
+| `…feature.progress.technique.ProgressTechniqueLabelsTest` (új) | 2 | 0 |
+| `…feature.progress.technique.ProgressTechniqueViewModelTest` (új) | 7 | 0 |
+| `…core.data.repository.RoomProgressRepositoryTest` (+2) | 23 | 0 |
+
+### Mi készült
+
+A G-10 csoport (`docs/backlog/GROUPS.md`) a T-503 kereteként megépített Haladás
+áttekintő két hiányzó alszakaszát adja hozzá, és megépíti a technika-részletezőt:
+
+- **T-504 – „Gyakorlást igénylő" lista (FR-26).** `ProgressOverviewUiState.Content`
+  kapott egy `needsPractice: List<ProgressNeedsPracticeItem>` mezőt; a
+  `ProgressOverviewViewModel` a `ProgressRepository.observeNeedsPractice(10)` listáját
+  a `TechniqueRepository.observeTechniques()`-ből feloldott romaji/magyar
+  név/ábrával párosítja, `techniqueId` szerint (nem index szerint). Üres lista →
+  „Még nincs elég adat a javaslathoz." a lista helyén, nem üres `Column`. Tétel
+  kattintható → `onOpenTechnique` → `progress/technique/{techniqueId}`.
+- **T-505 – önértékelési blokk (FR-28).** `ProgressOverviewUiState.Content` kapott egy
+  `studyReviewSummary: StudyReviewSummary` mezőt (a `ProgressRepository.observeStudyReviewSummary()`-ból,
+  T-301-ben már megírt forrás) – külön, elhatárolt szakasz „Tudtam: `{n}` ·
+  Gyakorolnom kell: `{m}`" + a FUNCTIONAL_SPEC 8. szó szerinti magyarázó sora.
+- **T-506 – technika-részletező (FR-25, DR-07).** Új `feature/progress/technique`
+  csomag: `ProgressTechniqueViewModel` (`SavedStateHandle`-ből olvasott
+  `techniqueId`, ugyanaz a minta, mint a `feature/library` `LibraryDetailViewModel`-nél)
+  + `ProgressTechniqueScreen`. Azonosító adatok + „Megnyitás a Tudástárban" link,
+  kvízstatisztika (próbálkozás/helyes/sikerarány/utolsó gyakorlás,
+  kérdéstípus-bontás), önértékelési előzmény külön blokkban, és a visszavont technika
+  explicit jelzése – a statisztika ekkor is látható marad (ADR-004, DR-07).
+  Bekötve a `KyokushinNavHost` `progress/technique/{techniqueId}` ágába (a
+  `PlaceholderScreen` helyén).
+
+### `core/data` bővítés, amire a T-506-nak szüksége volt
+
+A `ProgressRepository`-nak eddig nem volt tagja a **technikánkénti** önértékelési
+előzményhez (csak az összesített `observeStudyReviewSummary()` létezett, T-505-höz). Új
+tag: `observeStudyReviewHistory(techniqueId): Flow<List<StudyReview>>` – a
+`StudyReviewDao.observeForTechnique` (új, `Flow`-visszatérésű testvérmetódus a már
+létező `suspend getForTechnique` mellett, változatlanul, a meglévő tesztek nem
+érintettek) + egy új `StudyReviewEntity.toStudyReview()` mapper
+(`UserEntityMappers.kt`) adja. Ugyanaz a mintázat, mint a T-411 `getSessionResult`-ja
+(CONVENTIONS 1. szakasz „Egy `ProgressRepository`-bővítés minden tesztdublőrjét
+érinti"): mind az öt `ProgressRepository` tesztdublőr
+(`FakeLearnProgressRepository`, `FakeQuizProgressRepository`,
+`FakeQuizRunProgressRepository`, `FakeQuizResultProgressRepository`,
+`FakeProgressOverviewRepository`) kapott egy új felülírást (a négy kvíz/tanulás-oldali
+kivételt dob, az új `FakeProgressTechniqueDetailRepository` valósítja meg). Új
+`RoomProgressRepositoryTest` esetek (+2): legfrissebb elöl, csak a kért technikára
+szűrve; nincs önértékelés → üres lista, nem `null`.
+
+### Rétegszabály, NFR-07
+
+Az új kód kizárólag `core/model`/`core/quiz` domain típust és a `core/data`
+repository-szerződést látja a `feature/progress`-ben; a `ProgressTechniqueViewModel`
+`SavedStateHandle`-je a `navigation` modul `NavArgs.TECHNIQUE_ID`-jával csak **névben**
+egyezik (nincs `navigation`-függés, L5). Nincs közvetlen `Clock`/`Random` hívás – az
+utolsó gyakorlás/önértékelés dátumának megjelenítése (`formatLastPracticed`) egy már
+**meglévő, tárolt** `Instant`-ot formáz a megadott (alapértelmezésben eszköz-)
+időzónával, nem egy új időpontot kérdez le.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (mindhárom képernyő/állapot világos + sötét variánsa); a tényleges renderelés emulátort igényel (B-03). |

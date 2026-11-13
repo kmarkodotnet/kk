@@ -130,9 +130,9 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
-| 7.1 | `progress/overview`: összesítés, kategóriabontás, gyakorlást igénylő lista | FR-23, FR-24, FR-26 | ⬜ |
-| 7.2 | `progress/technique/{id}`: technikánkénti statisztika, visszavont jelölés | FR-25 | ⬜ |
-| 7.3 | Önértékelési blokk elkülönítve + magyarázó szöveg | FR-28 | ⬜ |
+| 7.1 | `progress/overview`: összesítés, kategóriabontás, gyakorlást igénylő lista | FR-23, FR-24, FR-26 | ✅ **kész** (T-503, 2026-11-13; G-10 csoport: T-504, 2026-11-13) |
+| 7.2 | `progress/technique/{id}`: technikánkénti statisztika, visszavont jelölés | FR-25 | ✅ **kész** (G-10 csoport: T-506, 2026-11-13) |
+| 7.3 | Önértékelési blokk elkülönítve + magyarázó szöveg | FR-28 | ✅ **kész** (G-10 csoport: T-505, 2026-11-13) |
 | 7.4 | `settings`: tartalominfó, előrehaladás törlése, debug diagnosztika | FR-32, FR-35 | ⬜ |
 
 ## Fázis 8 – Minőség, tesztek, dokumentáció, átadás
@@ -166,10 +166,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-503** – `feature/progress`: áttekintő képernyő. Függőségei (T-501, T-206) készek.
-   (**T-501 – aggregált statisztika lekérdezések** – 2026-11-13-án elkészült, lásd
-   lejjebb; **T-413 – akadálymentesség** és **T-414 – ViewModel tesztek** – mindkettő
-   2026-11-12-én elkészült, lásd lejjebb.)
+1. **T-507** – `feature/progress`: beállítások (G-11 csoport első tagja, T-509-cel).
+   Függőségei (T-502, T-503) készek.
+   (**G-10 csoport – T-504, T-505, T-506 – kész, 2026-11-13**, lásd lejjebb.)
 
 (**A T-501 kész, 2026-11-13:** a `ProgressRepository` négy aggregált, olvasó taggal
 bővült (`observeOverallProgress`/`observeCategoryProgress`/`observeTechniqueProgress`/
@@ -1233,3 +1232,44 @@ G-10 csoport (T-504/T-505/T-506) kerete – a „Gyakorlást igénylő" lista é
 
 Következő: T-504, `feature/progress`: gyakorlást igénylő lista (G-10 csoport, T-503
 függősége teljesült).
+
+- 2026-11-13 – **G-10 csoport kész (T-504, T-505, T-506):** a Haladás áttekintő két
+  hiányzó alszakasza és a technika-részletező.
+  - **T-504 – „Gyakorlást igénylő" lista (FR-26).** `ProgressOverviewUiState.Content`
+    új `needsPractice: List<ProgressNeedsPracticeItem>` mezőt kapott; a
+    `ProgressOverviewViewModel` a `ProgressRepository.observeNeedsPractice(10)`-et a
+    `TechniqueRepository.observeTechniques()`-ből feloldott romaji/magyar/ábra
+    hármassal párosítja `techniqueId` szerint. Egy visszavont, de korábban gyakorolt
+    technika **kiesik** ebből a listából (az `observeTechniques()` csak az aktívakat
+    adja) – a teljes historikus adat a T-506 részletezőn marad elérhető (DR-07). Üres
+    lista → „Még nincs elég adat a javaslathoz." Tétel kattintható →
+    `progress/technique/{techniqueId}`.
+  - **T-505 – önértékelési blokk (FR-28).** `ProgressOverviewUiState.Content` új
+    `studyReviewSummary: StudyReviewSummary` mezőt kapott (a T-301-ben már megírt
+    `ProgressRepository.observeStudyReviewSummary()`-ból) – külön, elhatárolt
+    szakasz, a FUNCTIONAL_SPEC 8. szó szerinti magyarázó sorával.
+  - **T-506 – technika-részletező (FR-25, DR-07).** Új `feature/progress/technique`
+    csomag: `ProgressTechniqueViewModel` (a `feature/library`
+    `LibraryDetailViewModel` mintáját követi: `SavedStateHandle`-ből olvasott
+    `techniqueId`, `TechniqueRepository.getTechnique()` – ami szándékosan a
+    visszavont technikát is visszaadja) + `ProgressTechniqueScreen`. Azonosító adatok
+    + „Megnyitás a Tudástárban" link, kvízstatisztika kérdéstípus-bontással,
+    önértékelési előzmény külön blokkban, visszavont technika explicit jelzése (a
+    statisztika ekkor is látható marad). Bekötve a `KyokushinNavHost`
+    `progress/technique/{techniqueId}` ágába (a `PlaceholderScreen` helyén).
+  - **`core/data` bővítés:** a `ProgressRepository` új tagja,
+    `observeStudyReviewHistory(techniqueId): Flow<List<StudyReview>>` (a T-506
+    technikánkénti önértékelési előzményéhez) – a `StudyReviewDao.observeForTechnique`
+    (új, `Flow`-visszatérésű testvérmetódus a meglévő `suspend getForTechnique`
+    mellett) + egy új `StudyReviewEntity.toStudyReview()` mapper adja. Mind az öt
+    `ProgressRepository` tesztdublőr kapott egy új felülírást (CONVENTIONS 1. szakasz
+    „Egy `ProgressRepository`-bővítés minden tesztdublőrjét érinti").
+
+Új tesztek: `ProgressFormattingTest` (2), `ProgressNeedsPracticeAccessibilityTest` (2),
+`ProgressOverviewViewModelTest` (+4 → 9), `ProgressTechniqueLabelsTest` (2),
+`ProgressTechniqueViewModelTest` (7), `RoomProgressRepositoryTest` (+2 → 23).
+`.\gradlew.bat testDebugUnitTest --rerun-tasks` **exit 0** (teljes projekt, 606 teszt,
+0 hiba, 587 → 606); `.\gradlew.bat assembleDebug` **exit 0** (`app-debug.apk`).
+
+Következő: T-507, `feature/progress`: beállítások (G-11 csoport első tagja, T-509-cel;
+a T-502/T-503 függőségek teljesültek).

@@ -18,6 +18,7 @@ import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
@@ -207,6 +208,9 @@ internal class FakeLearnProgressRepository : ProgressRepository {
 
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
         throw UnsupportedOperationException("A tanulás nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        throw UnsupportedOperationException("A tanulás nem olvassa az önértékelési előzményt (T-506).")
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A tanulás nem törli a haladást.")

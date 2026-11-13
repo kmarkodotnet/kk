@@ -7,6 +7,7 @@ import hu.kyokushin.trainer.core.model.QuizAttempt
 import hu.kyokushin.trainer.core.model.QuizSession
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.scoring.Score
 import java.time.Instant
@@ -166,6 +167,18 @@ interface ProgressRepository {
      * nem `null`.
      */
     fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>>
+
+    /**
+     * Egy technika önértékelési előzménye, a legfrissebb elöl (FR-28, FUNCTIONAL_SPEC
+     * 6.2, T-506).
+     *
+     * **Nem keveredik a kvízstatisztikával** (FR-28, ugyanaz a szabály, mint
+     * [observeStudyReviewSummary]-nél): ez kizárólag a `study_review` tábla
+     * [techniqueId]-ra szűrt sorait adja vissza, domain [StudyReview] alakban. Technikára,
+     * amelyre még nem történt önértékelés, **üres lista** jár, nem `null` – ugyanaz a
+     * „nincs adat, nem hiba" konvenció, mint a többi olvasó tagnál.
+     */
+    fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>>
 
     /**
      * Minden felhasználói adat törlése egyetlen tranzakcióban (FR-35, NFR-09).

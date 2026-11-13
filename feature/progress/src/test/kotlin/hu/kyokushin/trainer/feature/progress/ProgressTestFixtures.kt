@@ -15,6 +15,7 @@ import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
@@ -23,6 +24,7 @@ import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 
 /**
  * Közös tesztsegédek a `feature/progress` modulhoz (T-503).
@@ -55,18 +57,23 @@ internal fun progressImportedState(
 )
 
 /**
- * A [ProgressRepository] tesztdublőre a Haladás áttekintő ViewModeljéhez (T-503).
+ * A [ProgressRepository] tesztdublőre a Haladás áttekintő ViewModeljéhez (T-503/T-504/T-505).
  *
- * Kizárólag [observeOverallProgress] és [observeCategoryProgress] kell a
- * `ProgressOverviewViewModel`-nek – a többi tag nem hívott, ezért kivételt dob.
+ * [observeOverallProgress], [observeCategoryProgress], [observeNeedsPractice] és
+ * [observeStudyReviewSummary] kell a `ProgressOverviewViewModel`-nek – a többi tag nem
+ * hívott, ezért kivételt dob.
  */
 internal class FakeProgressOverviewRepository(
     overallProgress: OverallProgress = OverallProgress(score = Score(0, 0, null)),
     categoryProgress: List<CategoryProgress> = emptyList(),
+    needsPractice: List<TechniqueProgress> = emptyList(),
+    studyReviewSummary: StudyReviewSummary = StudyReviewSummary(knownCount = 0, needsPracticeCount = 0),
 ) : ProgressRepository {
 
     private val overallProgressFlow = MutableStateFlow(overallProgress)
     private val categoryProgressFlow = MutableStateFlow(categoryProgress)
+    private val needsPracticeFlow = MutableStateFlow(needsPractice)
+    private val studyReviewSummaryFlow = MutableStateFlow(studyReviewSummary)
 
     override fun observeOverallProgress(): Flow<OverallProgress> = overallProgressFlow.asStateFlow()
 
@@ -89,14 +96,16 @@ internal class FakeProgressOverviewRepository(
         throw UnsupportedOperationException("A Haladás áttekintő nem rögzít önértékelést.")
     }
 
-    override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
-        throw UnsupportedOperationException("A Haladás áttekintő kerete (T-503) még nem olvassa az önértékelés-összegzést (T-505).")
+    override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> = studyReviewSummaryFlow.asStateFlow()
 
     override fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress> =
-        throw UnsupportedOperationException("A Haladás áttekintő kerete (T-503) technikánkénti bontást nem olvas.")
+        throw UnsupportedOperationException("A Haladás áttekintő nem olvas technikánkénti bontást (ez a technika-részletező, T-506 felelőssége).")
 
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
-        throw UnsupportedOperationException("A Haladás áttekintő kerete (T-503) még nem olvassa a gyakorlást igénylő listát (T-504).")
+        needsPracticeFlow.asStateFlow().map { it.take(limit) }
+
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        throw UnsupportedOperationException("A Haladás áttekintő nem olvas önértékelési előzményt (ez a technika-részletező, T-506 felelőssége).")
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A Haladás áttekintő nem törli a haladást (ez a `settings`, T-507 felelőssége).")
@@ -104,17 +113,24 @@ internal class FakeProgressOverviewRepository(
 }
 
 /**
- * A [TechniqueRepository] tesztdublőre a Haladás áttekintő ViewModeljéhez (T-503).
+ * A [TechniqueRepository] tesztdublőre a Haladás áttekintő ViewModeljéhez (T-503/T-504)
+ * és a technika-részletezőhöz (T-506).
  *
- * Kizárólag [observeCategories] (a kategórianevekhez) és [observeContentState] (a
+ * [observeCategories] (a kategórianevekhez), [observeTechniques] (a „Gyakorlást igénylő"
+ * lista névfeloldásához, T-504), [getTechnique] (a technika-részletezőhöz, T-506; a
+ * [techniques] listával ellentétben a visszavontakat is tartalmazhatja, lásd
+ * [TechniqueRepository.getTechnique] KDoc-ja) és [observeContentState] (a
  * lektorálatlanság-szalaghoz, ADR-010) kell.
  */
 internal class FakeProgressTechniqueRepository(
     categories: List<Category> = listOf(CATEGORY_DACHI, CATEGORY_TSUKI),
+    techniques: List<Technique> = emptyList(),
+    private val techniqueById: Map<TechniqueId, Technique> = emptyMap(),
     contentState: ContentState = progressImportedState(),
 ) : TechniqueRepository {
 
     private val categoriesFlow = MutableStateFlow(categories)
+    private val techniquesFlow = MutableStateFlow(techniques)
     private val contentStateFlow = MutableStateFlow(contentState)
 
     override fun observeCategories(): Flow<List<Category>> = categoriesFlow.asStateFlow()
@@ -122,14 +138,67 @@ internal class FakeProgressTechniqueRepository(
     override fun observeContentState(): Flow<ContentState> = contentStateFlow.asStateFlow()
 
     override fun observeTechniques(query: String, categories: Set<CategoryId>): Flow<List<Technique>> =
-        throw UnsupportedOperationException("A Haladás áttekintő nem listáz technikát (T-503).")
+        techniquesFlow.asStateFlow()
 
     override fun observeTechniqueMatches(query: String, categories: Set<CategoryId>): Flow<List<TechniqueMatch>> =
         throw UnsupportedOperationException("A Haladás áttekintő nem keres technikát (T-503).")
 
-    override suspend fun getTechnique(id: TechniqueId): Technique? =
-        throw UnsupportedOperationException("A Haladás áttekintő kerete (T-503) nem old fel egyetlen technikát sem.")
+    override suspend fun getTechnique(id: TechniqueId): Technique? = techniqueById[id]
 
     override suspend fun getQuizCandidates(categories: Set<CategoryId>): QuizCandidateSet =
         throw UnsupportedOperationException("A Haladás áttekintő nem generál kvízt.")
+}
+
+/**
+ * A [ProgressRepository] tesztdublőre a technika-részletező ViewModeljéhez (T-506).
+ *
+ * Kizárólag [observeTechniqueProgress] és [observeStudyReviewHistory] kell a
+ * `ProgressTechniqueViewModel`-nek – a többi tag nem hívott, ezért kivételt dob.
+ */
+internal class FakeProgressTechniqueDetailRepository(
+    techniqueProgress: TechniqueProgress,
+    studyReviewHistory: List<StudyReview> = emptyList(),
+) : ProgressRepository {
+
+    private val techniqueProgressFlow = MutableStateFlow(techniqueProgress)
+    private val studyReviewHistoryFlow = MutableStateFlow(studyReviewHistory)
+
+    override fun observeTechniqueProgress(id: TechniqueId): Flow<TechniqueProgress> =
+        techniqueProgressFlow.asStateFlow()
+
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        studyReviewHistoryFlow.asStateFlow()
+
+    override suspend fun startSession(requestedCount: Int, seed: Long): SessionId =
+        throw UnsupportedOperationException("A technika-részletező nem nyit kvízmenetet.")
+
+    override suspend fun recordAttempt(attempt: NewAttempt): Boolean =
+        throw UnsupportedOperationException("A technika-részletező nem rögzít kvízválaszt.")
+
+    override suspend fun finishSession(id: SessionId) {
+        throw UnsupportedOperationException("A technika-részletező nem zár le menetet.")
+    }
+
+    override suspend fun getSessionResult(sessionId: SessionId): QuizSessionResult? =
+        throw UnsupportedOperationException("A technika-részletező nem olvas vissza egyetlen kvízmenetet.")
+
+    override suspend fun recordStudyReview(techniqueId: TechniqueId, rating: SelfRating) {
+        throw UnsupportedOperationException("A technika-részletező nem rögzít önértékelést.")
+    }
+
+    override fun observeStudyReviewSummary(): Flow<StudyReviewSummary> =
+        throw UnsupportedOperationException("A technika-részletező nem olvassa az összesített önértékelést (ez az áttekintő, T-505 felelőssége).")
+
+    override fun observeOverallProgress(): Flow<OverallProgress> =
+        throw UnsupportedOperationException("A technika-részletező nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeCategoryProgress(): Flow<List<CategoryProgress>> =
+        throw UnsupportedOperationException("A technika-részletező nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
+        throw UnsupportedOperationException("A technika-részletező nem olvassa a gyakorlást igénylő listát (ez az áttekintő, T-504 felelőssége).")
+
+    override suspend fun clearAllProgress() {
+        throw UnsupportedOperationException("A technika-részletező nem törli a haladást (ez a `settings`, T-507 felelőssége).")
+    }
 }

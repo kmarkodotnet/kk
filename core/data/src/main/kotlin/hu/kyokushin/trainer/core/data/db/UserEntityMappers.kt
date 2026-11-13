@@ -3,6 +3,7 @@ package hu.kyokushin.trainer.core.data.db
 import hu.kyokushin.trainer.core.data.repository.TechniqueProgress
 import hu.kyokushin.trainer.core.model.QuizAttempt
 import hu.kyokushin.trainer.core.model.QuizSession
+import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.quiz.scoring.Score
 
 /**
@@ -36,6 +37,17 @@ internal fun QuizAttemptEntity.toQuizAttempt(): QuizAttempt = QuizAttempt(
     selectedTechniqueId = selectedTechniqueId,
     correct = correct,
     answeredAt = answeredAt,
+)
+
+/**
+ * Egy önértékelés sor → domain leképezés (FR-28, T-506) – a technika-részletező
+ * önértékelési előzményéhez ([hu.kyokushin.trainer.core.data.repository.ProgressRepository.observeStudyReviewHistory]).
+ */
+internal fun StudyReviewEntity.toStudyReview(): StudyReview = StudyReview(
+    id = id,
+    techniqueId = techniqueId,
+    selfRating = selfRating,
+    reviewedAt = reviewedAt,
 )
 
 /**

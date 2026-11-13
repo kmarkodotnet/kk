@@ -244,6 +244,15 @@ internal interface StudyReviewDao {
     @Query("SELECT * FROM study_review WHERE techniqueId = :techniqueId ORDER BY reviewedAt DESC, id DESC")
     suspend fun getForTechnique(techniqueId: TechniqueId): List<StudyReviewEntity>
 
+    /**
+     * Ugyanaz a lekérdezés, mint [getForTechnique], de megfigyelhetően (FR-28,
+     * FUNCTIONAL_SPEC 6.2, T-506) – a technika-részletező a képernyőn marad, amíg a
+     * felhasználó egy másik tanulókártyán újabb önértékelést adhat, tehát a lista
+     * magától frissül, nem csak egyszeri lekérdezés. A legfrissebb önértékelés elöl.
+     */
+    @Query("SELECT * FROM study_review WHERE techniqueId = :techniqueId ORDER BY reviewedAt DESC, id DESC")
+    fun observeForTechnique(techniqueId: TechniqueId): Flow<List<StudyReviewEntity>>
+
     @Query("SELECT COUNT(*) FROM study_review")
     fun observeCount(): Flow<Int>
 

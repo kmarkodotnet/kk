@@ -6,9 +6,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.kyokushin.trainer.core.data.repository.CategoryProgress
 import hu.kyokushin.trainer.core.data.repository.OverallProgress
 import hu.kyokushin.trainer.core.data.repository.ProgressRepository
+import hu.kyokushin.trainer.core.data.repository.StudyReviewSummary
+import hu.kyokushin.trainer.core.data.repository.TechniqueProgress
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.DatasetTrust
+import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.quiz.scoring.Score
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,8 +20,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * A Haladás áttekintő képernyő állapotkezelése (FUNCTIONAL_SPEC 6.1, FR-23, FR-24, FR-27,
- * US-17, T-503).
+ * A Haladás áttekintő képernyő állapotkezelése (FUNCTIONAL_SPEC 6.1, FR-23, FR-24, FR-26,
+ * FR-27, FR-28, US-17, US-11, T-503/T-504/T-505).
  *
  * ## A `category` tábla a kategóriák egyetlen hiteles forrása
  *
@@ -31,15 +34,30 @@ import kotlinx.coroutines.flow.stateIn
  * azonosító ([hu.kyokushin.trainer.core.model.CategoryId]) alapján párosodik, nem index
  * szerint, hogy egy esetleges sorrend-eltérés se okozzon rossz párosítást.
  *
- * ## Miért nincs itt a „Gyakorlást igénylő" lista és az önértékelési blokk
+ * ## A „Gyakorlást igénylő" lista névfeloldása csak az aktív tananyagra néz (T-504)
  *
- * A [ProgressOverviewUiState] KDoc-ja részletezi: ez a ViewModel a képernyő **kerete**
- * (T-503), a T-504/T-505 ezt bővíti majd további forrásokkal (`observeNeedsPractice`,
- * `observeStudyReviewSummary`) és UI-state mezőkkel.
+ * A [ProgressRepository.observeNeedsPractice] kizárólag [TechniqueId]/[Score]/
+ * `lastPracticedAt` hármast ad (a `quiz_attempt` táblából, lásd a repository KDoc-ja) –
+ * a romaji/magyar név és az ábra a [TechniqueRepository]`.observeTechniques()`-ből jön,
+ * ugyanazzal az `associateBy { it.id }` + `map` mintával, mint a kategórianeveknél. Az
+ * [TechniqueRepository.observeTechniques] **csak az aktív** (nem visszavont) technikákat
+ * adja (lásd a repository KDoc-ja) – egy visszavont, de korábban gyakorolt technika ezért
+ * **kiesik** ebből a listából ([buildNeedsPracticeItems] `mapNotNull`-ja), nem jelenik meg
+ * hibásan név nélkül. A teljes, visszavontakat is tartalmazó statisztika a
+ * technika-részletezőn (T-506) továbbra elérhető marad (DR-07) – ez a két képernyő
+ * szándékosan eltérő hatóköre, nem hiányosság.
  *
- * @property progressRepository az összesített és kategóriánkénti kvízstatisztika forrása.
- * @property techniqueRepository a kategórianevek és a lektorálatlanság-szalag
- *   (ADR-010) bemenete.
+ * ## Az önértékelési blokk sosem keveredik a kvízstatisztikával (T-505, FR-28)
+ *
+ * A [ProgressRepository.observeStudyReviewSummary] a `study_review` tábla összegzése,
+ * teljesen független forrásból jön, mint a kvíz `Score`-ok – a [ProgressOverviewUiState]
+ * ezért két, egymástól független mezőt ad ki ([ProgressOverviewUiState.Content.overallScore]
+ * és [ProgressOverviewUiState.Content.studyReviewSummary]), nem egy közös típust.
+ *
+ * @property progressRepository az összesített, kategóriánkénti és technikánkénti
+ *   kvízstatisztika, valamint az önértékelés-összegzés forrása.
+ * @property techniqueRepository a kategória- és technikanevek, az ábrák, és a
+ *   lektorálatlanság-szalag (ADR-010) bemenete.
  */
 @HiltViewModel
 class ProgressOverviewViewModel @Inject constructor(
@@ -48,12 +66,19 @@ class ProgressOverviewViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState: StateFlow<ProgressOverviewUiState> = combine(
-        progressRepository.observeOverallProgress(),
-        progressRepository.observeCategoryProgress(),
-        techniqueRepository.observeCategories(),
-        techniqueRepository.observeContentState(),
-    ) { overall, categoryProgress, categories, contentState ->
-        buildState(overall, categoryProgress, categories, contentState.datasetTrust)
+        combine(
+            progressRepository.observeOverallProgress(),
+            progressRepository.observeCategoryProgress(),
+            techniqueRepository.observeCategories(),
+            techniqueRepository.observeContentState(),
+        ) { overall, categoryProgress, categories, contentState ->
+            OverviewAndCategorySources(overall, categoryProgress, categories, contentState.datasetTrust)
+        },
+        progressRepository.observeNeedsPractice(NEEDS_PRACTICE_LIMIT),
+        techniqueRepository.observeTechniques(),
+        progressRepository.observeStudyReviewSummary(),
+    ) { sources, needsPractice, techniques, studyReviewSummary ->
+        buildState(sources, needsPractice, techniques, studyReviewSummary)
     }
         .stateIn(
             scope = viewModelScope,
@@ -62,13 +87,13 @@ class ProgressOverviewViewModel @Inject constructor(
         )
 
     private fun buildState(
-        overall: OverallProgress,
-        categoryProgress: List<CategoryProgress>,
-        categories: List<Category>,
-        datasetTrust: DatasetTrust,
+        sources: OverviewAndCategorySources,
+        needsPractice: List<TechniqueProgress>,
+        techniques: List<Technique>,
+        studyReviewSummary: StudyReviewSummary,
     ): ProgressOverviewUiState.Content {
-        val scoreByCategory = categoryProgress.associateBy { it.categoryId }
-        val items = categories.map { category ->
+        val scoreByCategory = sources.categoryProgress.associateBy { it.categoryId }
+        val categoryItems = sources.categories.map { category ->
             ProgressCategoryItem(
                 categoryId = category.id,
                 nameHu = category.nameHu,
@@ -76,15 +101,54 @@ class ProgressOverviewViewModel @Inject constructor(
             )
         }
         return ProgressOverviewUiState.Content(
-            overallScore = overall.score,
-            categories = items,
-            datasetTrust = datasetTrust,
+            overallScore = sources.overall.score,
+            categories = categoryItems,
+            needsPractice = buildNeedsPracticeItems(needsPractice, techniques),
+            studyReviewSummary = studyReviewSummary,
+            datasetTrust = sources.datasetTrust,
         )
     }
+
+    private fun buildNeedsPracticeItems(
+        needsPractice: List<TechniqueProgress>,
+        techniques: List<Technique>,
+    ): List<ProgressNeedsPracticeItem> {
+        val techniqueById = techniques.associateBy { it.id }
+        // `mapNotNull`: lásd az osztály KDoc-ja – egy visszavont technika korábbi
+        // próbálkozása nincs az aktív `techniques` listában, ezért kimarad innen.
+        return needsPractice.mapNotNull { progress ->
+            val technique = techniqueById[progress.techniqueId] ?: return@mapNotNull null
+            ProgressNeedsPracticeItem(
+                techniqueId = progress.techniqueId,
+                romaji = technique.romaji,
+                hungarian = technique.hungarian,
+                illustration = technique.illustration,
+                score = progress.score,
+                // A `TechniqueProgress` szerződése szerint `answered >= 1` esetén soha
+                // nem `null` (lásd `observeNeedsPractice` KDoc-ja) – ez a lista eleve csak
+                // ilyen tételeket ad.
+                lastPracticedAt = requireNotNull(progress.lastPracticedAt) {
+                    "observeNeedsPractice csak legalább egy próbálkozással rendelkező " +
+                        "technikát ad, tehát lastPracticedAt itt sosem null."
+                },
+            )
+        }
+    }
+
+    /** A kategóriakerethez tartozó négy forrás egy pillanatra összefogva (lásd fent). */
+    private data class OverviewAndCategorySources(
+        val overall: OverallProgress,
+        val categoryProgress: List<CategoryProgress>,
+        val categories: List<Category>,
+        val datasetTrust: DatasetTrust,
+    )
 
     companion object {
         /** A konfigurációváltás alatt életben tartja a feliratkozást. */
         private const val STOP_TIMEOUT_MS = 5_000L
+
+        /** A „Gyakorlást igénylő" lista legnagyobb mérete (FUNCTIONAL_SPEC 6.1/4., FR-26). */
+        private const val NEEDS_PRACTICE_LIMIT = 10
 
         /**
          * Védelmi háló: ha egy kategóriára véletlenül nem érkezne sor a

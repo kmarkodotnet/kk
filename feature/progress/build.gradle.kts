@@ -25,6 +25,15 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            // A „Gyakorlást igénylő" tétel akadálymentes leírása a TÉNYLEGES `strings.xml`
+            // fölött ellenőrzött (NFR-02, NFR-04, T-504) – ehhez a teszt JVM-nek látnia
+            // kell az Android erőforrásokat. Ugyanaz a konvenció, mint a `feature/library`-ban.
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
@@ -56,4 +65,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }

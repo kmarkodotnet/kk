@@ -38,6 +38,7 @@ import hu.kyokushin.trainer.feature.library.detail.LibraryDetailRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListViewModel
 import hu.kyokushin.trainer.feature.progress.overview.ProgressOverviewRoute
+import hu.kyokushin.trainer.feature.progress.technique.ProgressTechniqueRoute
 
 /**
  * Helyőrző azonosítók a navigációs váz bejárásához.
@@ -186,7 +187,8 @@ private fun NavController.navigateToBottomNavDestination(destination: BottomNavD
  * az útvonalak, az argumentumnevek és a bottom nav viselkedése nem változik. A
  * `library/list` (T-208: [LibraryListRoute]), a `library/detail` (T-209:
  * [LibraryDetailRoute]), a `learn/setup` (T-302: [LearnSetupRoute]), a `learn/cards`
- * (T-304: [LearnCardsRoute]) és a `progress/overview` (T-503: [ProgressOverviewRoute])
+ * (T-304: [LearnCardsRoute]), a `progress/overview` (T-503/T-504/T-505:
+ * [ProgressOverviewRoute]) és a `progress/technique` (T-506: [ProgressTechniqueRoute])
  * útvonal már a valódi képernyőt mutatja, a többi cél egyelőre helyőrző – a `quiz/setup`,
  * `quiz/run` és `quiz/result` elkészült képernyőjének a bekötése szándékosan nyitva
  * maradt (lásd `docs/CONVENTIONS.md` 5. szakasz).
@@ -313,13 +315,15 @@ private fun KyokushinNavGraph(
         }
 
         composable(KyokushinScreen.PROGRESS_OVERVIEW.routePattern) {
-            // A T-503 a kereten (összesítő kártya + kategóriánkénti bontás) túl még nem
-            // adja a „Gyakorlást igénylő" listát (T-504) és az önértékelési blokkot
-            // (T-505) – ezért innen még nem nyílik technika-részletező (lásd
-            // `docs/CONVENTIONS.md` 5. szakasz).
+            // A „Gyakorlást igénylő" lista (T-504) tételére koppintva a technika-
+            // részletezőre navigál – ugyanaz a minta, mint a Tudástár listájánál
+            // (`LIBRARY_LIST` ág fent).
             ProgressOverviewRoute(
                 onStartQuiz = {
                     navController.navigate(KyokushinScreen.QUIZ_SETUP.routePattern)
+                },
+                onOpenTechnique = { techniqueId ->
+                    navController.navigate(KyokushinRoutes.progressTechnique(techniqueId.value))
                 },
                 onOpenSettings = {
                     navController.navigate(KyokushinScreen.SETTINGS.routePattern)
@@ -327,10 +331,14 @@ private fun KyokushinNavGraph(
             )
         }
 
-        composable(KyokushinScreen.PROGRESS_TECHNIQUE.routePattern) { entry ->
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.PROGRESS_TECHNIQUE.titleRes,
-                argument = entry.arguments?.getString(NavArgs.TECHNIQUE_ID),
+        composable(KyokushinScreen.PROGRESS_TECHNIQUE.routePattern) {
+            // A `techniqueId` argumentumot a ViewModel saját `SavedStateHandle`-je olvassa
+            // ki közvetlenül a NavBackStackEntry-ből (lásd `ProgressTechniqueViewModel`
+            // dokumentációja) – itt nincs rá szükség.
+            ProgressTechniqueRoute(
+                onOpenLibraryDetail = { techniqueId ->
+                    navController.navigate(KyokushinRoutes.libraryDetail(techniqueId.value))
+                },
             )
         }
 

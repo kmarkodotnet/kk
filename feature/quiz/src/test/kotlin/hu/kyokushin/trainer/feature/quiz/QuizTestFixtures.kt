@@ -19,6 +19,7 @@ import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.QuestionId
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
@@ -242,6 +243,9 @@ internal class FakeQuizProgressRepository(
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
         throw UnsupportedOperationException("A kvízbeállító nem olvassa az aggregált statisztikát (T-501).")
 
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        throw UnsupportedOperationException("A kvízbeállító nem olvassa az önértékelési előzményt (T-506).")
+
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A kvízbeállító nem törli a haladást.")
     }
@@ -315,6 +319,9 @@ internal class FakeQuizRunProgressRepository(
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
         throw UnsupportedOperationException("A futó kvíz nem olvassa az aggregált statisztikát (T-501).")
 
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        throw UnsupportedOperationException("A futó kvíz nem olvassa az önértékelési előzményt (T-506).")
+
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("A futó kvíz nem törli a haladást.")
     }
@@ -370,6 +377,9 @@ internal class FakeQuizResultProgressRepository(
 
     override fun observeNeedsPractice(limit: Int): Flow<List<TechniqueProgress>> =
         throw UnsupportedOperationException("Az eredményképernyő nem olvassa az aggregált statisztikát (T-501).")
+
+    override fun observeStudyReviewHistory(techniqueId: TechniqueId): Flow<List<StudyReview>> =
+        throw UnsupportedOperationException("Az eredményképernyő nem olvassa az önértékelési előzményt (T-506).")
 
     override suspend fun clearAllProgress() {
         throw UnsupportedOperationException("Az eredményképernyő nem törli a haladást.")

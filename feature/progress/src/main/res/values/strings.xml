@@ -32,4 +32,76 @@
          beállítások-képernyő tartalma a T-507 tárgya, ez csak a bekötés. -->
     <string name="progress_overview_settings_link">Beállítások</string>
 
+    <!-- „Gyakorlást igénylő" lista (FUNCTIONAL_SPEC 6.1/4., FR-26, T-504). -->
+    <string name="progress_overview_needs_practice_title">Gyakorlást igénylő</string>
+
+    <!-- Üres eset: még egyetlen próbálkozás sincs, vagy a sosem gyakorolt technikák
+         szándékosan nem kerülnek ide (T-504 „Figyelj rá"). -->
+    <string name="progress_overview_needs_practice_empty">Még nincs elég adat a javaslathoz.</string>
+
+    <!-- Az utolsó gyakorlás dátuma; a %1$s a `formatLastPracticed` kimenete (nem
+         `strings.xml`-ben élő dátumformátum, lásd a függvény KDoc-ja). Közös szöveg a
+         „Gyakorlást igénylő" listán (T-504) és a technika-részletezőn (T-506, FR-25). -->
+    <string name="progress_last_practiced">Utolsó gyakorlás: %1$s</string>
+
+    <!-- A teljes listatétel TalkBack-leírása egy bejárási egységként (FUNCTIONAL_SPEC 9.),
+         ugyanaz a minta, mint a Tudástár listáján: romaji, magyar név, sikerarány,
+         utolsó gyakorlás. -->
+    <string name="progress_overview_needs_practice_item_a11y">%1$s, %2$s, sikerarány %3$d százalék, %4$s</string>
+
+    <!-- Önértékelési blokk (FUNCTIONAL_SPEC 6.1/5., FR-28, T-505). -->
+    <string name="progress_overview_self_rating_title">Önértékelés a tanulókártyákon</string>
+
+    <!-- A FUNCTIONAL_SPEC 6.1/5. szó szerint ezt a mintát adja: „Tudtam: {n} ·
+         Gyakorolnom kell: {m}". -->
+    <string name="progress_overview_self_rating_counts">Tudtam: %1$d · Gyakorolnom kell: %2$d</string>
+
+    <!-- A FUNCTIONAL_SPEC 8. a `progress.selfRating.note` kulcs alatt szó szerint ezt a
+         szöveget adja – nem díszítés, lásd T-505 „Figyelj rá". -->
+    <string name="progress_overview_self_rating_note">Az önértékelés nem számít bele a kvíz sikerarányába.</string>
+
+    <!-- Technika-részletező (`progress/technique/{techniqueId}`, FUNCTIONAL_SPEC 6.2,
+         FR-25, FR-28, DR-07, T-506). -->
+
+    <!-- Hibaüzenet, ha a technikaazonosító ismeretlen (FUNCTIONAL_SPEC 10.) – ugyanaz a
+         mintázat, mint a `feature/library` `library_detail_not_found`-ja, saját
+         erőforrásként (a feature modulok nem függnek egymásra, ADR-001 L5). -->
+    <string name="progress_technique_not_found">Ez a technika nem található a tudástárban.</string>
+
+    <!-- Link a Tudástár részletezőre (T-506 „Teendők" 1.). -->
+    <string name="progress_technique_open_library_detail">Megnyitás a Tudástárban</string>
+
+    <!-- A FUNCTIONAL_SPEC 8. a `progress.retired` kulcs alatt szó szerint ezt a szöveget
+         adja (T-506 „Teendők" 5., „Kész ha"). -->
+    <string name="progress_technique_retired_notice">Ez a technika már nem része a tananyagnak, de a korábbi eredményeid megmaradtak.</string>
+
+    <string name="progress_technique_stats_title">Kvízstatisztika</string>
+
+    <!-- Nulla megválaszolt kérdés (FR-25, FR-27) – „nincs adat", nem 0%, ugyanaz a
+         szabály, mint az áttekintőn. -->
+    <string name="progress_technique_stats_no_data">Még nincs próbálkozás ehhez a technikához.</string>
+
+    <!-- Kérdéstípus szerinti bontás (FUNCTIONAL_SPEC 6.2: „melyik típusban hibázik"). A
+         négy felirat szó szerint a FUNCTIONAL_SPEC 8. fejezetéből jön
+         (`quiz.type.jpToHu`/`huToJp`/`imageToJp`/`jpToImage`) – saját erőforrásként,
+         mert a `feature/quiz` már definiált ugyanilyen szövegeket, de a feature modulok
+         nem függnek egymásra (ADR-001 L5, lásd CONVENTIONS 4.1 „Kétszámos
+         kategóriaszám-formátum" sora hasonló esetre). -->
+    <string name="progress_technique_by_question_type_title">Kérdéstípus szerinti bontás</string>
+    <string name="progress_technique_type_jp_to_hu">Japán név → magyar jelentés</string>
+    <string name="progress_technique_type_hu_to_jp">Magyar név → japán név</string>
+    <string name="progress_technique_type_image_to_jp">Ábra → japán név</string>
+    <string name="progress_technique_type_jp_to_image">Japán név → ábra</string>
+
+    <!-- Önértékelési előzmény, külön blokkban (FUNCTIONAL_SPEC 6.2, FR-28, T-506
+         „Teendők" 4.). -->
+    <string name="progress_technique_self_rating_title">Önértékelési előzmény</string>
+    <string name="progress_technique_self_rating_empty">Még nincs önértékelés ehhez a technikához.</string>
+
+    <!-- A FUNCTIONAL_SPEC 8. a `learn.knew`/`learn.needsPractice` kulcsok alatt szó
+         szerint ezt a két szöveget adja; saját erőforrásként, mert a `feature/learn`
+         ugyanezt már definiálta (ADR-001 L5). -->
+    <string name="progress_technique_self_rating_knew">Tudtam</string>
+    <string name="progress_technique_self_rating_needs_practice">Gyakorolnom kell</string>
+
 </resources>
