@@ -47,4 +47,5 @@
     <string name="nav_placeholder_open_technique_progress">Technika haladása</string>
     <string name="nav_placeholder_open_settings">Beállítások</string>
 
+    <string name="nav_title_diagnostics">Tartalomdiagnosztika</string>
 </resources>

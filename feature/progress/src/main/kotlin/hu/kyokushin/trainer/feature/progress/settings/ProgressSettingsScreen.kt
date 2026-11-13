@@ -57,6 +57,7 @@ import hu.kyokushin.trainer.feature.progress.R
  */
 @Composable
 fun ProgressSettingsRoute(
+    onOpenDiagnostics: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProgressSettingsViewModel = hiltViewModel(),
 ) {
@@ -69,7 +70,7 @@ fun ProgressSettingsRoute(
         onClearCancelled = viewModel::onClearCancelled,
         onClearConfirmed = viewModel::onClearConfirmed,
         // A navigációs bekötés a `navigation` modul tárgya (lásd a fenti KDoc).
-        onOpenDiagnostics = if (BuildConfig.DEBUG) ({}) else null,
+        onOpenDiagnostics = if (BuildConfig.DEBUG) onOpenDiagnostics else null,
         modifier = modifier,
     )
 }

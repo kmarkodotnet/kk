@@ -174,6 +174,11 @@ class QuizSetupViewModel
             startImport()
         }
 
+        /** A tanulásból érkező teljes kategóriakijelölés átvétele. */
+        fun selectCategories(categoryIds: List<String>) {
+            savedStateHandle[KEY_SELECTED_CATEGORIES] = ArrayList(categoryIds)
+        }
+
         /** Egy kategória ki- vagy bekapcsolása (FUNCTIONAL_SPEC 5.1/2., több kategória egyszerre). */
         fun onToggleCategory(categoryId: CategoryId) {
             val current = savedStateHandle.get<List<String>>(KEY_SELECTED_CATEGORIES).orEmpty()

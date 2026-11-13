@@ -63,11 +63,20 @@ import hu.kyokushin.trainer.feature.quiz.R
  */
 @Composable
 fun QuizSetupRoute(
+    categoryPreset: List<String>? = null,
+    onPresetConsumed: () -> Unit = {},
     onStartQuiz: (QuizStartResult) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: QuizSetupViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel, categoryPreset) {
+        categoryPreset?.let {
+            viewModel.selectCategories(it)
+            onPresetConsumed()
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.startEvent.collect { result -> onStartQuiz(result) }
@@ -131,15 +140,13 @@ private fun QuizSetupContent(
     onStartQuiz: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         // Nem elutasítható, a UI állapotától független sáv (ADR-010).
         UnreviewedBanner(trust = state.datasetTrust)
 
         Column(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Text(

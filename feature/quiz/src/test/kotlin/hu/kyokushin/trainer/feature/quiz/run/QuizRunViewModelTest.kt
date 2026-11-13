@@ -505,6 +505,37 @@ class QuizRunViewModelTest {
 
     // ----------------------------------------------------------------------- segédek
 
+    @Test
+    fun navigationInput_initializesOnceAndRestoresAnswer_FR19() = runTest {
+        val plan = threeQuestionPlan()
+        val handle = SavedStateHandle(mapOf(QuizRunViewModel.KEY_SESSION_ID to "session-1"))
+        val start = hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult(SessionId.of("session-1"), plan, 42L)
+        val vm = viewModel(savedStateHandle = handle)
+        val job = collectState(vm)
+        vm.initialize(start)
+        advanceUntilIdle()
+        vm.onAnswer(plan.questions.first().id, plan.questions.first().optionTechniqueIds.first())
+        advanceUntilIdle()
+        vm.initialize(start)
+        advanceUntilIdle()
+        val answered = vm.uiState.value as QuizRunUiState.Content
+        assertThat(answered.answeredCount).isEqualTo(1)
+        val restored = viewModel(
+            savedStateHandle = SavedStateHandle(
+                handle.keys().associateWith {
+                    handle.get<Any>(it)
+                },
+            ),
+        )
+        val restoredJob = collectState(restored)
+        restored.initialize(start)
+        advanceUntilIdle()
+        assertThat((restored.uiState.value as QuizRunUiState.Content).selectedTechniqueId)
+            .isEqualTo(answered.selectedTechniqueId)
+        job.cancel()
+        restoredJob.cancel()
+    }
+
     private fun threeQuestionPlan(): QuizPlan = QuizPlan(
         questions = listOf(
             QuizQuestion(

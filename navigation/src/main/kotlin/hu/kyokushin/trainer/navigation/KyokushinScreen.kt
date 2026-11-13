@@ -121,6 +121,13 @@ enum class KyokushinScreen(
         topLevel = false,
         showsBottomBar = true,
     ),
+    DIAGNOSTICS(
+        routePattern = "progress/diagnostics",
+        titleRes = R.string.nav_title_diagnostics,
+        section = NavSection.PROGRESS,
+        topLevel = false,
+        showsBottomBar = true,
+    ),
     SETTINGS(
         routePattern = "settings",
         titleRes = R.string.nav_title_settings,

@@ -111,15 +111,13 @@ private fun LearnSetupContent(
     onStartCards: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         // Nem elutasítható, a UI állapotától független sáv (ADR-010).
         UnreviewedBanner(trust = state.datasetTrust)
 
         Column(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Text(

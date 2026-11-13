@@ -70,5 +70,5 @@ Továbbá: `/kyo-status`, `/kyo-next`, `/kyo-setup-env`, `/kyo-build`, `/kyo-tes
 ./gradlew connectedDebugAndroidTest   # csak ha emulátor/eszköz elérhető
 ./gradlew lint ktlintCheck       # formázás és lint
 ```
-**Jelenlegi környezeti állapot: JDK, Android SDK és Gradle NINCS telepítve a gépen.**
-Lásd `docs/ENVIRONMENT.md` – a kód írható, de build/teszt addig nem futtatható.
+**Jelenlegi környezeti állapot: JDK, Android SDK, Gradle és működő AVD rendelkezésre áll.**
+A build, unit teszt és eszközteszt futtatható; részletek: `docs/ENVIRONMENT.md` és `docs/TEST_REPORT.md`.

@@ -79,6 +79,7 @@ import hu.kyokushin.trainer.feature.quiz.R
  */
 @Composable
 fun QuizRunRoute(
+    initialStart: hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult? = null,
     onOpenTechnique: (TechniqueId) -> Unit,
     onExit: () -> Unit,
     onFinish: (SessionId) -> Unit,
@@ -86,6 +87,10 @@ fun QuizRunRoute(
     viewModel: QuizRunViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel, initialStart) {
+        initialStart?.let(viewModel::initialize)
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.closeEvent.collect { onExit() }
@@ -204,7 +209,7 @@ private fun QuizRunContent(
     onOpenTechnique: (TechniqueId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         QuizRunTopBar(
             position = content.position,
             total = content.total,
@@ -213,9 +218,7 @@ private fun QuizRunContent(
 
         Column(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

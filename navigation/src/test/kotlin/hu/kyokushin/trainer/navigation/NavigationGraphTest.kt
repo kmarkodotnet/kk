@@ -28,6 +28,7 @@ class NavigationGraphTest {
             "progress/overview",
             "progress/technique/{techniqueId}",
             "settings",
+            "progress/diagnostics",
         )
     }
 

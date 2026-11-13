@@ -5,12 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -149,7 +150,7 @@ private fun LearnCardsEmptyContent(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(24.dp),
+        modifier = modifier.verticalScroll(rememberScrollState()).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -177,12 +178,11 @@ private fun LearnCardsContent(
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         LearnCardsTopBar(state = state, onExit = onExit)
 
         Box(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
                 .padding(16.dp),
             contentAlignment = Alignment.Center,
@@ -289,7 +289,7 @@ private fun LearnCardsTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(
                     R.string.learn_cards_position_of_total,
@@ -437,7 +437,6 @@ private fun HiddenCaptionedImageNotice(modifier: Modifier = Modifier) {
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(HIDDEN_IMAGE_ASPECT_RATIO)
             .clearAndSetSemantics { contentDescription = "$title. $explanation" },
     ) {
         Column(
@@ -466,7 +465,7 @@ private fun LearnCardsFinishedContent(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(24.dp),
+        modifier = modifier.verticalScroll(rememberScrollState()).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -504,9 +503,6 @@ private val MIN_TOUCH_TARGET: Dp = 48.dp
 
 /** A kártya és a feliratos-kép-helyőrző sarokkerekítése. */
 private val CARD_CORNER_RADIUS: Dp = 16.dp
-
-/** A feliratos-kép-helyőrző képaránya – ugyanaz, mint a `core/ui` helyőrzőjéé. */
-private const val HIDDEN_IMAGE_ASPECT_RATIO: Float = 4f / 5f
 
 // ---------------------------------------------------------------------------------------
 // Előnézetek – világos és sötét témában, a négy állapotra (T-304, T-305, T-307).

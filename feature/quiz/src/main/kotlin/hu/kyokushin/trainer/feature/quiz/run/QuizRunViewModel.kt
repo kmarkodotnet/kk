@@ -13,8 +13,10 @@ import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizPlan
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
+import hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -32,20 +34,12 @@ import javax.inject.Inject
  *
  * A `quiz/setup` (T-403/T-404) a „Kvíz indítása" gombra egy
  * [hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult]-ot ad (sessionId + terv + seed),
- * de ezt **nem** a `quiz/run/{sessionId}` route path-argumentuma
- * hordozza majd – egy teljes [QuizPlan] túl nagy és túl összetett egy URL-argumentumhoz, és a
- * `feature/quiz` modul nem is látna `kotlinx.serialization`-t a kódolásához (ADR-001, L3,
- * lásd `QuizRunStateCodec` KDoc-ja). A bemenet ehelyett a cél [SavedStateHandle]-jébe kerül
- * **közvetlenül**, a hívó (a `quiz/setup` képernyő navigációs bekötése) által, a
- * `navController.getBackStackEntry(route).savedStateHandle[key] = value` mintával – ugyanaz a
- * technika, mint a `docs/CONVENTIONS.md` 4.1 „Eredmény visszaadása navigáció közben" sora, csak
- * **előre** irányban használva (ott egy korábbi képernyő állapotát módosítja egy későbbi,
- * itt egy későbbi képernyő bemenetét adja egy korábbi). Ez a navigációs bekötés **nem** ennek a
- * csoportnak (G-07) a tárgya – a `feature/quiz` modulhatárt nem lépi át (lásd
- * `docs/backlog/GROUPS.md`), és csak ott dönthető el érdemben, amikor a `quiz/run` route
- * argumentuma és a `KyokushinNavHost` ág is készül.
+ * amelyből csak a sessionId szerepel az URL-ben. A kódolt [QuizPlan] és a seed a
+ * navigációs bejegyzés mentett állapotába kerül; a route az [initialize] függvényen
+ * keresztül egyszer másolja át a ViewModel saját [SavedStateHandle]-jébe (T-611).
+ * A két handle külön tároló: a visszaállított válaszokat az inicializálás nem írja felül.
  *
- * A [KEY_SESSION_ID] kulcs **nem** `private`: ez lesz majd a jövőbeli `quiz/run/{sessionId}`
+ * A [KEY_SESSION_ID] kulcs **nem** `private`: ez a `quiz/run/{sessionId}`
  * route path-argumentumának a neve is (ugyanaz a minta, mint a
  * [hu.kyokushin.trainer.feature.library.detail.LibraryDetailViewModel.KEY_TECHNIQUE_ID]-nél).
  * A [KEY_SEED] és a [KEY_PLAN] nem lehet route-argumentum (lásd fent), ezért ezek a
@@ -102,7 +96,17 @@ class QuizRunViewModel
         private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
         /** A bemenet (sessionId, seed, terv) – egyszer olvasva, a menet alatt nem változik. */
-        private val initial: InitialInput? = readInitialInput(savedStateHandle)
+        private val initialFlow = MutableStateFlow(readInitialInput(savedStateHandle))
+        private val initial: InitialInput? get() = initialFlow.value
+
+        /** A navigációs bemenet egyszeri átvétele; visszaállított menetet sosem ír felül. */
+        fun initialize(start: QuizStartResult) {
+            if (initial != null) return
+            require(savedStateHandle.get<String>(KEY_SESSION_ID) == start.sessionId.value)
+            savedStateHandle[KEY_SEED] = start.seed
+            savedStateHandle[KEY_PLAN] = QuizRunStateCodec.encodePlan(start.plan)
+            initialFlow.value = readInitialInput(savedStateHandle)
+        }
 
         private val currentIndexFlow: Flow<Int> = savedStateHandle.getStateFlow(KEY_CURRENT_INDEX, 0)
 
@@ -130,8 +134,12 @@ class QuizRunViewModel
          * A teljes [QuizRunState], a `SavedStateHandle`-ből visszaépítve – `null`, ha a
          * bemenet hiányzik vagy sérült (lásd [readInitialInput]).
          */
-        private val runStateFlow: Flow<QuizRunState?> = combine(currentIndexFlow, answersFlow) { index, answers ->
-            val input = initial ?: return@combine null
+        private val runStateFlow: Flow<QuizRunState?> = combine(initialFlow, currentIndexFlow, answersFlow) {
+            input,
+            index,
+            answers,
+            ->
+            input ?: return@combine null
             val lastIndex = (input.plan.questions.size - 1).coerceAtLeast(0)
             QuizRunState(
                 sessionId = input.sessionId,
@@ -174,8 +182,9 @@ class QuizRunViewModel
          * question.correctTechniqueId`, soha nem szöveges egyezés.
          */
         fun onAnswer(questionId: QuestionId, selectedTechniqueId: TechniqueId) {
-            val plan = initial?.plan ?: return
-            val sessionId = initial.sessionId
+            val input = initial ?: return
+            val plan = input.plan
+            val sessionId = input.sessionId
             val answers = decodeAnswersOrEmpty(savedStateHandle.get<String>(KEY_ANSWERS).orEmpty())
             if (questionId in answers) return
             val question = plan.questions.firstOrNull { it.id == questionId } ?: return
@@ -218,13 +227,14 @@ class QuizRunViewModel
          * duplikált hívás (dupla koppintás a gombon) sem ír hibás állapotot.
          */
         fun onNext() {
-            val plan = initial?.plan ?: return
+            val input = initial ?: return
+            val plan = input.plan
             if (plan.questions.isEmpty()) return
             val index = savedStateHandle.get<Int>(KEY_CURRENT_INDEX) ?: 0
             if (index >= plan.questions.lastIndex) {
                 viewModelScope.launch {
-                    progressRepository.finishSession(initial.sessionId)
-                    _finishEvent.send(initial.sessionId)
+                    progressRepository.finishSession(input.sessionId)
+                    _finishEvent.send(input.sessionId)
                 }
                 return
             }

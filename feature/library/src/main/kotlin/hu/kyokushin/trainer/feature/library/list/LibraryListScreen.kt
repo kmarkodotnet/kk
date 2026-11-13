@@ -79,6 +79,7 @@ import hu.kyokushin.trainer.feature.library.R
  */
 @Composable
 fun LibraryListRoute(
+    onDiagnostics: () -> Unit = {},
     onOpenTechnique: (TechniqueId) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryListViewModel = hiltViewModel(),
@@ -92,9 +93,8 @@ fun LibraryListRoute(
         onClearFilters = viewModel::onClearFilters,
         onRetry = viewModel::onRetry,
         onItemClick = onOpenTechnique,
-        // A teljes diagnosztika képernyő (T-508) még nem létezik; addig a debug build
-        // csak a gomb LÁTHATÓSÁGÁT garantálja (T-210 Teendői), a célja még nincs kijelölve.
-        onDiagnostics = if (BuildConfig.DEBUG) ({}) else null,
+        // A diagnosztikai célhoz a navigation modul adja a callbacket (T-611).
+        onDiagnostics = if (BuildConfig.DEBUG) onDiagnostics else null,
         modifier = modifier,
     )
 }
@@ -120,44 +120,51 @@ fun LibraryListScreen(
     modifier: Modifier = Modifier,
     onDiagnostics: (() -> Unit)? = null,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        // Nem elutasítható, nem a UI állapotától függő sáv (ADR-010) – minden ágon látszik.
-        UnreviewedBanner(trust = uiState.datasetTrust)
+    LazyColumn(modifier = modifier.fillMaxSize()) {
+        item(key = "header") {
+            // Nem elutasítható, nem a UI állapotától függő sáv (ADR-010) – minden ágon látszik.
+            UnreviewedBanner(trust = uiState.datasetTrust)
 
-        LibrarySearchField(
-            query = uiState.query,
-            onQueryChange = onQueryChange,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
+            LibrarySearchField(
+                query = uiState.query,
+                onQueryChange = onQueryChange,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
 
-        CategoryFilterRow(
-            categories = uiState.categories,
-            onToggleCategory = onToggleCategory,
-            modifier = Modifier.padding(bottom = 8.dp),
-        )
+            CategoryFilterRow(
+                categories = uiState.categories,
+                onToggleCategory = onToggleCategory,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
+        if (uiState is LibraryListUiState.Content) {
+            items(uiState.items, key = { it.id.value }) { item ->
+                LibraryListItem(item = item, onClick = onItemClick)
+                HorizontalDivider()
+            }
+        } else {
+            item(key = "state") {
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    when (uiState) {
+                        is LibraryListUiState.Loading -> CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                        )
 
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            when (uiState) {
-                is LibraryListUiState.Loading -> CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                )
+                        is LibraryListUiState.Empty -> EmptyState(
+                            reason = uiState.reason,
+                            onAction = libraryEmptyStateAction(uiState.reason, onClearFilters, onDiagnostics),
+                            modifier = Modifier.align(Alignment.Center),
+                        )
 
-                is LibraryListUiState.Empty -> EmptyState(
-                    reason = uiState.reason,
-                    onAction = libraryEmptyStateAction(uiState.reason, onClearFilters, onDiagnostics),
-                    modifier = Modifier.align(Alignment.Center),
-                )
+                        is LibraryListUiState.Error -> ErrorState(
+                            onRetry = onRetry,
+                            messageRes = uiState.messageRes,
+                            modifier = Modifier.align(Alignment.Center),
+                        )
 
-                is LibraryListUiState.Error -> ErrorState(
-                    onRetry = onRetry,
-                    messageRes = uiState.messageRes,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-
-                is LibraryListUiState.Content -> LibraryTechniqueList(
-                    items = uiState.items,
-                    onItemClick = onItemClick,
-                )
+                        is LibraryListUiState.Content -> Unit
+                    }
+                }
             }
         }
     }
@@ -230,16 +237,17 @@ private fun CategoryFilterRow(
     ) {
         item(key = "__all__") {
             FilterChip(
+                modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET),
                 selected = allSelected,
                 onClick = {
                     categories.filter { it.selected }.forEach { onToggleCategory(it.id) }
                 },
                 label = { Text(text = stringResource(R.string.library_filter_all)) },
-                modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET),
             )
         }
         items(categories, key = { it.id.value }) { category ->
             FilterChip(
+                modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET),
                 selected = category.selected,
                 onClick = { onToggleCategory(category.id) },
                 label = {
@@ -251,24 +259,7 @@ private fun CategoryFilterRow(
                         ),
                     )
                 },
-                modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET),
             )
-        }
-    }
-}
-
-/** A találati lista (FUNCTIONAL_SPEC 3.1: kategória `sortOrder`, azon belül romaji ábécé). */
-@Composable
-private fun LibraryTechniqueList(
-    items: List<LibraryTechniqueUiModel>,
-    onItemClick: (TechniqueId) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    // A lista MÁR rendezett (ViewModel felelőssége) – itt nincs újrarendezés.
-    LazyColumn(modifier = modifier.fillMaxSize()) {
-        items(items, key = { it.id.value }) { item ->
-            LibraryListItem(item = item, onClick = onItemClick)
-            HorizontalDivider()
         }
     }
 }
@@ -334,9 +325,8 @@ private fun LibraryListItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            VerificationBadge(status = item.status)
         }
-
-        VerificationBadge(status = item.status)
     }
 }
 

@@ -21,6 +21,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -30,6 +31,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core:model"))
+    implementation(project(":core:quiz"))
     implementation(project(":core:ui"))
     implementation(project(":feature:library"))
     implementation(project(":feature:learn"))

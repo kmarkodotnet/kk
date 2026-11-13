@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,6 +30,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import hu.kyokushin.trainer.core.model.SessionId
+import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.cards.LearnCardsRoute
@@ -37,16 +40,29 @@ import hu.kyokushin.trainer.feature.learn.setup.LearnSetupRoute
 import hu.kyokushin.trainer.feature.library.detail.LibraryDetailRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListRoute
 import hu.kyokushin.trainer.feature.library.list.LibraryListViewModel
+import hu.kyokushin.trainer.feature.progress.diagnostics.ProgressDiagnosticsRoute
 import hu.kyokushin.trainer.feature.progress.overview.ProgressOverviewRoute
+import hu.kyokushin.trainer.feature.progress.settings.ProgressSettingsRoute
 import hu.kyokushin.trainer.feature.progress.technique.ProgressTechniqueRoute
+import hu.kyokushin.trainer.feature.quiz.result.QuizResultRoute
+import hu.kyokushin.trainer.feature.quiz.run.QuizRunRoute
+import hu.kyokushin.trainer.feature.quiz.run.QuizRunViewModel
+import hu.kyokushin.trainer.feature.quiz.setup.QuizSetupRoute
+import hu.kyokushin.trainer.feature.quiz.setup.QuizStartResult
 
-/**
- * Helyőrző azonosítók a navigációs váz bejárásához.
- *
- * Nem tartalom: egyik sem a tudástárból jön, és egyik sem állít semmit egy technikáról.
- * A funkciómodulok képernyői (T-207-től) a tényleges azonosítókat adják át.
- */
-private const val PLACEHOLDER_SESSION_ID = "placeholder-session"
+private const val CATEGORY_PRESET = "quiz.categoryPreset"
+
+/** A terv a cél back stack bejegyzésében menthető szöveg, sosem URL-paraméter. */
+private fun NavHostController.startQuiz(start: QuizStartResult, replaceResult: Boolean = false) {
+    val route = KyokushinRoutes.quizRun(start.sessionId.value)
+    navigate(route) {
+        if (replaceResult) popUpTo(KyokushinScreen.QUIZ_RESULT.routePattern) { inclusive = true }
+    }
+    getBackStackEntry(route).savedStateHandle.apply {
+        set(QuizRunViewModel.KEY_PLAN, QuizRunStateCodec.encodePlan(start.plan))
+        set(QuizRunViewModel.KEY_SEED, start.seed)
+    }
+}
 
 /**
  * Az alkalmazás navigációs váza: felső sáv, bottom navigation és a NavHost
@@ -180,19 +196,7 @@ private fun NavController.navigateToBottomNavDestination(destination: BottomNavD
     }
 }
 
-/**
- * A navigációs gráf: a FUNCTIONAL_SPEC 1. pontjának tíz útvonala.
- *
- * A funkciómodulok képernyői sorban cserélik le az eredeti [PlaceholderScreen]-t;
- * az útvonalak, az argumentumnevek és a bottom nav viselkedése nem változik. A
- * `library/list` (T-208: [LibraryListRoute]), a `library/detail` (T-209:
- * [LibraryDetailRoute]), a `learn/setup` (T-302: [LearnSetupRoute]), a `learn/cards`
- * (T-304: [LearnCardsRoute]), a `progress/overview` (T-503/T-504/T-505:
- * [ProgressOverviewRoute]) és a `progress/technique` (T-506: [ProgressTechniqueRoute])
- * útvonal már a valódi képernyőt mutatja, a többi cél egyelőre helyőrző – a `quiz/setup`,
- * `quiz/run` és `quiz/result` elkészült képernyőjének a bekötése szándékosan nyitva
- * maradt (lásd `docs/CONVENTIONS.md` 5. szakasz).
- */
+/** A működő funkcióképernyők összekötése (T-611). */
 @Composable
 private fun KyokushinNavGraph(
     navController: NavHostController,
@@ -205,6 +209,7 @@ private fun KyokushinNavGraph(
     ) {
         composable(KyokushinScreen.LIBRARY_LIST.routePattern) {
             LibraryListRoute(
+                onDiagnostics = { navController.navigate(KyokushinScreen.DIAGNOSTICS.routePattern) },
                 onOpenTechnique = { techniqueId ->
                     navController.navigate(KyokushinRoutes.libraryDetail(techniqueId.value))
                 },
@@ -261,56 +266,58 @@ private fun KyokushinNavGraph(
                 // A „×" bezárás és a záróképernyő „Vissza a beállításokhoz" gombja is
                 // ide vezet: egyszerű visszalépés a `learn/setup`-ra.
                 onExit = { navController.popBackStack() },
-                // A `quiz/setup` (T-403/T-404) még nem létezik, tehát a kategóriák
-                // tényleges átvétele is csak akkor köthető be, amikor az a képernyő
-                // elkészül (ugyanaz a döntés, mint a T-302/T-303-nál, lásd
-                // `docs/CONVENTIONS.md` 4.1 szakasza). Itt csak a navigáció történik meg.
-                onStartQuiz = { _ ->
+                onStartQuiz = { categories ->
                     navController.navigate(KyokushinScreen.QUIZ_SETUP.routePattern)
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        CATEGORY_PRESET,
+                        ArrayList(categories.map { it.value }),
+                    )
                 },
             )
         }
 
-        composable(KyokushinScreen.QUIZ_SETUP.routePattern) {
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.QUIZ_SETUP.titleRes,
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_start_quiz) {
-                        navController.navigate(KyokushinRoutes.quizRun(PLACEHOLDER_SESSION_ID))
-                    },
-                ),
+        composable(KyokushinScreen.QUIZ_SETUP.routePattern) { entry ->
+            val preset by entry.savedStateHandle
+                .getStateFlow<ArrayList<String>?>(CATEGORY_PRESET, null).collectAsState()
+            QuizSetupRoute(
+                categoryPreset = preset,
+                onPresetConsumed = { entry.savedStateHandle[CATEGORY_PRESET] = null },
+                onStartQuiz = { navController.startQuiz(it) },
             )
         }
 
         composable(KyokushinScreen.QUIZ_RUN.routePattern) { entry ->
-            val sessionId = entry.arguments?.getString(NavArgs.SESSION_ID)
-                ?: PLACEHOLDER_SESSION_ID
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.QUIZ_RUN.titleRes,
-                argument = sessionId,
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_finish_quiz) {
-                        // A futó kvíz képernyőjét az eredmény VÁLTJA FEL: a befejezett
-                        // kvízhez visszalépni nem lehet (FUNCTIONAL_SPEC 1.).
-                        navController.navigate(KyokushinRoutes.quizResult(sessionId)) {
-                            popUpTo(KyokushinScreen.QUIZ_RUN.routePattern) { inclusive = true }
-                        }
-                    },
-                ),
+            val plan = entry.savedStateHandle.get<String>(QuizRunViewModel.KEY_PLAN)
+            val seed = entry.savedStateHandle.get<Long>(QuizRunViewModel.KEY_SEED)
+            val sessionId = requireNotNull(entry.arguments?.getString(NavArgs.SESSION_ID))
+            val start = if (plan != null && seed != null) {
+                runCatching {
+                    QuizStartResult(SessionId.of(sessionId), QuizRunStateCodec.decodePlan(plan), seed)
+                }.getOrNull()
+            } else {
+                null
+            }
+            QuizRunRoute(
+                initialStart = start,
+                onOpenTechnique = { navController.navigate(KyokushinRoutes.libraryDetail(it.value)) },
+                onExit = { navController.popBackStack() },
+                onFinish = {
+                    navController.navigate(KyokushinRoutes.quizResult(it.value)) {
+                        popUpTo(KyokushinScreen.QUIZ_RUN.routePattern) { inclusive = true }
+                    }
+                },
             )
         }
 
-        composable(KyokushinScreen.QUIZ_RESULT.routePattern) { entry ->
-            PlaceholderScreen(
-                titleRes = KyokushinScreen.QUIZ_RESULT.titleRes,
-                argument = entry.arguments?.getString(NavArgs.SESSION_ID),
-                actions = listOf(
-                    PlaceholderAction(R.string.nav_placeholder_back_to_quiz_setup) {
-                        navController.navigate(KyokushinScreen.QUIZ_SETUP.routePattern) {
-                            popUpTo(KyokushinScreen.QUIZ_SETUP.routePattern) { inclusive = true }
-                        }
-                    },
-                ),
+        composable(KyokushinScreen.QUIZ_RESULT.routePattern) {
+            QuizResultRoute(
+                onOpenTechnique = { navController.navigate(KyokushinRoutes.libraryDetail(it.value)) },
+                onRetryWrong = { navController.startQuiz(it, replaceResult = true) },
+                onNewQuiz = { navController.popBackStack() },
+                onBackToProgress = {
+                    navController.popBackStack()
+                    navController.navigateToBottomNavDestination(BottomNavDestination.PROGRESS)
+                },
             )
         }
 
@@ -342,8 +349,16 @@ private fun KyokushinNavGraph(
             )
         }
 
+        if (BuildConfig.DEBUG) {
+            composable(KyokushinScreen.DIAGNOSTICS.routePattern) {
+                ProgressDiagnosticsRoute()
+            }
+        }
+
         composable(KyokushinScreen.SETTINGS.routePattern) {
-            PlaceholderScreen(titleRes = KyokushinScreen.SETTINGS.titleRes)
+            ProgressSettingsRoute(
+                onOpenDiagnostics = { navController.navigate(KyokushinScreen.DIAGNOSTICS.routePattern) },
+            )
         }
     }
 }

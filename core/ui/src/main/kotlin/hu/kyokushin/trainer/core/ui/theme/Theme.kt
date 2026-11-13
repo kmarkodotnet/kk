@@ -24,8 +24,14 @@ import androidx.compose.ui.platform.LocalContext
  * Visszafogott, funkcionális paletta (CR-08: nincs harcművészeti klisé).
  * A komponensek SOHA nem használnak hardcode-olt színt, csak téma-tokent
  * (lásd .claude/skills/kyo-android-module 3. pont).
+ *
+ * **`internal`, nem `private` (T-604, NFR-04).** A WCAG AA kontraszt-követelmény
+ * (4.5:1 testszövegre) ellenőrzéséhez a [ThemeContrastTest][hu.kyokushin.trainer.core.ui.theme.ThemeContrastTest]
+ * közvetlenül ezen a két palettán fut, nem egy a tesztbe duplikált másolaton – így egy
+ * jövőbeli színváltás a VALÓS, futó témán buktatja el a tesztet, nem egy elfeledett
+ * tesztmásolaton.
  */
-private val LightScheme = lightColorScheme(
+internal val LightScheme = lightColorScheme(
     primary = Color(0xFF1C3D5A),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFD3E4F5),
@@ -41,7 +47,7 @@ private val LightScheme = lightColorScheme(
     outline = Color(0xFF72777F),
 )
 
-private val DarkScheme = darkColorScheme(
+internal val DarkScheme = darkColorScheme(
     primary = Color(0xFFA2C9EA),
     onPrimary = Color(0xFF00344F),
     primaryContainer = Color(0xFF004B70),
@@ -60,9 +66,8 @@ private val DarkScheme = darkColorScheme(
 @Composable
 fun KyokushinTrainerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // A dinamikus szín (Material You) alapból be van kapcsolva, de a kontrasztot a
-    // saját palettánk garantálja; teszteléshez kikapcsolható.
-    dynamicColor: Boolean = true,
+    // Alapból az automatizált WCAG-tesztekkel ellenőrzött palettát használjuk.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {

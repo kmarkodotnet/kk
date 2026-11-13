@@ -1,6 +1,6 @@
 # Build környezet állapota
 
-**Utolsó frissítés: 2026-11-11** (gép: Windows 11 Pro 10.0.26300, munkakönyvtár `F:\Claude\kyo`)
+**Utolsó frissítés: 2026-11-13** (gép: Windows 11 Pro 10.0.26300, munkakönyvtár `F:\Claude\kyo`)
 
 ## 0. Aktuális állapot (telepítés után)
 
@@ -14,7 +14,7 @@
 | SDK build-tools | ✅ **telepítve** | 36.1.0 és 37.0.0 |
 | platform-tools | ✅ **telepítve** | 37.0.1 |
 | Gradle | ✅ **telepítve** | 9.9.1 – `C:\gradle\gradle-9.9.1`, SHA-256 ellenőrizve; a projekt a wrappert használja |
-| Emulátor (AVD) | ⬜ **még nincs** | a TR-06 UI tesztekhez kell (B-03) |
+| Emulátor (AVD) | ✅ **működik, B-03 lezárva** | Medium_Phone_API_37.0, emulator-5554, API 37; 6 sikeres eszközteszt |
 
 **A build igazoltan működik:** `./gradlew assembleDebug` és `./gradlew testDebugUnitTest`
 egyaránt exit 0. Részletek és pontos kimenetek: `docs/TEST_REPORT.md`.
@@ -109,3 +109,5 @@ hajtható végre. A felmérés és a dokumentálás jóváhagyás nélkül is fr
   Ez **felülírja** a korábbi „demó adatkészlet 4×5 rekord" döntést. Két új döntés:
   ADR-010 (kvíz lektorálatlan tartalmon, végig jelölve) és ADR-011 (a kapott séma a
   kanonikus formátum). **Nyitott blokkoló: csak B-03 (nincs emulátor).**
+
+- 2026-11-13 – **B-03 lezárva (T-606):** a meglévő AVD elindítva, a teljes `connectedDebugAndroidTest` exit 0. A Gradle démon a helyi Android Studio által kiválasztott Temurin 25-öt használta; a fordítási toolchain 17. Nincs szükség további rendszertelepítésre.

@@ -141,13 +141,14 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|---|
 | 8.1 | Rétegszabály-ellenőrzés (import audit, `/kyo-doc-sync`, `kyo-spec-auditor`) | TR-07 | ✅ **kész** (T-602, 2026-11-13) |
 | 8.2 | Manifest permission teszt | TR-08 | ✅ **kész** (T-603, 2026-11-13) |
-| 8.3 | Compose UI tesztek (emulátor esetén): navigáció, tanulókártya, teljes kvíz | TR-06 | ⬜ |
+| 8.3 | Compose UI tesztek (emulátor esetén): navigáció, tanulókártya, teljes kvíz | TR-06 | ✅ **kész** (2026-11-13) |
 | 8.4 | Lint + formázás | NFR-11 | ✅ **kész** (T-607, 2026-11-13) |
 | 8.5 | `docs/QUIZ_RULES.md` kiadott változata | — | ✅ **kész** (G-13 csoport: T-609, 2026-11-13) |
-| 8.6 | `README.md`: előfeltételek, futtatás, build, használat, ismert korlátok | NFR-11 | ⬜ |
-| 8.7 | `docs/TEST_REPORT.md`: a **tényleges** parancsok és kimenetek | NFR-12 | ⬜ |
-| 8.8 | `./gradlew assembleDebug` → debug APK, útvonal jelentése | AC-07 | ⬜ |
-| 8.9 | Elfogadási kritériumok (AC-01…AC-08) végigellenőrzése | — | ⬜ |
+| 8.6 | `README.md`: előfeltételek, futtatás, build, használat, ismert korlátok | NFR-11 | ✅ **kész** (2026-11-13) |
+| 8.7 | `docs/TEST_REPORT.md`: a **tényleges** parancsok és kimenetek | NFR-12 | ✅ **kész** (2026-11-13) |
+| 8.8 | `./gradlew assembleDebug` → debug APK, útvonal jelentése | AC-07 | ✅ **kész** (2026-11-13) |
+| 8.9 | Elfogadási kritériumok (AC-01…AC-08) végigellenőrzése | — | ✅ **kész** (2026-11-13) |
+| 8.10 | Akadálymentességi átfésülés – mind a négy feature modul (`library`, `learn`, `quiz`, `progress`) | NFR-04, TR-06 | ✅ **kész** (T-604, 2026-11-13) |
 
 ---
 
@@ -156,9 +157,9 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Blokkoló | Mit blokkol | Mi oldja fel |
 |---|---|---|---|
 | ~~B-01~~ | ~~Nincs JDK~~ | — | ✅ **feloldva**: Temurin JDK 17.0.21 telepítve |
-| B-02 | Android SDK platform/build-tools még nincs | Fázis 1 Android fordítás | 🔄 cmdline-tools letöltése fut, utána `sdkmanager` |
-| B-03 | Nincs emulátor (AVD) | 8.3 (TR-06 UI tesztek) | AVD létrehozása az SDK után, vagy fizikai eszköz |
-| B-04 | Verziómátrix nem ellenőrizhető | 1.2 (`libs.versions.toml`), ADR-008 | B-02 után `sdkmanager --list` |
+| ~~B-02~~ | Android SDK | — | ✅ platform 37 / Build Tools 37.0.0, működő build |
+| ~~B-03~~ | Emulátor | — | ✅ T-606: API 37 AVD, 6 sikeres eszközteszt |
+| ~~B-04~~ | Verziómátrix | — | ✅ ADR-008, működő build és tesztek |
 | OQ-01 | Nincs hitelesített karate tartalom | az éles adatkészlet; a (C)/(D) kvíztípus aktiválása | ✅ döntés: demó adatkészlettel indulunk; az éles tartalom később importtal (FR-34) |
 
 A maradék blokkolók **nem** állítják le a munkát: a Fázis 2.1–2.7 és 3.1–3.3 kódja és
@@ -1520,3 +1521,27 @@ kész függőségű feladat.
 
   Következő: a `docs/backlog/` legkisebb azonosítójú, kész függőségű feladata (**T-604**,
   „Akadálymentességi átfésülés" – függőségei, T-413 és T-503, már a `docs/done/`-ban).
+
+- 2026-11-13 – **T-604, T-605, T-606, T-610 és T-611 kész.**
+  A korábbi, félbehagyott T-604 kódellenőrzést valódi emulátoros vizsgálat egészítette ki.
+  Bekötve a kvíz teljes folyamata, a beállítások és a debug diagnosztika; a navigációs
+  bemenet explicit átkerül a ViewModel mentett állapotába. Tanulásból a kategóriák
+  átadása, kvízből a hibák újragyakorlása, megszakítás, forgatás és visszaállítás tesztelve.
+  Nagy betűméretnél a tartalom görgethető; a tudástár státuszjelzése nem szorítja össze
+  a neveket. Az alapértelmezett téma a kontrasztteszttel ellenőrzött paletta.
+
+  Teljes ellenőrzés: `.\gradlew.bat testDebugUnitTest assembleDebug lint ktlintCheck
+  connectedDebugAndroidTest --console=plain` **exit 0**, 647 unit teszt és 6 eszközteszt,
+  0 hiba. A kártya tényleges forgatásával kiegészített végső
+  `.\gradlew.bat :app:connectedDebugAndroidTest ktlintCheck --console=plain` **exit 0**,
+  6 eszközteszt, 0 hiba. B-03 lezárva: API 37 AVD működik. Külön offline/folyamat-
+  újraindítási próba: AC-01 és AC-06 PASS. Részletek: TEST_REPORT.md és ACCEPTANCE.md.
+
+  README: Android Studio indítás, APK-telepítés, használat és ismert korlátok.
+  APK: `app/build/outputs/apk/debug/app-debug.apk`, 22 858 574 byte.
+  A kijelölt öt backlogfeladat átkerült a `docs/done/` mappába.
+
+  **Következő:** nincs további számozott backlogfeladat. Az éles tartalomhoz oktatói
+  lektorálás, hiányzó ábrák, majd a jóváhagyott csomag elfogadási próbája kell.
+  AC-08 részben igazolt; a külön tudástár-adatlapi gyakorlási összegzés hiánya a
+  CONVENTIONS ismert ügyei között marad, nem szerepel megoldottként.

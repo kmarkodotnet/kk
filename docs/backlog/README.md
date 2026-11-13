@@ -21,12 +21,13 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 ## Feladatok
 
-| Task | Cím | Epik | Modul | Méret | Függ |
-|---|---|---|---|---|---|
-| [T-604](T-604-akadalymentessegi-atfesules.md) | Akadálymentességi átfésülés | E6 | minden feature | L | T-413, T-503 |
-| [T-605](T-605-nagy-betumeret-es-forgatas-ellenorzese.md) | Nagy betűméret és forgatás ellenőrzése | E6 | minden feature | M | T-604 |
-| [T-606](T-606-tr-06-avd-es-ui-tesztek.md) | TR-06: AVD és UI tesztek | E6 | `app` | L | T-412, T-503 |
-| [T-610](T-610-atadas-readme-tesztjelentes-apk-elfogadasi-krite.md) | Átadás: README, tesztjelentés, APK, elfogadási kritériumok | E6 | `docs` | M | T-606 |
+**Nincs nyitott számozott feladat.** A T-604, T-605, T-606, T-610 és T-611
+2026-11-13-án, a sikeres ellenőrzések után átkerült a [`../done/`](../done/) mappába.
+
+A tartalmi lektorálás és az ismert, külön fejlesztési ügyek az
+[elfogadási jegyzőkönyvben](../ACCEPTANCE.md) és a
+[konvenciók 8. szakaszában](../CONVENTIONS.md) szerepelnek; ezek nem megoldottként
+jelentett feladatok.
 
 ## Kapcsolódó
 

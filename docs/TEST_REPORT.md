@@ -3515,3 +3515,89 @@ nyilvánvaló tényt: a `DatasetTrust` enum mindkét értéke (`REVIEWED`,
 szint tehát **ma nem zár ki technikát** a kvízből, csak a UI „Lektorálatlan
 gyakorlóanyag" szalagját vezérli. Ez nem új hiba, csak egy a kódban már így élő,
 korábban dokumentálatlan viselkedés, amit most a kiadott `QUIZ_RULES.md` explicit kimond.
+
+## 2026-11-13 – T-604, T-605, T-606, T-610 és T-611 lezáró ellenőrzése
+
+A korábbi T-604 munkapéldány kódellenőrzése és négy kontraszttesztje megmaradt;
+az ottani, emulátor nélküli „kész” minősítést ez a tényleges eszközellenőrzés váltja fel.
+Az alapértelmezett téma most az ellenőrzött LightScheme/DarkScheme palettát használja.
+
+### Tényleges futtatások
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `.\gradlew.bat ktlintFormat --console=plain` | 0 | Formázás sikeres. |
+| `.\gradlew.bat testDebugUnitTest assembleDebug lint ktlintCheck connectedDebugAndroidTest --console=plain` | 0 | BUILD SUCCESSFUL in 2m 40s; 933 feladat, 210 végrehajtva, 723 up-to-date. 647 unit teszt, 6 eszközteszt, 0 hiba. |
+| `C:/Users/Krisz/anaconda3/python.exe tools/verify_offline_restart.py --adb C:/Users/Krisz/AppData/Local/Android/Sdk/platform-tools/adb.exe` | 0 | AC-01 PASS, AC-06 PASS; külön 1 sikeres kvíz-eszközteszt, majd repülő mód és kétszeri force-stop/indítás; a haladási adatok azonosak. |
+
+A unit tesztek kanonikus `build/test-results/test` és `testDebugUnitTest`
+XML-jeinek összege, duplázás nélkül: app 7, navigation 17, core/data 123,
+core/model 35, core/quiz 245, core/ui 35, feature/learn 36, feature/library 33,
+feature/progress 46, feature/quiz 70 = **647**. A futás használta a Gradle
+gyorsítótárát; nem állítunk minden változatlan tesztre újrafuttatást.
+
+### Eszköz és bizonyítékok
+
+- AVD: `Medium_Phone_API_37.0`, `emulator-5554`, Android API 37, 1080×2400 pixel,
+  420 dpi (álló szélesség kb. 411 dp).
+- `AppFlowTest`: négy fő cél és beállítások/diagnosztika; kártyafelfedés és
+  önértékelés; kategóriák átvitele tanulásból kvízbe; teljes kvíz, hibák
+  újragyakorlása, megszakítás megerősítése; mentett állapot visszaállítása.
+- A nagybetűs teszt `font_scale=2.0` mellett járja végig a négy fő célt álló és
+  fekvő nézetben, majd a kártya- és kvízfolyamatot. A szövegsorok tényleges
+  szélességét/magasságát vizsgálja; a görgethető felületről kilógó, elérhető
+  tartalmat nem keveri össze a szöveg levágásával.
+- `TalkBackFlowTest`: a telepített TalkBack szolgáltatás engedélyezettségét
+  ellenőrzi, majd az Android accessibility node-okon fókuszálással és
+  aktiválással végigvisz öt kérdést az eredményig. Válasz előtt ellenőrzi a
+  helyességet eláruló állapotleírás hiányát. Ez automatizált accessibility-próba,
+  nem emberi felolvasás-hallgatási vagy kézi gesztusteszt.
+- A (D) képes opciók neveinek elrejtését a meglévő illusztrációs és kvíz
+  akadálymentességi unit tesztek, valamint a hívási helyek auditja ellenőrzi.
+- A font_scale és az engedélyezett accessibility szolgáltatások eredeti értékét
+  a tesztek `finally` blokkban visszaállítják. A külön offline próba a repülő
+  módot is visszaállítja; fizikai telefonon nem hajlandó futni.
+
+Lokális bizonyítékok: `tmp/final-checks.log`,
+`app/build/reports/androidTests/connected/debug/index.html`,
+`app/build/outputs/androidTest-results/connected/debug/`,
+`tmp/acceptance/result.json` és az ugyanott mentett előtte/utána UI XML-ek.
+A screenshotok az emulátor `Download/kyo-*.png` fájljaiban, valamint a
+`tmp/` ellenőrző másolataiban vannak. A széles körű forrás- és tesztellenőrzés
+nem helyettesít minden gyártó készülékén végzett próbát.
+
+### Javítások és sikertelen előzmények
+
+- T-611: a kvíz/beállítások helyőrzői helyett működő képernyők; a terv és seed
+  explicit átvétele a ViewModel saját SavedStateHandle-jébe; forgatáskor a
+  válaszok és a sorrend megmaradnak; tanulásból kategóriaátadás; debug diagnosztika.
+- T-605: a beállító, kártya- és kvízképernyők tartalom szerint görgethetők;
+  a tudástár egy közös LazyColumn, a státuszjelzés a név alatt van, és a kártya
+  felső sávja fenntartja a helyet a bezárásnak. A feliratos kép helyőrzőjének
+  magasságát a magyarázó szöveg határozza meg.
+- Az első UI-futások tesztsegédhibákat jeleztek: nem görgethető gomb scrollTo-ja,
+  forgatás alatti átmeneti üres Compose-fa, illetve a LazyRow végtelen
+  bekezdésmérési szélességének téves túlcsordulás-minősítése. Javítva; a végső
+  ellenőrzés a tényleges sorokat méri, 1 pixel kerekítési toleranciával.
+- Egy párhuzamos Gradle-démonindítás cache-lock timeouttal bukott; a projekt
+  Gradle-démonjainak szabályos `--stop` leállítása feloldotta. A formázási hibák
+  és a korai fordítási hiba is javítva lett; a táblázat a végső sikeres parancsokat adja.
+
+### APK és korlátok
+
+Debug APK: `app/build/outputs/apk/debug/app-debug.apk`, **22 858 574 byte**
+(kb. 21,80 MiB), fejlesztői aláírással.
+
+**NEM FUTOTT:** fizikai telefonos/gyártóspecifikus mátrix; emberrel végzett TalkBack
+felolvasás- és gesztusértékelés; éles, újonnan lektorált rekord és új kép kézi
+beépítési próbája (ilyen új, jóváhagyott forrásanyag nem áll rendelkezésre).
+Az AC-08 határát az [elfogadási jegyzőkönyv](ACCEPTANCE.md) rögzíti.
+Release kiadás, áruházi aláírás és publikálás nem volt feladat.
+
+**Végső kiegészítő futás:** `.\gradlew.bat :app:connectedDebugAndroidTest ktlintCheck
+--console=plain` → **exit 0**, BUILD SUCCESSFUL in 1m 27s, 333 feladat.
+A kártyafelfedés már tényleges álló/fekvő forgatással is ellenőrzött, 200%-os
+betűmérettel is; mind a 6 eszközteszt hibamentes. Az alkalmazáskód nem változott
+a teljes unit/build/lint futás óta, csak az eszközteszt lett erősebb.
+
+APK SHA-256: `f846fb85a98a776330483906b85db3e5f37bbcd0970c9d288160d45f870cfff7`.
