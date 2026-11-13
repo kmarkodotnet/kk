@@ -15,8 +15,14 @@ import kotlin.math.pow
  * világosabb és a sötétebb szín közül, `(L1 + 0.05) / (L2 + 0.05)`, `L1 >= L2`. Ez a
  * szabvány forrása a projekt NFR-04 „WCAG AA kontraszt" követelményének – 4.5:1 a
  * normál méretű szövegre.
+ *
+ * Szándékosan NEM `internal` (T-701 óta): az `app` modul splash képernyője (FR-36) a
+ * saját, fix fehér/kék színpárját ugyanezzel a képlettel bizonyítja (lásd
+ * `SplashContrastTest`) – a W3C-képletet egy második helyen újraírni hibaforrás lenne,
+ * nem egy legitim modulhatár. A `relativeLuminance`/`linearize` segédfüggvény marad
+ * `private`, csak a belépési pont nyílt.
  */
-internal fun wcagContrastRatio(a: Color, b: Color): Double {
+fun wcagContrastRatio(a: Color, b: Color): Double {
     val lA = relativeLuminance(a)
     val lB = relativeLuminance(b)
     val lighter = maxOf(lA, lB)

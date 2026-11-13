@@ -82,6 +82,12 @@ Egy task akkor kész, ha **mind** teljesül:
 | **E4** | Kvíz | US-12…US-16 | T-401…T-415 | 6 |
 | **E5** | Haladás és beállítások | US-17…US-19 | T-501…T-509 | 7 |
 | **E6** | Minőség, akadálymentesség, átadás | US-20…US-21 | T-601…T-610 | 8 |
+| **E7** | Vizuális arculat és navigáció (2026-11-13 bővítés) | US-22…US-26 | T-701…T-706 | — |
+| **E8** | Tartalom-munkafolyamat (2026-11-13 bővítés) | US-27…US-28 | T-707…T-708 | — |
+| **E9** | Kiejtés, hangalapú kvíz, többnyelvűség – **jövőbeli, jelenleg NEM indítható** | — | T-709…T-711 | — |
+
+> **E7/E8/E9 az eredeti M1…M7 szállítás lezárása (2026-11-13) után felvett igények.**
+> Nem tartoznak egyik eredeti mérföldkőhöz sem; lásd a „Bővítési backlog" szakaszt lent.
 
 ---
 
@@ -547,3 +553,167 @@ sima JVM tesztekkel teljesen igazolható.
 | R-03 | Nincs emulátor (B-03) | TR-06 UI tesztek nem futnak | T-606 első lépése az AVD létrehozása; addig a UI tesztek „NEM FUTOTT" státuszúak |
 | R-04 | 8 kategóriában nincs kép | a képes kvíztípus ott nem indul | a beállító képernyő ezt megindokolja (T-404); nem hiba |
 | R-05 | `aliases` és `tags` mindenhol üres | az alias-keresés élesben nem kap tesztadatot | a logika és a tesztje elkészül szintetikus adattal (T-202, T-211) |
+
+---
+
+# Bővítési backlog (2026-11-13) – vizuális arculat, navigáció, tartalom
+
+> Az M1…M7 szállítás (lásd fent) lezárult. Az itt következő E7…E9 a felhasználó
+> 2026-11-13-i design- és funkcióvisszajelzése alapján felvett **új** igénysor – külön
+> munkamenet, amit a `/dev`/`/devall` az eredeti taskokhoz hasonlóan, de **a saját
+> jogán** vehet fel (nincs eredeti mérföldkőhöz rendelve). `FR-36…FR-42` és
+> `OQ-05…OQ-07`: lásd `REQUIREMENTS.md` 3.6. és 10. szakasz.
+
+# E7 · Vizuális arculat és navigáció
+
+## US-22 · Az indítás Kyokushin-karakterű, nem „webes űrlap" hatású
+
+> **Felhasználóként** azt akarom, hogy az app induláskor és általános megjelenésében
+> karate-iskolára emlékeztessen, ne egy generikus webes űrlapra, **hogy** a márka és a
+> tanulási élmény összeillő legyen.
+
+**Elfogadási kritériumok**
+
+| # | Adott | Amikor | Akkor |
+|---|---|---|---|
+| 1 | hidegindítás | az app elindul | rövid indítóképernyő: kék kandzsi logó fehér háttéren, utána a Kezdőoldal |
+| 2 | az indítóképernyő | megjelenik | nincs harmadik féltől származó kép; a logó a felhasználó saját `asserts/kyo.png` fotójából vektorizált forrásból épül |
+| 3 | bármelyik képernyő | megnyitom | a tipográfia, a térközök és a színek nem hatnak „alapértelmezett Material form"-nak – lásd T-702 tervjavaslatot |
+
+**Követelmények:** FR-36 (új, 2026-11-13)
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-701** | Indítóképernyő – vektorizált kandzsi logó (`asserts/kyo_kanji.svg` → Android vector drawable, már elkészítve: `asserts/ic_kyo_kanji.xml`) fehér háttéren, Android 12+ `SplashScreen` API-val és régebbi `minSdk`-ra kézi Compose fallbackkel | app | M | — |
+| **T-702** | Vizuális arculat terv – dizájnjavaslat-dokumentum (tipográfia, térköz, szín, komponensstílus) a „webes űrlap" hatás megszüntetésére; a `docs/`-ba kerül, a tényleges Compose-átfestés külön taskokban követi | docs, core/ui | M | T-701 |
+
+## US-23 · Van egy üres Kezdőoldal, alul a menüvel
+
+> **Felhasználóként** azt akarom, hogy induláskor egy nyugodt, a logót középpontba
+> állító Kezdőoldalt lássak, alul a navigációval, **hogy** legyen egy semleges
+> kiindulópontom a négy funkció felé.
+
+**Elfogadási kritériumok**
+
+| # | Adott | Amikor | Akkor |
+|---|---|---|---|
+| 1 | az indítóképernyő eltűnik | a Kezdőoldal megjelenik | középen a kék kandzsi logó, alatta az alsó navigáció látszik |
+| 2 | az alsó navigáció | megjelenik | a bal szélén egy „Főoldal" gomb van, ami minden más képernyőről ide vezet vissza |
+| 3 | elforgatom a képernyőt a Kezdőoldalon | a képernyő újraépül | ugyanaz a tartalom, nincs véletlen navigáció |
+
+**Követelmények:** FR-37 (új, 2026-11-13)
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-703** | `feature/home` (új modul) + navigáció – Kezdőoldal képernyő a logóval, az alsó navigáció bal szélén „Főoldal" bejárattal, induló útvonal átállítása a Tudástár listájáról a Kezdőoldalra | navigation, feature/home | L | T-701 |
+
+## US-24 · A Tudástár a legjobboldali menüpont
+
+> **Felhasználóként** azt akarom, hogy a napi szintű, gyakrabban használt funkciók
+> (Tanulás, Kvíz, Haladás) kerüljenek előrébb, a Tudástár pedig a sor végére, **hogy**
+> a megszokott sorrend a tényleges használati gyakoriságot tükrözze.
+
+**Elfogadási kritériumok:** az alsó navigáció sorrendje Főoldal, Tanulás, Kvíz, Haladás,
+Tudástár; a Tudástár részletezőjéből visszalépve a Tudástár fül marad kijelölve (a
+meglévő `NavSection` logika szerint, FUNCTIONAL_SPEC szerint változatlanul).
+**Követelmények:** FR-38 (új, 2026-11-13)
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-704** | `BottomNavDestination` sorrend átrendezése (Főoldal, Tanulás, Kvíz, Haladás, Tudástár) + a navigációs teszt (`NavigationGraphTest`) és a `kyo-spec-auditor` ellenőrzés frissítése | navigation | S | T-703 |
+
+## US-25 · Kategóriaikonok a Tanulásban, nem checkbox
+
+> **Gyakorlóként** azt akarom, hogy a Tanulás kategóriaválasztása vizuálisan is
+> felismerhető ikonokkal történjen, és egy kategóriára koppintva egyből a hozzá tartozó
+> technikák listáját lássam, **hogy** gyorsabban rátaláljak arra, amit gyakorolni akarok,
+> checkbox-tömb böngészése nélkül.
+
+**Elfogadási kritériumok**
+
+| # | Adott | Amikor | Akkor |
+|---|---|---|---|
+| 1 | a Tanulás beállító képernyője | megnyílik | minden kategória egy ikonnal ellátott kártya, **nem** checkbox |
+| 2 | egy kategóriakártyára koppintok | a nézet vált | a kategória technikái egyenként, böngészhető listában jelennek meg |
+| 3 | egy kategóriának nincs dedikált ikonja | a kártya megjelenik | egy semleges, kategória-agnosztikus helyőrző ikon látszik (nincs kitalált szimbólum) |
+| 4 | a listáról indítom a tanulást | a kártyák megjelennek | ugyanaz a meglévő felfedési/önértékelési folyamat (US-10, US-11) fut |
+
+**Követelmények:** FR-39 (új, 2026-11-13)
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-705** | `feature/learn` beállító képernyő átalakítása – kategória-ikon-kártyák (`core/ui` ikonkészlet kategóriánként, helyőrzővel a hiányzóra) és a kategórián belüli technikalista drill-down, a meglévő `learn/setup` ViewModel kategória-kiválasztási állapotára építve | feature/learn, core/ui | L | — |
+
+## US-26 · Japán/Magyar kiinduló oldal fülváltással a tanulókártyán
+
+> **Gyakorlóként** azt akarom, hogy a tanulókártya tetején egy fülváltóval gyorsan
+> eldönthessem, a japán vagy a magyar nevet lássam-e elsőként, **hogy** mindkét irányban
+> gyakorolhassak anélkül, hogy vissza kellene mennem a beállításokhoz.
+
+**Elfogadási kritériumok:** a kártya felett két fül – „Japán nevek" / „Magyar nevek";
+fülváltás azonnal, az aktuális kártyapozíció megtartásával, újra elrejtett állapotba
+állítja a kártyát; a választás túléli a forgatást; a meglévő FR-07 elrejtés/felfedés
+logika változatlan, csak a beállítás helye kerül a fülekre.
+**Követelmények:** FR-40 (új, 2026-11-13)
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-706** | `feature/learn` kártya képernyő – felső `TabRow` („Japán nevek" / „Magyar nevek") az eddigi elrejtési-irány beállítás felváltására, `SavedStateHandle`-ben tárolt fülállapottal | feature/learn | M | T-705 |
+
+---
+
+# E8 · Tartalom-munkafolyamat
+
+## US-27 · Utólagos illusztrációk befogadása
+
+> **Tartalomfejlesztőként** (a felhasználó szerepében) azt akarom, hogy legyen egy
+> dokumentált, ismételhető módja annak, hogy később általam átadott képeket az app
+> ténylegesen felhasználjon, **hogy** ne kelljen minden egyes képnél kézzel kitalálni a
+> folyamatot, és a validáció/`quizEligible` logika biztosan lefusson rájuk.
+
+**Elfogadási kritériumok:** van egy lépésről lépésre leírt munkafolyamat (hova kerül a
+képfájl, hogyan kapcsolódik `illustration_ref`-ként egy technikához, hogyan nő a
+`contentVersion`/`dataset_version`, milyen validáció fut le utána); a folyamat
+`docs/KNOWLEDGE_BASE.md`-ből linkelt, külön dokumentumban vagy szakaszban él; a
+meglévő `kyo-knowledge-base` skill hivatkozza.
+**Követelmények:** FR-41 (új, 2026-11-13)
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-707** | Illusztráció-befogadási munkafolyamat dokumentálása + (ha szükséges) egy kis ellenőrző szkript/Gradle-feladat, ami jelzi, ha egy becsatolt kép formátuma/mérete/elnevezése nem felel meg (`KNOWLEDGE_BASE.md` kiegészítése, `kyo-knowledge-base` skill frissítése) | docs, core/data | M | — |
+
+## US-28 · Fordítások és terminológia szakmai ellenőrzése
+
+> **Felhasználóként** azt akarom, hogy a romaji átírások és a magyar jelentések
+> dokumentáltan össze legyenek vetve hiteles Kyokushin-forrásokkal, **hogy** tudjam, mely
+> rekordok állíthatók `verified = true` státuszra, és mi alapján.
+
+**Elfogadási kritériumok:** minden jelenlegi, lektorálatlan (`editorial_review_required`)
+rekordhoz a felülvizsgálat dokumentált forrásmegjelöléssel történik (ADR-010 szerint a
+kvízből emiatt egyik sem esik ki, csak a jelölésük változhat); az eltérő/kétes
+fordítások listázva, a döntés (elfogadva / javítva / nyitva marad) és a forrás
+rögzítve; a kitalált vagy nem ellenőrizhető forrásból származó javítás **tilos**
+(CLAUDE.md tartalmi integritás). A konkrét hitelesítő személy/szervezet kérdése
+(OQ-02) ettől függetlenül nyitott marad.
+**Követelmények:** FR-42 (új, 2026-11-13), CR-01…CR-05
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-708** | A 161 rekord romaji/magyar/kategória adatainak összevetése hiteles Kyokushin-forrásokkal; eltérések és források `docs/CONTENT_VERIFICATION.md`-ben; a `kyokushin-content` skill szabályai szerint **csak** forrással alátámasztott javítás kerülhet be | docs, core/data | L | — |
+
+---
+
+# E9 · Kiejtés, hangalapú kvíz, többnyelvűsítés — jövőbeli, jelenleg NEM indítható
+
+> A mesterprompt **10. pontja** explicit kizárja MOST-ra a „hangos japán kiejtés"-t és a
+> „többnyelvűség"-et. Az alábbi tételek a felhasználó igényét **rögzítik**, de
+> szándékosan **nem indíthatók** `/dev`/`/devall`-lal: a „Függ" mező egy nyitott
+> kérdésre (`OQ-05`/`OQ-06`/`OQ-07`) mutat, nem egy elvégezhető taskra, így a függőség
+> sosem teljesül automatikusan. Az indításukhoz a mesterprompt 10. pontjának explicit,
+> felhasználói felülvizsgálata szükséges (lásd `REQUIREMENTS.md` 10. szakasz).
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-709** | Japán kiejtés lejátszása a tanulókártyán/részletezőn egy hangikonnal (gépi TTS vagy a felhasználó által biztosított hangfájlok) | feature/learn, core/ui | L | **OQ-05 (nyitott döntés)** |
+| **T-710** | Új kvízkérdés-típus: lejátszott kiejtés alapján a helyes magyar nevet kell kiválasztani | core/quiz, feature/quiz | L | **OQ-05, OQ-06 (nyitott döntés)**, T-709 |
+| **T-711** | Többnyelvűsítés: angol és német felhasználói szövegek a magyar mellett, nyelvválasztás a beállításokban | összes feature, core/model | L | **OQ-07 (nyitott döntés)** |

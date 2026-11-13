@@ -35,6 +35,8 @@ minden tagjának minden külső függősége teljesült.
 | **G-11** | T-507, T-509 | `feature/progress` | Beállítások és a haladás ViewModel tesztjei. |
 | **G-12** | T-603, T-607 | `app`, gyökér | Két független infrastruktúra-feladat, egyiknek sincs függősége; a manifest-teszt és a lint ugyanaz a build-kontextus. |
 | **G-13** | T-608, T-609 | `docs` | Két dokumentumkiadás; mindkettő a kész kódhoz méri a leírást. |
+| **G-14** | T-703, T-704 | `navigation` | A Főoldal bevezetése és a Tudástár jobbra tolása ugyanazt a `BottomNavDestination`/`KyokushinNavHost` fájlpárt módosítja; egy menetben elkerüli a kétszeri navigációs átírást. |
+| **G-15** | T-705, T-706 | `feature/learn` | A kategória-ikonos drill-down és a felső tabváltó ugyanannak a Tanulás-folyamatnak két egymásra épülő képernyőváltozása. |
 
 ## Szándékosan NEM csoportosított
 
@@ -49,3 +51,6 @@ minden tagjának minden külső függősége teljesült.
 | T-602 | A rétegszabály automatizált ellenőrzése. |
 | T-604, T-605, T-606 | Akadálymentességi átfésülés, extrém beállítások, UI tesztek – mind az egész appot érintik. |
 | T-610 | Az átadás lezárása. |
+| T-701, T-702 | A splash-asset bekötés és az arculati tervdokumentum különböző jellegű munka (kód vs. dizájnjavaslat-dokumentum). |
+| T-707, T-708 | A képbefogadási munkafolyamat és a fordítás-ellenőrzés különböző tartalmi kérdést érint. |
+| T-709, T-710, T-711 | **Nincs csoportosítva, mert nem indítható** – lásd `BACKLOG.md` E9 és a jelen fájl bevezetője. |

@@ -139,6 +139,22 @@ Prioritás: **M** (Must, MVP), **S** (Should, MVP-ben ha belefér), **W** (Won't
 | FR-34 | Az első éles adatkészlet szakmai ellenőrzésre előkészített CSV/JSON importtal feltölthető; a formátum és a folyamat dokumentált. | S |
 | FR-35 | „Előrehaladás törlése" funkció a beállításokban, megerősítő párbeszéddel. | S |
 
+### 3.6 Vizuális arculat, navigáció és tartalom-munkafolyamat (2026-11-13 kiegészítés)
+
+> A felhasználó 2026-11-13-i design-visszajelzése alapján felvett követelmények. Nem
+> részei az eredeti MVP elfogadási körének (M1…M7 már lezárva); a `docs/backlog/`
+> új, önálló taskjaiban (T-701…T-708) kerülnek kidolgozásra.
+
+| # | Követelmény | Pri |
+|---|---|---|
+| FR-36 | Induláskor indítóképernyő (splash) jelenik meg: kék kandzsi logó fehér háttéren, mielőtt a Kezdőoldal betöltődik. | M |
+| FR-37 | Önálló Kezdőoldal (Főoldal) létezik a logóval; az alsó navigáció bal szélén Főoldal gomb található. | M |
+| FR-38 | Az alsó navigáció sorrendje: Főoldal, Tanulás, Kvíz, Haladás, Tudástár – a Tudástár a legjobboldali elem. | S |
+| FR-39 | A Tanulás kategóriaválasztása ikonos kategóriakártyákkal történik checkbox helyett; egy kategóriára koppintva a hozzá tartozó technikák egyenként, böngészhető listában jelennek meg. | M |
+| FR-40 | A tanulókártya képernyő tetején lapfül váltja, hogy a kiinduló (felfedés előtti) oldal a japán vagy a magyar név legyen (a meglévő elrejtési beállítás FR-07 UI-ja lapfülekre cserélődik). | M |
+| FR-41 | Dokumentált munkafolyamat áll rendelkezésre további, a felhasználó által utólag biztosított illusztrációk tudástárba való befogadására (fájlelhelyezés, manifest-bejegyzés, `contentVersion` léptetés, validáció). | S |
+| FR-42 | A tudástár romaji/magyar fordításai és terminológiája dokumentáltan összevetésre kerül hiteles Kyokushin-forrásokkal; az eltérések, a forrás és a hitelesítési döntés a dokumentációban rögzül. | S |
+
 ---
 
 ## 4. Adatkövetelmények
@@ -249,3 +265,6 @@ Az architektúra ezekre **előkészít** (séma bővíthetőség, modulhatárok)
 | OQ-02 | Ki a szakmai hitelesítő (szenszei / dojo / szövetség)? | A `verified = true` átállítás folyamata. | A folyamat dokumentálása `docs/KNOWLEDGE_BASE.md`-ben; a hitelesítőt a felhasználó nevezi meg. |
 | OQ-03 | Melyik `minSdk`? | Eszköztámogatás vs. Compose/Room követelmények. | **ELDÖNTVE (2026-11-11): `minSdk = 26` (Android 8.0)** – natív `java.time`, nincs core library desugaring. Lásd [ADR-009](adr/ADR-009-min-sdk.md). |
 | OQ-04 | Legyen-e felhasználói adat exportálása az MVP-ben? | Adatvédelem, felhasználói kontroll. | „Előrehaladás törlése" igen (FR-35, S); export a Fázis 8 után, igény szerint. |
+| OQ-05 | Vezessünk-e be gépi vagy hangfájl alapú japán kiejtés-lejátszást a tanuláshoz? | A mesterprompt **9. pontja** („hangos japán kiejtés") explicit kizárja a MOST fázisból. | **NYITOTT.** A 9. pont felülvizsgálata (felhasználói jóváhagyással) nélkül nem indítható. A `docs/backlog/T-709` rögzíti az igényt, de függősége (ez az OQ) szándékosan nincs feloldva. |
+| OQ-06 | Legyen-e kvízkérdés-típus, amely lejátszott kiejtés alapján kér magyar nevet? | Az OQ-05 megoldása nélkül nem építhető (a kiejtéslejátszás az előfeltétele). | **NYITOTT**, OQ-05-től függ. A `docs/backlog/T-710` rögzíti az igényt. |
+| OQ-07 | Vezessünk-e be többnyelvűséget (angol, német) a magyar mellett? | A mesterprompt **9. pontja** („többnyelvűség") ezt is explicit kizárja a MOST fázisból. | **NYITOTT.** A `docs/backlog/T-711` rögzíti az igényt, de a 9. pont felülvizsgálata nélkül nem indítható. |

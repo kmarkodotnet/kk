@@ -101,6 +101,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    // A SplashScreen (T-701) `delay()`-t hív a KyokushinApp-ban – explicit deklarálva,
+    // ugyanúgy, mint a feature modulokban (lásd docs/CONVENTIONS.md), nem a Compose
+    // runtime esetleges tranzitív függőségére hagyatkozva.
+    implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

@@ -3602,3 +3602,22 @@ a teljes unit/build/lint futás óta, csak az eszközteszt lett erősebb.
 
 APK SHA-256: `f846fb85a98a776330483906b85db3e5f37bbcd0970c9d288160d45f870cfff7`.
 `2026-11-13`: a telefonra kért külön `.\gradlew.bat assembleDebug --console=plain` futás is exit 0 (2s, 307 up-to-date). Azonos SHA-256-ú másolat: `output/Kyokushin-Trainer.apk`.
+
+---
+
+## 2026-11-13 – T-701 (indítóképernyő, Fázis 9.1 bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL in 51s`, 443 feladat (71 futott); 648 teszt összesen (647 → +1 új `SplashContrastTest`), 0 hiba; `app-debug.apk` 22 746 748 byte |
+| `.\gradlew.bat ktlintCheck lint --console=plain` | 0 | `BUILD SUCCESSFUL in 42s`; nincs új lint/ktlint találat egyik érintett modulban (`app`, `core:ui`) sem |
+
+Érintett modulok: `app` (új `SplashScreen.kt`, `KyokushinApp.kt` módosítás,
+`ic_kyo_kanji.xml`, `splash_content_description` string, `values-night/themes.xml`),
+`core/ui` (`wcagContrastRatio` `internal` → publikus).
+
+**NEM FUTOTT:** a splash tényleges, emulátoros megjelenítése (a `connectedDebugAndroidTest`
+ebben a körben nem futott újra – a `@Preview` és a `SplashContrastTest` adja a vizuális/
+kontraszt-bizonyítékot). Az Android 12+ natív `SplashScreen` API bekötése szándékosan
+nincs megépítve (lásd `docs/done/T-701…md` „Megjegyzés" szakasza) – nem tesztkérdés, hanem
+egy új, jóváhagyást igénylő task.

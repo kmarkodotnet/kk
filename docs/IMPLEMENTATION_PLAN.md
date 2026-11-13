@@ -150,6 +150,31 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 8.9 | Elfogadási kritériumok (AC-01…AC-08) végigellenőrzése | — | ✅ **kész** (2026-11-13) |
 | 8.10 | Akadálymentességi átfésülés – mind a négy feature modul (`library`, `learn`, `quiz`, `progress`) | NFR-04, TR-06 | ✅ **kész** (T-604, 2026-11-13) |
 
+**Ezzel az eredeti M1…M7 szállítási kör (T-101…T-611) lezárult.** A lenti Fázis 9 egy
+**új, 2026-11-13-i igénysor** – nem az eredeti mérföldkövek folytatása.
+
+---
+
+## Fázis 9 – Bővítési backlog: vizuális arculat, navigáció, tartalom (2026-11-13)
+
+> Lásd `docs/BACKLOG.md` „Bővítési backlog" szakasza (E7, E8, E9) és
+> `docs/REQUIREMENTS.md` 3.6/10. szakasza (FR-36…FR-42, OQ-05…OQ-07). A taskok
+> `docs/backlog/T-701`-től `T-711`-ig vannak felvéve.
+
+| # | Lépés | Fedett követelmény | Állapot |
+|---|---|---|---|
+| 9.1 | Indítóképernyő – kék kandzsi logó fehér háttéren (`asserts/kyo.png` vektorizálva: `asserts/kyo_kanji.svg`, `asserts/ic_kyo_kanji.xml`) | FR-36 | ✅ **kész** (T-701, 2026-11-13) |
+| 9.2 | Vizuális arculat terv ("ne hasson webes űrlapnak") | FR-36 | 🔴 **nyitott** – T-702 |
+| 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | 🔴 **nyitott** – T-703 |
+| 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | 🔴 **nyitott** – T-704 |
+| 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | 🔴 **nyitott** – T-705 |
+| 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | 🔴 **nyitott** – T-706 |
+| 9.7 | Illusztráció-befogadási munkafolyamat | FR-41 | 🔴 **nyitott** – T-707 |
+| 9.8 | Fordítások ellenőrzése hiteles forrásokból | FR-42 | 🔴 **nyitott** – T-708 |
+| 9.9 | Japán kiejtés lejátszása | — | ⛔ **jövőbeli, nem indítható** – T-709 (OQ-05) |
+| 9.10 | Kiejtés-alapú kvízkérdés-típus | — | ⛔ **jövőbeli, nem indítható** – T-710 (OQ-05, OQ-06) |
+| 9.11 | Többnyelvűsítés (EN/DE) | — | ⛔ **jövőbeli, nem indítható** – T-711 (OQ-07) |
+
 ---
 
 ## Aktuális blokkolók
@@ -166,6 +191,14 @@ A maradék blokkolók **nem** állítják le a munkát: a Fázis 2.1–2.7 és 3
 tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SDK-ra.
 
 ## Következő lépés
+
+**Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
+igénysor: a soron következő, `/dev`-del indítható feladat a **T-702** (nincs
+függősége – a T-701 2026-11-13-án elkészült). A T-709…T-711 szándékosan **nem**
+indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
+
+<details>
+<summary>Korábbi (M1…M7-höz tartozó) "Következő lépés" bejegyzés – archív</summary>
 
 1. **T-507** – `feature/progress`: beállítások (G-11 csoport első tagja, T-509-cel).
    Függőségei (T-502, T-503) készek.
@@ -214,6 +247,8 @@ Párhuzamosan, amikor sorra kerül: a `REQUIREMENTS.md` / `FUNCTIONAL_SPEC.md` /
 (mezőnevek, `quizEligible` kapu, lektorálatlan jelölés, aktív kvíztípusok, és a 3.2
 10–11. pontban leírt, de a kanonikus sémában nem létező `source`/övfok mező és a
 hiányzó haladás-összegzés dokumentált eltávolítása/pontosítása).
+
+</details>
 
 ## Változásnapló
 
@@ -1545,3 +1580,31 @@ kész függőségű feladat.
   lektorálás, hiányzó ábrák, majd a jóváhagyott csomag elfogadási próbája kell.
   AC-08 részben igazolt; a külön tudástár-adatlapi gyakorlási összegzés hiánya a
   CONVENTIONS ismert ügyei között marad, nem szerepel megoldottként.
+- 2026-11-13 – **Bővítési backlog felvéve (Fázis 9, E7/E8/E9).** A felhasználó
+  design- és funkcióvisszajelzése alapján 11 új task (`T-701…T-711`) került a
+  `docs/backlog/`-ba: indítóképernyő a saját `asserts/kyo.png` gi-fotóból
+  vektorizált kandzsi logóval (`asserts/kyo_kanji.svg`, `asserts/ic_kyo_kanji.xml` –
+  OpenCV kontúrkövetés + Chaikin-simítás, nincs harmadik féltől származó kép),
+  Kezdőoldal + Főoldal gomb, a Tudástár jobbra tolása, kategória-ikonos Tanulás
+  checkbox helyett, felső tab Japán/Magyar névhez, illusztráció-befogadási
+  munkafolyamat, fordítás-ellenőrzési jegy. A T-709…T-711 (hangos kiejtés,
+  kiejtés-alapú kvíztípus, többnyelvűsítés) a mesterprompt 9/10. pontja miatt
+  **szándékosan nem indítható** – a „Függ" mezőjük egy nyitott kérdésre (OQ-05…OQ-07,
+  `REQUIREMENTS.md` 10. szakasz) mutat, amit a `/dev` sosem talál teljesítve.
+  Build/teszt ehhez a felvételhez nem futott (csak dokumentáció + a logó-vektorizáló
+  szkript futott, Python/OpenCV-vel, a repón kívül, scratchpadben).
+- 2026-11-13 – **T-701 kész (Fázis 9.1, E7): indítóképernyő.** `SplashScreen.kt` (app
+  modul): fix fehér háttér + a vektorizált kandzsi logó (`ic_kyo_kanji.xml`), 1200 ms
+  után automatikus átadás a `KyokushinNavHost`-nak (`KyokushinApp.kt`), a célképernyőtől
+  (ma Tudástár, T-703 után Kezdőoldal) függetlenül. `contentDescription` +
+  `semantics { heading() }`, `@Preview` világos/sötét. A `core/ui` `wcagContrastRatio`
+  `internal` → publikus nyitásával bizonyított WCAG AA kontraszt (`SplashContrastTest`,
+  ≈ 11,95:1). A `values-night/themes.xml` cold-start háttere is fehérre állítva. Az
+  Android 12+ natív `SplashScreen` API **szándékosan nincs** bekötve – a
+  `core-splashscreen` nincs a verziókatalógusban, ez egy új, jóváhagyást igénylő
+  task marad, a kézi Compose-fallback addig (és utána is, a régebbi `minSdk`-khoz)
+  teljes értékű.
+
+  `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**, 648 teszt
+  (647 → +1), 0 hiba, `app-debug.apk` ≈ 22,75 MB. `.\gradlew.bat ktlintCheck lint
+  --console=plain` **exit 0**, nincs új találat. Soron következő: **T-702**.

@@ -76,7 +76,9 @@ Ez a lap nem helyettesíti őket, hanem a *gyakorlati* tudást gyűjti.
 | **Lektorálatlanság-szalag** | Az `UnreviewedBanner`-nek **nincs** `onDismiss` / `dismissible` / `visible` paramétere. Egyetlen bemenete a `DatasetTrust`; `REVIEWED` mellett nem rajzol semmit (ADR-010, AC-08). |
 | **Üres állapot** | `EmptyStateReason` sealed típus – az **ok** hordozza az üzenetet és az akciócímkét. Ne adj át puszta szöveget. |
 | **Hibaüzenet** | `ErrorState` `@StringRes`-t vesz át, nem `String`-et – hogy kivétel angol `message`-e ne jusson a felhasználóhoz. |
-| **Szín** | Hardcode `Color(0xFF…)` **tilos** komponensben; minden szín `MaterialTheme` token. |
+| **Szín** | Hardcode `Color(0xFF…)` **tilos** komponensben; minden szín `MaterialTheme` token. **Dokumentált kivétel: splash/márkajelzés** (`SplashScreen`, T-701) – a felhasználó explicit kérte, hogy az indítóképernyő háttere és logója a rendszertémától **függetlenül** fix maradjon (fehér háttér, `#17317A` kék kandzsi), ezért ott szándékosan `Color.White` és a vektorba égetett szín él, nem téma-token. Ez **nem** precedens arra, hogy bármely más komponens hardcode-olhat színt – csak arra az egy, kifejezetten téma-függetlennek szánt elemre vonatkozik, és a komponens KDoc-jában meg van indokolva. |
+| **Egy `internal` segédfüggvény publikussá nyitása, ha egy MÁSIK modulnak ugyanarra a (nem triviális) matekra van szüksége** (`wcagContrastRatio`, T-604 → T-701) | A `core/ui` `WcagContrast.kt` `wcagContrastRatio`-ja T-604-ben `internal`-ként készült (csak a `ThemeContrastTest` hívta). Amikor a T-701 splash képernyője (az `app` modulban) ugyanazt a WCAG-számítást igényelte egy fix (nem téma-token) színpárra, a helyes megoldás **nem** a W3C-képlet újraírása egy második helyen (két hely = egy eltérés esélye), hanem a függvény láthatóságának nyitása `internal` → publikus – a mögöttes `relativeLuminance`/`linearize` segédfüggvény `private` maradt, csak a belépési pont nyílt. Általánosítható szabály: ha egy már bizonyított, tiszta matematikai/döntési logika egy KÉSŐBBI feladatban egy MÁSIK modulból is kellene, a láthatóság nyitása az első választás, nem a duplikálás – ugyanaz a mintázat, mint a `quizOptionIcon`/`IllustrationLabel` korábbi nyitásai (lásd fentebb), csak itt modulhatáron át, nem csomaghatáron belül. |
+| **`delay()` egy `app`-modulbeli `@Composable`-ben explicit `kotlinx-coroutines-core` függőséget igényel, a `LaunchedEffect`/`CoroutineScope` tranzitív elérhetősége ellenére** (`KyokushinApp` splash-időzítés, T-701) | A Compose runtime `api`-ként hozza a coroutines-t a `CoroutineScope`/`LaunchedEffect` aláírásához, de a top-level `kotlinx.coroutines.delay()` függvény hívásához a modulnak **saját, explicit** `implementation(libs.kotlinx.coroutines.core)` kell (ugyanígy tették a `feature/learn`/`feature/quiz` is) – ne hagyatkozz a tranzitív elérhetőségre, deklaráld a tényleges felhasználást. |
 | **Érintési célpont** | ≥ 48 dp. A Material 3 alapértelmezett gombmagassága 40 dp – `heightIn(min = 48.dp)` kell. |
 | **`@Preview`** | Világos **és** sötét (`UI_MODE_NIGHT_YES`), plusz a hiányos/üres adatállapot. |
 | **Szöveg** | Minden magyar szöveg `strings.xml`-ben. A `core/ui` és a `navigation` modulnak saját `strings.xml`-e van. A pontos szövegeket a `FUNCTIONAL_SPEC.md` 8. fejezete adja – ne találj ki újakat. |
@@ -196,6 +198,19 @@ nem a megfelelő indítót hívja. PowerShellben ugyanez `$env:JAVA_HOME=...` + 
 | ~~Tanulásból elvesző kategóriák~~ | T-611-ben javítva; a `studyCategoriesReachQuizSetup_FR11_TR06` eszközteszt ellenőrzi forgatás után is. |
 | A „Hiányos" rekord hiányzó mezőinek levezetése ma csak az illusztrációt ismeri fel | A `DefaultKnowledgeValidator` (`core/quiz`) jelenleg kizárólag a lógó képhivatkozás miatt fokoz le `INCOMPLETE`-re (V005/ADR-002) – minden más kötelező mező hiánya a rekordot a leképezés előtt elveti. A `library/detail` (T-209) ezt egy helyi `missingFieldsFor(status)` függvénnyel tükrözi (`LibraryDetailViewModel.kt`). Ha a `progress/technique` részletező (T-506) ugyanezt a leképezést igényli, érdemes ezt a függvényt megosztott helyre (pl. `core/quiz` vagy `core/data`) emelni, hogy ne legyen két hely, ahol ez a szabály élhet. |
 
+
+## 8a. Szándékosan nem indítható ("JÖVŐBELI") backlog-tételek
+
+2026-11-13-tól a `docs/backlog/`-ban megjelenhetnek olyan task-fájlok, amelyek
+fájlnévbe is kiírt `-JOVOBELI` jelzéssel és a fejlécben `Függ: OQ-nn (nyitott döntés)`
+bejegyzéssel vannak ellátva (pl. `T-709`, `T-710`, `T-711`). Ez **szándékos**, nem
+hiba: a mesterprompt 9/10. pontja explicit kizár bizonyos funkciókat (hangos kiejtés,
+többnyelvűség) a MOST fázisból, de a felhasználó igénye mégis dokumentálva legyen. A
+`/dev`/`/devall` a megszokott "minden függőség a `done/`-ban van" szabályt futtatva
+ezeket **sosem** találja indíthatónak, mert a függőség egy `REQUIREMENTS.md`-beli
+nyitott kérdés (`OQ-nn`), nem egy másik task azonosítója. **Ha egy ilyen taskra fut a
+`/dev`, ne próbáld "feloldani" a függőséget kitalált döntéssel** – állj meg, és jelezd,
+hogy a mesterprompt felülvizsgálata a felhasználó döntése.
 
 ## 9. Az emulátoros lezárás tanulságai (T-604/T-605/T-606/T-611)
 

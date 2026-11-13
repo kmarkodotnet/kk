@@ -21,8 +21,21 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 ## Feladatok
 
-**Nincs nyitott számozott feladat.** A T-604, T-605, T-606, T-610 és T-611
-2026-11-13-án, a sikeres ellenőrzések után átkerült a [`../done/`](../done/) mappába.
+Az eredeti M1…M7 szállítási kör (T-101…T-611) lezárult, mindegyik a
+[`../done/`](../done/) mappában van. 2026-11-13-án a felhasználó design- és
+funkcióvisszajelzése alapján **új, önálló taskok** kerültek fel – ezek a jelen mappában,
+`T-701`-től indulva találhatók:
+
+| Task | Indítható `/dev`-vel? | Megjegyzés |
+|---|---|---|
+| ~~T-701~~ | — | **kész, 2026-11-13** (`docs/done/`) – indítóképernyő, kék kandzsi logó |
+| T-702…T-706 | igen | vizuális arculat és navigáció (`BACKLOG.md` E7) |
+| T-707…T-708 | igen | tartalom-munkafolyamat (`BACKLOG.md` E8) |
+| T-709…T-711 | **nem** | hangos kiejtés, kiejtés-alapú kvíztípus, többnyelvűsítés – a „Függ" mezőjük szándékosan egy nyitott kérdésre (`OQ-05`/`OQ-06`/`OQ-07`) mutat, nem egy elvégezhető taskra, mert a mesterprompt 9/10. pontja MOST kizárja őket (`BACKLOG.md` E9) |
+
+A `/dev`/`/devall` a megszokott, növekvő azonosító szerinti, függőségellenőrzött
+szabályt követi – a T-709…T-711 ennek megfelelően **megáll és blokkoltként jelzi
+magát**, nem próbálja implementálni a kizárt funkciót.
 
 A tartalmi lektorálás és az ismert, külön fejlesztési ügyek az
 [elfogadási jegyzőkönyvben](../ACCEPTANCE.md) és a

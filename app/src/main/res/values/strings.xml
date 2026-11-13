@@ -4,6 +4,12 @@
     <string name="app_name">Kyokushin Trainer</string>
 
     <!--
+        Indítóképernyő (T-701, FR-36): rövid, a kék kandzsi logót mutató képernyő, mielőtt
+        a tényleges navigáció betöltődik.
+    -->
+    <string name="splash_content_description">Kyokushin Karate Trainer embléma</string>
+
+    <!--
         A navigáció feliratai (`nav_library`, `nav_learn`, `nav_quiz`, `nav_progress`) a
         `:navigation` modul `strings.xml`-jében élnek, mert a bottom navigation is ott van
         (T-206). Egy szövegkulcs egy modulhoz tartozik, különben az erőforrás-összefűzés
