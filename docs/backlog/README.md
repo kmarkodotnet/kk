@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-414](T-414-feature-quiz-viewmodel-tesztek.md) | feature/quiz: ViewModel tesztek | E4 | `feature/quiz` | L | T-412 |
 | [T-501](T-501-core-data-aggregalt-statisztika-lekerdezesek.md) | core/data: aggregált statisztika lekérdezések | E5 | `core/data` | L | T-401 |
 | [T-503](T-503-feature-progress-attekinto-kepernyo.md) | feature/progress: áttekintő képernyő | E5 | `feature/progress` | L | T-501, T-206 |
 | [T-504](T-504-feature-progress-gyakorlast-igenylo-lista.md) | feature/progress: gyakorlást igénylő lista | E5 | `feature/progress` | M | T-503 |

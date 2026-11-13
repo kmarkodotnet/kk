@@ -2851,3 +2851,71 @@ megfelelő, egymástól különböző string-erőforrást kapják.
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – ugyanaz, B-03. A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `quiz/setup` ↔ `quiz/run` ↔ `quiz/result` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak a tárgya. |
+
+## 2026-11-12 – T-414 kész (`feature/quiz`: ViewModel tesztek)
+
+**Környezet:** Windows 11 Pro, Bash (Git Bash),
+`export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-17.0.21.9-hotspot"`, Gradle
+wrapper 9.9.1 (`./gradlew.bat`).
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew.bat testDebugUnitTest --rerun-tasks` | 0 | `BUILD SUCCESSFUL in 1m 30s`, 294 actionable task, mind végrehajtva (teljes, őszinte projektfutás). |
+| `./gradlew.bat assembleDebug` | 0 | `BUILD SUCCESSFUL`, 300 actionable task (up-to-date – a tesztforrás-módosítás nem érinti az `app`/`assembleDebug` fő forráskészletét); `app/build/outputs/apk/debug/app-debug.apk` megvan. |
+
+A `build/test-results/**/TEST-*.xml` (`testDebugUnitTest` ÉS a JVM modulok `test`
+feladata együtt) `tests` attribútumainak összege a teljes projekten **569** (566 → 569,
++3), **0 hiba, 0 error**. Az érintett osztályok:
+
+| Osztály | Teszt | Hiba |
+|---|---|---|
+| `…feature.quiz.run.QuizRunViewModelTest` (17 → **19**) | 19 | 0 |
+| `…feature.quiz.result.QuizResultViewModelTest` (9 → **10**) | 10 | 0 |
+
+### Mi készült
+
+A feladatot egy korábbi kör a Claude API session rate limitje miatt kódolás közben
+félbehagyta, COMMIT ELŐTT – a munkafában a két tesztfájl és az
+`IMPLEMENTATION_PLAN.md` módosítása már nem-commitolt állapotban várt. Ez a kör nem
+kezdte újra: `git diff`-fel felmérte, hogy a T-414 „Teendők" listájának 1./2. pontja
+(dupla válasz, `SavedStateHandle` visszaállítás) és a 3. pont zéró-válaszos ága már a
+G-07/G-09 csoportokban (T-405/T-406/T-410/T-411/T-412) lefedett volt, és a
+`QuizRunViewModelTest`/`QuizResultViewModelTest` meglévő eseteit **nem** duplikálta.
+
+Négy, tényleg hiányzó eset készült el:
+
+- **`QuizRunViewModelTest`** (+2, FR-22): egy nulla kérdéses, teljes shortfallú
+  (`ShortfallReason.ALL_TYPES_SKIPPED`) `QuizPlan` a `QuizRunUiState.Empty`-t adja (a
+  `buildUiState` a `questions` ürességét vizsgálja, nem a bemenet puszta jelenlétét);
+  egy **nem teljes** shortfallú terv (kért 5, tényleges 2) a `Content.total`-ban a
+  TÉNYLEGES kérdésszámot mutatja, nem a kértet.
+- **`QuizResultViewModelTest`** (+1, FR-19, „félbehagyott teszt"): megszakításkor a
+  **megmaradt** válaszokból (3 a kért 10-ből) a pontszám a tényleg megválaszolt 3-ból
+  számol (`ratio = 2/3`), a hiányzó 7-et nem bünteti 0%-ként – elkülönítve a már
+  meglévő, zéró-válaszos megszakítás-tesztől.
+- **`QuizResultViewModelTest.quizResult_onRetryWrong_…`** (meglévő teszt +2 erősebb
+  állítás, US-16 AC-1/AC-2): az újragyakorlás eseménye **új**, a megtekintettől
+  különböző `sessionId`-t ad (nem a régi menet folytatása), és a `onRetryWrong()`
+  hívása után a régi munkamenet `getSessionResult`-ja **változatlan** marad (nincs
+  kettős könyvelés).
+
+A `docs/IMPLEMENTATION_PLAN.md` fázis 6.6 sorának és a „Következő lépés" szakaszának
+a félbehagyott kör által elkezdett szerkesztését ez a kör átnézte: a tartalom
+konzisztens és a tényleges végeredménnyel egyező volt (19/10/5 teszteset, helyes
+„T-413 és T-414 is 2026-11-12-én kész" megfogalmazás) – változtatás nélkül megtartva.
+
+### Rétegszabály, akadálymentesség
+
+Csak tesztfájl-módosítás; nincs új UI, string- vagy rétegszabály-érintettség. A
+meglévő fake repository-k és injektált `Clock`/`Random` dublőrök változatlanok –
+nincs közvetlen `Clock`/`Random` hívás.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
+| `quiz/setup` ↔ `quiz/run` ↔ `quiz/result` navigációs bekötés (`KyokushinNavHost`) | **NEM KÉSZÜLT EL** – szándékosan, lásd `docs/CONVENTIONS.md` 5. szakasz; nem ennek a feladatnak a tárgya. |

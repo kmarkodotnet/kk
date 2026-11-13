@@ -124,7 +124,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 6.3 | `QuizRunState` a `SavedStateHandle`-ben; egyszeri válasz; megszakítás | FR-18, FR-19 | ✅ **kész** (G-07 csoport: T-405, T-406, T-410, 2026-11-12) – `QuizRunViewModel` |
 | 6.4 | `quiz/result`: összegzés, hibalista, „Hibák újragyakorlása" új munkamenetként, a lektorálatlanság jelzése | FR-20, FR-21, CR-01, CR-03 | ✅ **kész** (G-09 csoport: T-411, T-412, T-415, 2026-11-12) – `QuizResultViewModel`/`QuizResultScreen`: összegzés (sikerarány törve + százalék, „nincs adat", „megszakított"), hibás kérdések listája (típus, helyes technika romaji+magyar+ábra, saját válasz, kattintható), „Hibák újragyakorlása" (új munkamenet, új seed, kizárólag a hibás technikákból – a `ProgressRepository.getSessionResult` új, olvasó taggal), „Új kvíz”/„Vissza a Haladáshoz”. A lektorálatlanság-szalag a beállítón (T-404-ből már megvolt) és az eredményen is megjelenik, `REVIEWED` mellett automatikusan eltűnik (ADR-010). A normál befejezés (`QuizRunViewModel.onNext` az utolsó kérdésen → `finishSession` + `finishEvent`) is e csoportban készült el. |
 | 6.5 | Akadálymentesség a kvízben (szemantika, a (D) opciók nem fedik fel a választ) | NFR-04 | ⬜ |
-| 6.6 | **ViewModel tesztek** (dupla válasz, forgatás, megszakítás, normál befejezés, eredmény, újragyakorlás) | TR-04 | 🔄 **részben** (G-07 csoport, lásd 6.3, + G-09: T-411/T-412) – `QuizRunViewModelTest` (17 eset, a normál befejezéssel bővítve), `QuizResultViewModelTest` (9 eset), `QuizResultMessagesTest` (5 eset). A T-414 (teljes, önálló lefedettségi feladat) hátra van |
+| 6.6 | **ViewModel tesztek** (dupla válasz, forgatás, megszakítás, normál befejezés, eredmény, újragyakorlás) | TR-04 | ✅ **kész** (T-414, 2026-11-12) – a G-07/G-09 csoportok tesztjei felett a hiányzó négy eset pótolva: `QuizRunViewModelTest` (19 eset: +2, nulla kérdéses/shortfall terv UI állapota, FR-22), `QuizResultViewModelTest` (10 eset: +1 félbehagyott kvíz részleges válaszokkal, +2 erősebb állítás az újragyakorlás tesztjében – új `sessionId`, a régi eredmény változatlan), `QuizResultMessagesTest` (5 eset) |
 
 ## Fázis 7 – Haladás és beállítások
 
@@ -166,10 +166,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 ## Következő lépés
 
-1. **T-414** – `feature/quiz`: ViewModel tesztek. Függősége (T-412) kész. (A T-501 –
-   aggregált statisztika – függősége is kész, mindkettő elérhető lenne; a numerikusan
-   legkisebb azonosítót választottuk. **T-413 – akadálymentesség – 2026-11-12-én
-   elkészült**, lásd lejjebb.)
+1. **T-501** – `core/data`: aggregált statisztika lekérdezések. Függősége (T-401) kész.
+   (**T-413 – akadálymentesség** és **T-414 – ViewModel tesztek** – mindkettő
+   2026-11-12-én elkészült, lásd lejjebb.)
 
 (**A G-09 csoport – T-411, T-412, T-415 – kész, 2026-11-12:** a `quiz/result`
 eredményképernyő, a „Hibák újragyakorlása" és a lektorálatlanság jelzése. A

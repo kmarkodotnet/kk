@@ -140,6 +140,43 @@ class QuizResultViewModelTest {
     }
 
     /**
+     * T-414 "Teendők" 3./TR-04 „félbehagyott teszt": megszakításkor a `finishedAt`
+     * `null` marad (US-15 AC-2), de az ADDIG rögzített válaszok megmaradnak és SZÁMÍTANAK
+     * – a pontszám a kért 10 helyett a tényleg megválaszolt 3-ból számol, nem a
+     * hiányzó 7-et bünteti 0%-ként (ellentétben
+     * [quizResult_abortedSessionWithNoAnswers_showsAbortedAndNullRatio_FR19_FR27]-vel,
+     * amely a ZÉRÓ válasz esetét fedi).
+     */
+    @Test
+    fun quizResult_abortedSessionWithPartialAnswers_scoresOnlyTheAnsweredQuestions_FR19() = runTest {
+        val sessionId = SessionId.of("session-1")
+        val result = QuizSessionResult(
+            session = unfinishedSession(sessionId, requestedCount = 10, answeredCount = 3),
+            attempts = listOf(
+                attempt(1, "q-1", TECHNIQUE_HEISOKU.id, QuestionType.JP_TO_HU, TECHNIQUE_HEISOKU.id, correct = true),
+                attempt(2, "q-2", TECHNIQUE_FUDO.id, QuestionType.JP_TO_HU, TECHNIQUE_FUDO.id, correct = true),
+                attempt(3, "q-3", TECHNIQUE_MUSUBI.id, QuestionType.HU_TO_JP, TECHNIQUE_CHUDAN.id, correct = false),
+            ),
+        )
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(sessionId),
+            progressRepository = FakeQuizResultProgressRepository(mapOf(sessionId to result)),
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as QuizResultUiState.Content
+        assertThat(content.aborted).isTrue()
+        // A nevező a 3 megválaszolt, NEM a kért 10 – a hátralévő 7 nem rontja az arányt.
+        assertThat(content.score.answered).isEqualTo(3)
+        assertThat(content.score.correct).isEqualTo(2)
+        assertThat(content.score.ratio).isEqualTo(2.0 / 3.0)
+        assertThat(content.requestedCount).isEqualTo(10)
+        assertThat(content.canRetryWrong).isTrue()
+        job.cancel()
+    }
+
+    /**
      * T-415: a jelzés a `datasetTrust`-ból jön, nem felhasználói beállításból – a
      * [QuizResultUiState.Content.datasetTrust] a tartalom bizalmi szintjét tükrözi.
      */
@@ -236,11 +273,16 @@ class QuizResultViewModelTest {
         val retried = events.single()
         assertThat(retried.seed).isEqualTo(expectedSeed)
         assertThat(retried.plan.questions).isNotEmpty()
+        // US-16 AC-1: ÚJ munkamenet, saját azonosítóval – nem a megtekintett menet
+        // folytatása.
+        assertThat(retried.sessionId).isNotEqualTo(sessionId)
         // Kizárólag a hibás technikák (US-16 AC-1: "ugyanazokra a technikákra") –
         // soha nem a helyes (ötödik, JODAN) technikára.
         retried.plan.questions.forEach { question ->
             assertThat(question.correctTechniqueId).isNotEqualTo(TECHNIQUE_JODAN.id)
         }
+        // US-16 AC-2: a régi munkamenet eredménye változatlan – nincs kettős könyvelés.
+        assertThat(progressRepository.getSessionResult(sessionId)).isEqualTo(result)
         job.cancel()
         eventJob.cancel()
     }

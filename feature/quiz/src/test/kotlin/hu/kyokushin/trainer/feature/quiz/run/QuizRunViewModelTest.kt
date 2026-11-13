@@ -10,6 +10,8 @@ import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.quiz.generator.QuizPlan
 import hu.kyokushin.trainer.core.quiz.generator.QuizQuestion
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
+import hu.kyokushin.trainer.core.quiz.generator.Shortfall
+import hu.kyokushin.trainer.core.quiz.generator.ShortfallReason
 import hu.kyokushin.trainer.feature.quiz.FakeQuizRunProgressRepository
 import hu.kyokushin.trainer.feature.quiz.FakeQuizTechniqueRepository
 import hu.kyokushin.trainer.feature.quiz.TECHNIQUE_CHUDAN
@@ -133,6 +135,59 @@ class QuizRunViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.uiState.value).isEqualTo(QuizRunUiState.Empty)
+        job.cancel()
+    }
+
+    /**
+     * T-414 "Teendők" 4.: egy nulla kérdéses terv (teljes shortfall – minden
+     * engedélyezett típus kimaradt, FR-22) a `quiz/run`-ba a `quiz/setup` "Kész ha"-ja
+     * szerint rendesen sosem kerülne, de ez a teszt – a [quizRun_missingInput_showsEmpty_NFR06]-tól
+     * eltérően – egy ÉRVÉNYES sessionId/seed mellett, egy valódi (üres kérdéslistájú)
+     * [QuizPlan]-nal bizonyítja a [QuizRunUiState.Empty] védelmi hálót: a `buildUiState`
+     * a `questions` ürességét vizsgálja, nem a bemenet puszta jelenlétét.
+     */
+    @Test
+    fun quizRun_zeroQuestionShortfallPlan_showsEmpty_FR22() = runTest {
+        val plan = QuizPlan(
+            questions = emptyList(),
+            shortfall = Shortfall(
+                requestedCount = 10,
+                actualCount = 0,
+                reason = ShortfallReason.ALL_TYPES_SKIPPED,
+            ),
+        )
+        val viewModel = viewModel(savedStateHandle = handleFor(plan))
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value).isEqualTo(QuizRunUiState.Empty)
+        job.cancel()
+    }
+
+    /**
+     * T-414 "Teendők" 4.: nem teljes shortfall esetén (a kért 5 helyett csak 2 kérdés
+     * állt össze) a `quiz/run` a TÉNYLEGES kérdésszámot mutatja [QuizRunUiState.Content.total]-ként,
+     * nem a kértet – a [QuizRunState.shortfall] a tervezéskori adat, a lejátszást nem
+     * módosítja (lásd a `QuizRunState` KDoc-ja).
+     */
+    @Test
+    fun quizRun_content_withShortfallPlan_showsActualQuestionCount_FR22() = runTest {
+        val fullPlan = threeQuestionPlan()
+        val shortfallPlan = fullPlan.copy(
+            questions = fullPlan.questions.take(2),
+            shortfall = Shortfall(
+                requestedCount = 5,
+                actualCount = 2,
+                reason = ShortfallReason.NOT_ENOUGH_CANDIDATES,
+            ),
+        )
+        val viewModel = viewModel(savedStateHandle = handleFor(shortfallPlan))
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as QuizRunUiState.Content
+        assertThat(content.total).isEqualTo(2)
+        assertThat(content.question).isEqualTo(shortfallPlan.questions[0])
         job.cancel()
     }
 
