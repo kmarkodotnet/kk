@@ -35,8 +35,11 @@ internal class FakeKnowledgeAssetSource(
  * állítja be), nem a teszt munkakönyvtárából: így a teszt akkor is megtalálja a tartalmat,
  * ha a Gradle más könyvtárból indítja a JVM-et.
  *
- * A csomagolt assets (`app/src/main/assets/knowledge/`) a T-601 feladat tárgya; addig a
- * beolvasót ezen az azonos szerkezetű, valódi tartalmon lehet és kell ellenőrizni.
+ * A csomagolt assets (`app/src/main/assets/knowledge/`) T-601 óta ugyanennek a mappának a
+ * bitre azonos másolata (lásd `app` `hu.kyokushin.trainer.di.KnowledgeAssetImportTest`, amely
+ * a valódi `AssetManager`-en át, a teljes `ContentImporter`-rel ellenőrzi) – ez a `core/data`
+ * oldali osztály a beolvasó leképezését továbbra is ezen, fájlrendszeri elérésű forráson
+ * teszteli, hogy a modul ne függjön Android assetkezeléstől.
  */
 internal class RealContentAssetSource : KnowledgeAssetSource {
 

@@ -3276,3 +3276,50 @@ jelentés betöltése pedig a már injektált `ContentImporter`-en keresztül me
 | `./gradlew connectedDebugAndroidTest` | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A T-606 tárgya. |
 | `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva; a T-607 tárgya. |
 | `@Preview` emulátoros/vizuális ellenőrzés | **NEM FUTOTT** – csak forráskódként ellenőrizve (a diagnosztika négy állapota – betöltés, nincs jelentés, jelentés, teljes elutasítás – és a beállítások debug-gombos variánsa, mindegyik világos + sötét); a tényleges renderelés emulátort igényel (B-03). |
+
+---
+
+## 2026-11-13 – T-601: a tudástár bemásolása az assets alá (FR-29, AC-08)
+
+### Mi készült
+
+A `knowledgebase_transfer/manifest.json`, `entries.json` és `illustrations/` (10 kép)
+bitre azonos másolata bekerült az `app/src/main/assets/knowledge/` alá (ellenőrizve:
+`diff`/`cmp` mindhárom fájlcsoporton, eltérés nélkül). A `knowledgebase/` marad a
+szerkesztési forrás, a `knowledgebase_transfer/` a köztes, ellenőrzött átadási forma –
+a másolás módja **kézi** (nem Gradle-task), dokumentálva a
+`knowledgebase_transfer/README.md` „Hogyan kerül az appba" szakaszában és egy új
+`app/src/main/assets/knowledge/README.md`-ben.
+
+Új teszt: `app` modul, `hu.kyokushin.trainer.di.KnowledgeAssetImportTest` (2 teszt) –
+a teljes Hilt-gráfot Robolectric alatt felépítve (ugyanaz a minta, mint a
+`HiltGraphTest`, T-203) **tényleg lefuttatja** a `ContentImporter.importIfNeeded()`-t a
+valódi, csomagolt `AssetManager`-en át:
+
+- `importIfNeeded_packagedKnowledgeAssets_loadsAllEntries_FR29` – `ImportResult.Imported`,
+  `contentVersion = "0.1.0"`, `acceptedCount = 161`, `rejectedCount = 0`, `retiredCount = 0`.
+- `importIfNeeded_calledTwice_secondCallIsUpToDate_FR30` – a második hívás
+  `ImportResult.UpToDate("0.1.0")` (verziókapu a valódi csomagolt asseten).
+
+Ez a **„Kész, ha: `assembleDebug` után az app elindul és betölti a 161 rekordot"**
+kritérium bizonyítéka – valódi eszköz/emulátor nélkül (B-03 nyitott blokkoló), a
+projekt bevált, emulátor nélküli Hilt-gráf-ellenőrzési mintájával.
+
+### Futtatott parancsok
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `./gradlew :app:testDebugUnitTest --tests "hu.kyokushin.trainer.di.KnowledgeAssetImportTest" --rerun-tasks` | 0 | 2 teszt, 0 hiba |
+| `./gradlew testDebugUnitTest --rerun-tasks` | 0 | **628 teszt** (626 → 628, +2), 0 hiba, 0 error, teljes projekt |
+| `./gradlew assembleDebug` | 0 | `app-debug.apk`, **23 060 928 bájt** (≈ 22,0 MiB; a korábbi 18,69 MB-hoz képest +~2,2 MB, a 10 csomagolt kép mérete – elfogadható) |
+
+APK-tartalom ellenőrzve (`unzip -l`): `assets/knowledge/manifest.json`,
+`assets/knowledge/entries.json`, `assets/knowledge/illustrations/KY-0044.jpg` …
+`KY-0053.jpg` (mind a 10) mind megtalálhatók a csomagolt APK-ban.
+
+### NEM FUTOTT / NEM ALKALMAZHATÓ
+
+| Parancs / ellenőrzés | Ok |
+|---|---|
+| Valódi eszközön/emulátoron történő indítás és a 161 rekord UI-ban való megjelenésének vizuális ellenőrzése | **NEM FUTOTT** – nincs csatlakoztatott eszköz vagy emulátor (B-03). A `KnowledgeAssetImportTest` ugyanezt a betöltési láncot (valódi `AssetManager` → `ContentImporter` → Room) Robolectric alatt, emulátor nélkül bizonyítja, de a tényleges UI-renderelést és indítási élményt nem. A T-606 tárgya. |
+| `./gradlew lint ktlintCheck` | **NEM FUTOTT** – a ktlint konfigurációja még nincs beállítva (T-607). |

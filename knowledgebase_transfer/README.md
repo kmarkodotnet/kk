@@ -142,6 +142,24 @@ Ugyanazzal a bemenettel mindig ugyanazt a kimenetet adja.
 
 ## Hogyan kerül az appba
 
-A Fázis 3.2 lépésben ennek a mappának a tartalma kerül az
-`app/src/main/assets/knowledge/` alá. A `knowledgebase/` marad a szerkesztési forrás,
-ez a mappa a köztes, ellenőrzött átadási forma.
+**T-601, kész:** ennek a mappának a tartalma (`manifest.json`, `entries.json`,
+`illustrations/`) be van másolva az `app/src/main/assets/knowledge/` alá, bitre
+azonos fájlokkal. A `knowledgebase/` marad a szerkesztési forrás, ez a mappa a
+köztes, ellenőrzött átadási forma, az `assets/knowledge/` pedig ennek egy **kézi,
+verziókövetett másolata** (nincs Gradle copy-task – a T-601 task mindkét lehetőséget
+megengedte, a kézi másolás egyszerűbb és auditálhatóbb, ugyanaz a minta, mint ennek a
+mappának a `convert.py`-jal való előállítása és commitolása).
+
+**Frissítés menete, ha a `knowledgebase_transfer/` tartalma változik** (új
+`convert.py` futás után):
+
+```bash
+cp knowledgebase_transfer/manifest.json app/src/main/assets/knowledge/manifest.json
+cp knowledgebase_transfer/entries.json app/src/main/assets/knowledge/entries.json
+cp knowledgebase_transfer/illustrations/*.jpg app/src/main/assets/knowledge/illustrations/
+```
+
+Ezután `./gradlew testDebugUnitTest` (lásd `app`
+`hu.kyokushin.trainer.di.KnowledgeAssetImportTest` – ez a csomagolt assetet a valódi
+`ContentImporter`-rel tölti be, nem csak a `knowledgebase_transfer/` fájlrendszeri
+elérését) és `./gradlew assembleDebug`.

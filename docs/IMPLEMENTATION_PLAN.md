@@ -18,7 +18,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | Fázis | Taskok | Mérföldkő |
 |---|---|---|
 | 2 – domain modell és kvízmotor | T-101…T-114 | **M1** – a mag igazoltan helyes ✅ **elérve** (T-114, 2026-11-11) |
-| 3 – tudástár, import, Room | T-115…T-118, T-201…T-203, T-301, T-401, T-402, T-501, T-502, T-601 | **M2** – a tartalom bent van |
+| 3 – tudástár, import, Room | T-115…T-118, T-201…T-203, T-301, T-401, T-402, T-501, T-502, T-601 | **M2** – a tartalom bent van ✅ **elérve** (T-601, 2026-11-13) |
 | 4 – Tudástár UI | T-204…T-211 | **M3** – böngészhető app ✅ **elérve** (T-209, 2026-11-12) |
 | 5 – Tanulás | T-302…T-308 | **M4** – tanulható app ✅ **elérve** (T-306/T-308, 2026-11-12) |
 | 6 – Kvíz UI | T-403…T-415 | **M5** – kvízelhető app |
@@ -88,7 +88,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | # | Lépés | Fedett követelmény | Állapot |
 |---|---|---|---|
 | 3.1 | A kanonikus séma implementálása (ADR-011): manifest + `entries`, `schema_version` string | FR-29 | ✅ **kész** – T-115: `core/data` `internal` DTO-k (`ManifestDto`, `CategoryDto`, `IllustrationDto`, `EntriesFileDto`, `EntryDto`) `@SerialName` snake_case leképezéssel és `ignoreUnknownKeys = true`, `KnowledgeAssetSource` + `AndroidKnowledgeAssetSource` (assets-olvasás, képfájllista), `KnowledgeContentReader` (`Parsed` / `Unreadable` → **V010**), DTO → `KnowledgeInput` mapper. 16 új teszt, a valódi 161 rekordon is |
-| 3.2 | A `knowledgebase/` tartalom bemásolása `app/src/main/assets/knowledge/` alá + `editorial_status` alapú `datasetTrust` (ADR-010) | CR-01, CR-03 | ⬜ |
+| 3.2 | A `knowledgebase/` tartalom bemásolása `app/src/main/assets/knowledge/` alá + `editorial_status` alapú `datasetTrust` (ADR-010) | CR-01, CR-03 | ✅ **kész** – a `datasetTrust` levezetése már a T-115/T-117-tel elkészült (`DefaultKnowledgeValidator.resolveDatasetTrust`, `core/quiz`); a hiányzó darab, a tényleges másolás, **T-601**-tel zárult (2026-11-13): a `knowledgebase_transfer/manifest.json`, `entries.json`, `illustrations/` (10 kép) bitre azonos, kézi másolata az `app/src/main/assets/knowledge/` alatt. Új teszt (`app`, `KnowledgeAssetImportTest`, 2 db) a valódi `AssetManager`-en és a teljes `ContentImporter`-en át igazolja a 161 rekord betöltését (`acceptedCount = 161`, `rejectedCount = 0`) és a verziókaput (FR-30). `assembleDebug` exit 0, az APK `assets/knowledge/` alatt tartalmazza mind a 10 képet, mérete ≈ 22,0 MiB |
 | 3.3 | `docs/KNOWLEDGE_BASE.md` kiadott változata (séma, hozzáadás, hitelesítés, licenc, migráció) | FR-30, CR-04 | ⬜ |
 | 3.4 | Room: tartalom- és felhasználói táblák, DAO-k, `@TypeConverter`-ek | DR-04, DR-07 | ✅ **kész** – T-116: `KyokushinDatabase` (`version = 1`, `exportSchema = true`), 5 tartalom- és 3 felhasználói tábla, 8 `internal` DAO (minden művelet `suspend` vagy `Flow`), `KyokushinTypeConverters` (`Instant` ↔ epoch milli, enum ↔ **név**, azonosító value classok az `of()` gyárukon át). A felhasználói táblák `techniqueId`-jén **nincs** idegen kulcs a tartalomra (ADR-004) |
 | 3.5 | `UNIQUE(sessionId, questionId)` index | FR-18 | ✅ **kész** – T-116: egyedi index a `quiz_attempt` táblán (ADR-005), `OnConflictStrategy.IGNORE` beszúrással – ütközéskor `-1` sorazonosító, nem kivétel; a sémaexport és egy in-memory adatbázison futó teszt is igazolja |
@@ -1353,3 +1353,37 @@ célképernyő) kész, csak a köztük lévő navigáció nincs.
 Következő: T-601, „A tudástár bemásolása az assets alá" (`app` modul, Fázis 3/E6) – a
 T-117 függősége teljesült; a `docs/backlog/GROUPS.md` szerinti legkisebb azonosítójú,
 kész függőségű feladat.
+
+- 2026-11-13 – **T-601 kész (Fázis 3.2 utolsó darabja, E6): a tudástár bemásolása az
+  assets alá.** A `knowledgebase_transfer/manifest.json`, `entries.json` és
+  `illustrations/` (10 kép) bitre azonos, **kézi** másolata bekerült az
+  `app/src/main/assets/knowledge/` alá (`diff`/`cmp` ellenőrizve, eltérés nélkül) – a
+  `knowledgebase/` marad a szerkesztési forrás. A másolás módja (kézi, nem Gradle-task –
+  a task mindkettőt megengedte, a kézi egyszerűbb és auditálhatóbb, ugyanaz a minta, mint
+  a `knowledgebase_transfer/` saját, `convert.py`-jal előállított és commitolt
+  mivolta) a `knowledgebase_transfer/README.md` „Hogyan kerül az appba" szakaszában és egy
+  új `app/src/main/assets/knowledge/README.md`-ben dokumentálva.
+
+  A „Kész, ha: `assembleDebug` után az app elindul és betölti a 161 rekordot" kritériumot
+  (eszköz/emulátor nélkül, B-03) egy új `app` teszt bizonyítja: `KnowledgeAssetImportTest`
+  (Robolectric, teljes Hilt-gráf – ugyanaz a minta, mint a `HiltGraphTest`, T-203), amely
+  a **valódi**, csomagolt `AssetManager`-en át meghívja a `ContentImporter.importIfNeeded()`-t:
+  `ImportResult.Imported(contentVersion = "0.1.0", acceptedCount = 161, rejectedCount = 0,
+  retiredCount = 0)`, majd a második hívás `ImportResult.UpToDate("0.1.0")` (FR-30
+  verziókapu). Ezzel az a korábban (T-115) nyitva hagyott láncszem is lezárult, hogy a
+  `core/data` `RealContentAssetSource` tesztjei addig csak a `knowledgebase_transfer/`
+  fájlrendszeri elérését, nem a tényleges csomagolt assetet ellenőrizték – a
+  `TestKnowledgeAssetSources.kt` KDoc-ja frissítve, hogy ezt tükrözze.
+
+  Új tesztek: `KnowledgeAssetImportTest` (2). `.\gradlew.bat testDebugUnitTest --rerun-tasks`
+  **exit 0** (teljes projekt, **628 teszt**, 0 hiba, 626 → 628); `.\gradlew.bat assembleDebug`
+  **exit 0** (`app-debug.apk`, ≈ 22,0 MiB – a 10 képpel +~2,2 MB, elfogadható; `unzip -l`
+  igazolja, hogy `assets/knowledge/manifest.json`, `entries.json` és mind a 10
+  `illustrations/*.jpg` a csomagolt APK-ban van).
+
+  Ezzel a **Fázis 3 (M2 – „a tartalom bent van") lezárult**: a T-115…T-118, T-201…T-203,
+  T-301, T-401, T-402, T-501, T-502 mind korábban, T-601 most elkészült.
+
+  Következő: T-602, „TR-07 rétegszabály-ellenőrzés automatizálva" (Fázis 8/E6) – a
+  T-110 függősége teljesült; a `docs/backlog/` legkisebb azonosítójú, kész függőségű
+  feladata.

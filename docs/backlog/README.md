@@ -23,7 +23,6 @@ indítja a következőt. Egyszerre mindig pontosan egy subagent fut.
 
 | Task | Cím | Epik | Modul | Méret | Függ |
 |---|---|---|---|---|---|
-| [T-601](T-601-a-tudastar-bemasolasa-az-assets-ala.md) | A tudástár bemásolása az assets alá | E6 | `app` | S | T-117 |
 | [T-602](T-602-tr-07-retegszabaly-ellenorzes-automatizalva.md) | TR-07: rétegszabály-ellenőrzés automatizálva | E6 | `core/quiz` | M | T-110 |
 | [T-603](T-603-tr-08-manifest-permission-teszt.md) | TR-08: manifest permission teszt | E6 | `app` | S | — |
 | [T-604](T-604-akadalymentessegi-atfesules.md) | Akadálymentességi átfésülés | E6 | minden feature | L | T-413, T-503 |
