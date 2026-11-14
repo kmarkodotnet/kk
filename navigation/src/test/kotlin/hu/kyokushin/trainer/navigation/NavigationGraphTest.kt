@@ -48,17 +48,17 @@ class NavigationGraphTest {
     }
 
     @Test
-    fun bottomNav_hasTheFiveSpecifiedDestinationsInOrder_NFR03_FR37() {
+    fun bottomNav_hasTheFiveSpecifiedDestinationsInOrder_NFR03_FR37_FR38() {
         val destinations = BottomNavDestination.entries
 
-        // A Főoldal (T-703, FR-37) a sor bal szélén; a többi sorrendje (és a Tudástár
-        // jobbra kerülése) a T-704 tárgya, egyelőre változatlan.
+        // T-703: Főoldal a sor bal szélén. T-704: a Tudástár a sor végére került,
+        // minden más fül eggyel balra csúszott.
         assertThat(destinations.map { it.route }).containsExactly(
             "home",
-            "library/list",
             "learn/setup",
             "quiz/setup",
             "progress/overview",
+            "library/list",
         ).inOrder()
     }
 

@@ -167,7 +167,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 9.2 | Vizuális arculat terv ("ne hasson webes űrlapnak") | FR-36 | ✅ **kész** (T-702, 2026-11-13) – `docs/DESIGN_NOTES.md` |
 | 9.2b | `core/ui`: a terv (9.2) kódba ültetése – `Typography`/`Shapes` | FR-36, CR-08 | 🔴 **nyitott** – T-712 (új, a T-702 nyomán felvett) |
 | 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | ✅ **kész** (T-703, 2026-11-14) – új `feature/home` modul |
-| 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | 🔴 **nyitott** – T-704 |
+| 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | ✅ **kész** (T-704, 2026-11-14) |
 | 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | 🔴 **nyitott** – T-705 |
 | 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | 🔴 **nyitott** – T-706 |
 | 9.7 | Illusztráció-befogadási munkafolyamat | FR-41 | 🔴 **nyitott** – T-707 |
@@ -194,8 +194,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 ## Következő lépés
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
-igénysor: a soron következő, `/dev`-del indítható feladat a **T-704** (nincs
-függősége – a T-701, T-702 és T-703 elkészültek). A T-709…T-711 szándékosan **nem**
+igénysor: a soron következő, `/dev`-del indítható feladat a **T-705** (nincs
+függősége – a T-701…T-704 elkészültek). A T-709…T-711 szándékosan **nem**
 indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
 
 <details>
@@ -1644,6 +1644,11 @@ végső kanji megmaradt. Grafikai források/promptok: `docs/INTRO_ART_PROMPTS.md
 A vízszintes kanji 180°-kal megfordult; a felállás +90° → 0°, az előzővel
 ellentétes irányú. Oldalirányú repedés, fehér háttér és végső álló kanji megmaradt.
 Videó, HTML és APK frissítve; grafikai ellenőrzés és Gradle build/test/lint exit 0.
+
+**2026-11-14 – álló deszka, ütés a lapra:** a deszka széles lapja a néző felé áll,
+az ütés x=500 pontja a látható x≈185…625 felületen belül van. A hasadás és a tűz
+balra, a lap szélességén belül fut; a kisebb vízszintes kanji a korábbi végső
+méretre növekszik a fordulás közben. A +90° → 0° forgásirány megmaradt.
 - 2026-11-14 – **T-703 kész (Fázis 9.3, E7): Kezdőoldal + Főoldal gomb.** Új
   `feature/home` modul (nincs ViewModel/Hilt – nincs megfigyelendő állapot):
   `HomeRoute`/`HomeScreen` csak a márka-kandzsit mutatja, körülötte semmi mást.
@@ -1667,3 +1672,16 @@ Videó, HTML és APK frissítve; grafikai ellenőrzés és Gradle build/test/lin
   teszt, 0 hiba (`:feature:home:assembleDebug` is lefutott). `.\gradlew.bat
   ktlintCheck lint --console=plain` **exit 0**, `feature/home` és `navigation`
   lint-jelentése üres. Soron következő: **T-704**.
+- 2026-11-14 – **T-704 kész (Fázis 9.4, E7): a Tudástár a bottom nav jobb szélén.**
+  `BottomNavDestination` enum átrendezve: `HOME`, `LEARN`, `QUIZ`, `PROGRESS`,
+  `LIBRARY` – a deklarációs sorrend maga a UI sorrend, nem kellett külön mező.
+  `NavSection`/`selectedFor` változatlan (pozíció-független, szekció szerint dönt),
+  ezért a Tudástár fül a részletezőn is kijelölve marad, csak más helyen.
+  `NavigationGraphTest` frissítve az új sorrendre.
+
+  Az első futtatás `java.io.EOFException`-nel bukott egy korábbi, megszakított
+  buildből maradt sérült Kotlin-inkrementális/teszt-cache miatt (nem kódhiba) –
+  `gradlew --stop` + egy célzott `--rerun-tasks` helyreállította, lásd
+  `docs/CONVENTIONS.md` 7. szakasz új sora. `.\gradlew.bat testDebugUnitTest
+  assembleDebug ktlintCheck lint --console=plain` utána **exit 0**, 648 teszt,
+  0 hiba, `navigation` lint-jelentése üres. Soron következő: **T-705**.

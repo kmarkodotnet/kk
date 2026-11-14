@@ -3695,6 +3695,25 @@ suite, release build. A letölthető APK debug build.
 - Eszközteszt ebben a kizárólag grafikai körben **NEM FUTOTT újra**; az indítás,
   befejezés és átugrás Kotlin-kódja nem változott.
 
+### 2026-11-14 – Álló deszka, ütés a széles lapra
+
+- `python tools/build_intro.py` → exit 0; `node tools/preview_intro.mjs --video`
+  → exit 0, új WebM (5 658 366 bájt). A deszka álló helyzetű, az ütés x=500
+  pontja a lap belsejében van. A kanji kezdőmérete a keskenyebb laphoz igazodik.
+- `node tools/preview_intro.mjs` → exit 0: a korábbi háttér/terjedés/fordulás
+  ellenőrzéseken túl barna faanyag a lap felső/alsó részén és az ütéspont
+  mind a négy oldalán, 80 px távolságban. Az ütés tehát nem a deszka élén van.
+  A 3,35 és 7 mp-es képkockák vizuálisan ellenőrizve.
+- `.\gradlew.bat assembleDebug --console=plain` → exit 0,
+  `BUILD SUCCESSFUL in 11s`. Az APK frissítve az output mappában.
+- A kombinált `testDebugUnitTest assembleDebug :app:lintDebug :app:ktlintCheck`
+  ellenőrzés kétszer exit 1: először `kspDebugUnitTestKotlin`
+  `StreamCorruptedException: unexpected EOF`, majd `testDebugUnitTest`
+  `NoSuchFileException: in-progress-results-generic.bin`. Ez a kör **nem** jelent
+  sikeres teljes unit tesztfutást. A munkakönyvtárban közben egyéb buildkonfigurációs
+  változás is megjelent; más folyamatot vagy gyorsítótárat nem töröltünk.
+- Eszközteszt ebben a grafikai körben **NEM FUTOTT újra**.
+
 ---
 
 ## 2026-11-14 – T-703 (Kezdőoldal + Főoldal gomb, Fázis 9.3 bővítési backlog)
@@ -3715,3 +3734,17 @@ komponenst hívja).
 lefutott más körben, lásd fentebb – azt nem futtattam újra ebben a körben, mert a
 Kezdőoldal maga `@Preview`-val és a sima JVM `NavigationGraphTest`-tel már igazolt,
 és nem érintette az intro saját tesztjét).
+
+---
+
+## 2026-11-14 – T-704 (Tudástár a bottom nav jobb szélén, Fázis 9.4 bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest assembleDebug ktlintCheck lint --console=plain` | 1 → 0 | Első futás `java.io.EOFException`-nel bukott (`:navigation:compileDebugUnitTestKotlin` inkrementális tároló, majd `:app:testDebugUnitTest`) – sérült, korábbi megszakított buildből maradt cache-állapot, nem kódhiba. `gradlew --stop` + `:app:testDebugUnitTest --rerun-tasks --stacktrace` (`BUILD SUCCESSFUL in 1m 10s`, 210/210 feladat futott) helyreállította; az ismételt teljes parancs utána **exit 0**, `BUILD SUCCESSFUL`, 648 teszt, 0 hiba, `navigation` lint-jelentése üres. |
+
+Érintett modul: `navigation` (`BottomNavDestination` sorrend, `NavigationGraphTest`).
+
+**NEM FUTOTT:** emulátoros navigációs próba (a sorrendváltás pozíció-független
+`selectedFor` logikáját a meglévő `bottomNav_keepsTheOwningTabSelectedOnDeeperScreens_NFR03`
+JVM teszt már lefedi, a task saját `Teszt` mezője sem kér emulátoros ellenőrzést).

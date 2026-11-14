@@ -255,6 +255,14 @@ hogy a mesterprompt felülvizsgálata a felhasználó döntése.
 - A `ktlintFormat` forrást módosít: külön fejezd be, mielőtt fordítást indítasz.
   Windows Gradle cache-lock esetén ne töröld a cache-t; a szabályos `gradlew --stop`
   után egyetlen buildfolyamatot indíts.
+- Egy másik, hasonló tünetű Gradle-hiba (T-704): `java.io.EOFException` a Kotlin
+  inkrementális fordító tárolójából (`:navigation:compileDebugUnitTestKotlin`) vagy
+  magából a tesztfeladatból (`:app:testDebugUnitTest`) – ez is korábbi, megszakított
+  vagy párhuzamos buildekből maradt, sérült inkrementális/cache állapot, nem
+  kódhiba. A `gradlew --stop` önmagában nem mindig elég; a konkrét, bukó feladatra
+  futtatott `--rerun-tasks` (pl. `:app:testDebugUnitTest --rerun-tasks`) kényszeríti
+  ki a friss, sérülésmentes újraszámítást, utána a normál (gyorsítótárazott)
+  parancs is zölden megy.
 - Egy valós idejű WebView-intro vizsgálatakor a Compose/Espresso idle-várakozás
   elnyelheti a lejátszás közbeni állapotot. Az `IntroFlowTest` közvetlen Android
   accessibility-lekérdezést és valódi időt használ, nem Compose-órával próbálja

@@ -3,7 +3,8 @@ package hu.kyokushin.trainer.navigation
 import androidx.annotation.StringRes
 
 /**
- * A bottom navigation négy célja, megjelenési sorrendben (FUNCTIONAL_SPEC 1.).
+ * A bottom navigation öt célja, megjelenési sorrendben: Főoldal, Tanulás, Kvíz,
+ * Haladás, Tudástár (FUNCTIONAL_SPEC 1. + T-703/T-704, FR-37/FR-38 bővítés).
  *
  * Minden fülhöz egy kezdőképernyő tartozik; a fül akkor kijelölt, ha az éppen látható
  * képernyő ugyanabba a [NavSection] szakaszba esik. Így a Tudástár fül a részletező
@@ -22,13 +23,17 @@ enum class BottomNavDestination(
 ) {
     /**
      * A sor bal szélén (T-703, FR-37) – bármelyik fülről ide vezet vissza a felhasználó.
-     * A többi fül sorrendje (és a Tudástár jobbra kerülése) a T-704 tárgya.
      */
     HOME(KyokushinScreen.HOME, R.string.nav_home),
-    LIBRARY(KyokushinScreen.LIBRARY_LIST, R.string.nav_library),
     LEARN(KyokushinScreen.LEARN_SETUP, R.string.nav_learn),
     QUIZ(KyokushinScreen.QUIZ_SETUP, R.string.nav_quiz),
     PROGRESS(KyokushinScreen.PROGRESS_OVERVIEW, R.string.nav_progress),
+
+    /**
+     * A sor jobb szélén (T-704, FR-38) – a napi szintű funkciók (Tanulás, Kvíz,
+     * Haladás) a Főoldal után következnek, a Tudástár a sor végére került.
+     */
+    LIBRARY(KyokushinScreen.LIBRARY_LIST, R.string.nav_library),
     ;
 
     /** A fül útvonala – ide navigál a megnyomása. */
