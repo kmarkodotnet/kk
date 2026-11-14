@@ -28,14 +28,20 @@ import hu.kyokushin.trainer.core.ui.R as CoreUiR
 
 /**
  * A tanulás-beállító képernyő állapotkezelése (FR-06, FR-07, FUNCTIONAL_SPEC 4.1, US-09,
- * US-10, G-04 csoport).
+ * US-10, G-04 csoport; a kategória-drill-down T-705, FR-39).
  *
  * ## Mit tesz, és mit nem
  *
- * Négy bemenetből (tartalomimport állapota, kijelölt kategóriák, elrejtési mód, a
- * tartalom) állít elő egyetlen [LearnSetupUiState]-et – ugyanaz a mintázat, mint a
- * [hu.kyokushin.trainer.feature.library.list.LibraryListViewModel]-nél (T-207), csak
- * keresés és debounce nélkül: itt nincs szabad szöveges szűrés.
+ * Öt bemenetből (tartalomimport állapota, kijelölt kategóriák, elrejtési mód, a böngészött
+ * kategória, a tartalom) állít elő egyetlen [LearnSetupUiState]-et – ugyanaz a mintázat,
+ * mint a [hu.kyokushin.trainer.feature.library.list.LibraryListViewModel]-nél (T-207),
+ * csak keresés és debounce nélkül: itt nincs szabad szöveges szűrés.
+ *
+ * A böngészött kategória (T-705) **nem** egy új Navigation Compose route – a
+ * kategóriarács és egy adott kategória technikalistája ugyanazon a képernyőn, a
+ * [LearnSetupUiState.Content.drillDown] mező ki-/betöltésével vált, pontosan úgy, mint a
+ * Tudástár lista keresése/szűrése. Lásd [LearnCategoryDrillDownUiState] KDoc-ja a
+ * "miért kategória-szintű marad a kijelölés" tervezési döntésért.
  *
  * ### A kijelölés itt NEM szűrő, hanem kötelező választás
  *
@@ -90,9 +96,18 @@ class LearnSetupViewModel
             savedStateHandle.getStateFlow(KEY_HIDE_MODE, DEFAULT_HIDE_MODE.name)
                 .map { raw -> runCatching { HideMode.valueOf(raw) }.getOrDefault(DEFAULT_HIDE_MODE) }
 
+        /**
+         * A böngészett kategória azonosítója, vagy `null`, ha a kategóriarácsot látjuk
+         * (T-705, FR-39). `""` jelenti a "nincs drill-down" állapotot a `Bundle`-kompatibilis
+         * `String` tárolásban – a `getStateFlow` maga nem fogad el `null` alapértéket.
+         */
+        private val drillDownCategoryFlow: Flow<CategoryId?> =
+            savedStateHandle.getStateFlow(KEY_DRILLDOWN_CATEGORY, "")
+                .map { raw -> raw.takeIf { it.isNotEmpty() }?.let(CategoryId::of) }
+
         private val selectionFlow: Flow<SetupSelection> =
-            combine(selectedCategoriesFlow, hideModeFlow) { selected, hideMode ->
-                SetupSelection(selected, hideMode)
+            combine(selectedCategoriesFlow, hideModeFlow, drillDownCategoryFlow) { selected, hideMode, drillDown ->
+                SetupSelection(selected, hideMode, drillDown)
             }
 
         /** A képernyő állapota. */
@@ -130,6 +145,19 @@ class LearnSetupViewModel
         /** Az elrejtési mód kiválasztása (FR-07, FUNCTIONAL_SPEC 4.1/3.). */
         fun onSelectHideMode(hideMode: HideMode) {
             savedStateHandle[KEY_HIDE_MODE] = hideMode.name
+        }
+
+        /**
+         * Egy kategória technikalistájának megnyitása (T-705, FR-39) – a kategóriarács
+         * helyett ennek a kategóriának a böngészhető listáját mutatja a UI.
+         */
+        fun onOpenCategory(categoryId: CategoryId) {
+            savedStateHandle[KEY_DRILLDOWN_CATEGORY] = categoryId.value
+        }
+
+        /** Vissza a kategóriarácsra (T-705) – a vissza gomb és a rendszer vissza gombja hívja. */
+        fun onCloseDrillDown() {
+            savedStateHandle[KEY_DRILLDOWN_CATEGORY] = ""
         }
 
         /** „Újra" az `Error` állapotból: a betöltés újraindul. */
@@ -187,6 +215,24 @@ class LearnSetupViewModel
                 else -> R.string.learn_setup_start_disabled_no_technique
             }
 
+            // A drill-down egy korábban megnyitott, de azóta eltűnt kategóriára is
+            // mutathatna (pl. tartalomfrissítés) – ilyenkor csendesen visszaesik a
+            // kategóriarácsra, nem omlik össze (ugyanaz az elv, mint a `forRoutePattern`
+            // ismeretlen útvonalra adott válasza).
+            val drillDownCategory = selection.drillDownCategoryId
+                ?.let { id -> orderedCategories.firstOrNull { it.id == id } }
+            val drillDown = drillDownCategory?.let { category ->
+                LearnCategoryDrillDownUiState(
+                    categoryId = category.id,
+                    categoryName = category.nameHu,
+                    techniques = techniques
+                        .filter { it.categoryId == category.id }
+                        .sortedBy { it.romaji }
+                        .map { LearnTechniqueUiModel(id = it.id, romaji = it.romaji, hungarian = it.hungarian) },
+                    selected = category.id in selection.selectedCategories,
+                )
+            }
+
             return LearnSetupUiState.Content(
                 categories = categoryModels,
                 selectedCategories = selection.selectedCategories,
@@ -194,21 +240,24 @@ class LearnSetupViewModel
                 canStart = canStart,
                 disabledReasonRes = disabledReasonRes,
                 datasetTrust = contentState.datasetTrust,
+                drillDown = drillDown,
             )
         }
 
         /** A tartalombetöltés szakasza. */
         private enum class ImportPhase { RUNNING, DONE, FAILED }
 
-        /** A kijelölt kategóriák és az elrejtési mód egy csomagban. */
+        /** A kijelölt kategóriák, az elrejtési mód és a böngészett kategória egy csomagban. */
         private data class SetupSelection(
             val selectedCategories: Set<CategoryId>,
             val hideMode: HideMode,
+            val drillDownCategoryId: CategoryId?,
         )
 
         companion object {
             private const val KEY_SELECTED_CATEGORIES = "learn.setup.categories"
             private const val KEY_HIDE_MODE = "learn.setup.hideMode"
+            private const val KEY_DRILLDOWN_CATEGORY = "learn.setup.drillDownCategory"
 
             /**
              * Alapértelmezett elrejtési mód, amíg a felhasználó nem választott: a japán név

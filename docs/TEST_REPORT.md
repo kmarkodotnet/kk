@@ -3714,6 +3714,22 @@ suite, release build. A letölthető APK debug build.
   változás is megjelent; más folyamatot vagy gyorsítótárat nem töröltünk.
 - Eszközteszt ebben a grafikai körben **NEM FUTOTT újra**.
 
+### 2026-11-14 – Képszélig érő deszka, teljes repedésrajz a tűz előtt
+
+- `python tools/build_intro.py` → exit 0; `node tools/preview_intro.mjs --video`
+  → exit 0, a friss HTML és WebM elkészült.
+- `node tools/preview_intro.mjs` → exit 0: a fa eléri a felső, alsó és bal
+  képszélt; az ütés a lap belsejében marad; mind a 168 középvonalág sötét repedést
+  ad a 4,2 mp-es külön vizsgálatban. Az 5,2 mp-es tűzréteg teljesen üres.
+  A fehér szabad háttér, a balra terjedés és a +90° → 0° forgás ellenőrzése is PASS.
+- Vizuálisan ellenőrizve az 1,8 és 4,5 mp-es képkocka: teljes képmagasságú fa,
+  bal szélen nincs rés, az összes alapvonal először sötét törésként látszik.
+  A teljes repedés 3,8 mp-nél kész, a tűz csak 5,4 mp-nél indul.
+- `.\gradlew.bat assembleDebug --console=plain` → exit 0,
+  `BUILD SUCCESSFUL in 1s`. A friss APK az output mappába másolva.
+- Unit/connected tesztek ebben a grafikai körben **NEM FUTOTTAK újra**;
+  a változás a csomagolt rajzolást és annak ellenőrző eszközét érinti.
+
 ---
 
 ## 2026-11-14 – T-703 (Kezdőoldal + Főoldal gomb, Fázis 9.3 bővítési backlog)
@@ -3748,3 +3764,21 @@ Kezdőoldal maga `@Preview`-val és a sima JVM `NavigationGraphTest`-tel már ig
 **NEM FUTOTT:** emulátoros navigációs próba (a sorrendváltás pozíció-független
 `selectedFor` logikáját a meglévő `bottomNav_keepsTheOwningTabSelectedOnDeeperScreens_NFR03`
 JVM teszt már lefedi, a task saját `Teszt` mezője sem kér emulátoros ellenőrzést).
+
+---
+
+## 2026-11-14 – T-705 (kategória-ikonok és technikalista drill-down, Fázis 9.5 bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL`; 656 teszt összesen (648 → +8: 5 `LearnSetupViewModelTest` + 3 `CategoryIconTest`), 0 hiba. |
+| `.\gradlew.bat ktlintCheck lint --console=plain` | 0 | `BUILD SUCCESSFUL`; `core/ui` és `feature/learn` lint-jelentése is 0 találat. |
+
+Érintett modulok: `core/ui` (új `categoryIcon()` + `material-icons-extended`
+függőség felvétele), `feature/learn` (`LearnSetupUiState`/`ViewModel`/`Screen`
+drill-down állapot, `androidx.activity.compose` függőség a `BackHandler`-hez).
+
+**NEM FUTOTT:** emulátoros vizuális ellenőrzés – nem volt futó emulátor ebben a
+körben, és a task saját `Teszt` mezője csak ViewModel tesztet és `@Preview`-t kér.
+A tényleges megjelenés igazolása a `@Preview`-k (hat állapot, világos/sötét) és a
+lint/ktlint tiszta futása, nem kézi eszközpróba.

@@ -168,7 +168,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 9.2b | `core/ui`: a terv (9.2) kódba ültetése – `Typography`/`Shapes` | FR-36, CR-08 | 🔴 **nyitott** – T-712 (új, a T-702 nyomán felvett) |
 | 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | ✅ **kész** (T-703, 2026-11-14) – új `feature/home` modul |
 | 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | ✅ **kész** (T-704, 2026-11-14) |
-| 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | 🔴 **nyitott** – T-705 |
+| 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | ✅ **kész** (T-705, 2026-11-14) |
 | 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | 🔴 **nyitott** – T-706 |
 | 9.7 | Illusztráció-befogadási munkafolyamat | FR-41 | 🔴 **nyitott** – T-707 |
 | 9.8 | Fordítások ellenőrzése hiteles forrásokból | FR-42 | 🔴 **nyitott** – T-708 |
@@ -194,8 +194,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 ## Következő lépés
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
-igénysor: a soron következő, `/dev`-del indítható feladat a **T-705** (nincs
-függősége – a T-701…T-704 elkészültek). A T-709…T-711 szándékosan **nem**
+igénysor: a soron következő, `/dev`-del indítható feladat a **T-706** (nincs
+függősége – a T-701…T-705 elkészültek). A T-709…T-711 szándékosan **nem**
 indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
 
 <details>
@@ -1649,6 +1649,11 @@ Videó, HTML és APK frissítve; grafikai ellenőrzés és Gradle build/test/lin
 az ütés x=500 pontja a látható x≈185…625 felületen belül van. A hasadás és a tűz
 balra, a lap szélességén belül fut; a kisebb vízszintes kanji a korábbi végső
 méretre növekszik a fordulás közben. A +90° → 0° forgásirány megmaradt.
+
+**2026-11-14 – teljes magasságú deszka és repedési szünet:** a deszka túlér a
+felső, alsó és bal képszélen. A kanji nagyobb kezdőmérettel jelenik meg; az összes
+alapvonala 3,8 mp-re sötét repedés, a kék energia 5,4 mp-től indul. A grafikai
+ellenőrzés mind a 168 ágat igazolja. Videó/HTML/APK frissítve, build exit 0.
 - 2026-11-14 – **T-703 kész (Fázis 9.3, E7): Kezdőoldal + Főoldal gomb.** Új
   `feature/home` modul (nincs ViewModel/Hilt – nincs megfigyelendő állapot):
   `HomeRoute`/`HomeScreen` csak a márka-kandzsit mutatja, körülötte semmi mást.
@@ -1685,3 +1690,26 @@ méretre növekszik a fordulás közben. A +90° → 0° forgásirány megmaradt
   `docs/CONVENTIONS.md` 7. szakasz új sora. `.\gradlew.bat testDebugUnitTest
   assembleDebug ktlintCheck lint --console=plain` utána **exit 0**, 648 teszt,
   0 hiba, `navigation` lint-jelentése üres. Soron következő: **T-705**.
+- 2026-11-14 – **T-705 kész (Fázis 9.5, E7): kategória-ikonok és technikalista
+  drill-down a Tanulásban.** Új `core/ui` `categoryIcon(categoryId)` – a 9 valós
+  kategória mindegyike egy semleges, geometrikus Material-ikont kap (nem egy
+  mozdulatot ábrázoló piktogram, CR-08 + `docs/DESIGN_NOTES.md`), ismeretlen
+  kategória a `Icons.Filled.Category` helyőrzőt kapja. A `learn/setup` checkbox-
+  listája kategóriakártya-rácsra cserélve; egy kártyára koppintva megnyílik az adott
+  kategória technikalistája (`LearnSetupUiState.Content.drillDown`), ahonnan egy
+  gombbal ki-/bekapcsolható a teljes kategória.
+
+  **Tervezési döntés (dokumentálva a kódban):** a kijelölés **kategória-szinten**
+  maradt, nem vált technika-szintűvé – a task fejlécének modulhatára
+  (`feature/learn, core/ui`) és a `LearnCardsViewModel`/`navigation` szerződésének
+  érintetlenül hagyása indokolta; az US-09 "több kategória egyszerre" folytonossága
+  így is megmaradt (`selectedCategories` változatlan). A kategóriakártya ikonja
+  szándékosan dekoratív (`contentDescription = null`) a `docs/CONVENTIONS.md`
+  "ne duplikáld a TalkBack-bejelentést" szabálya szerint, nem a task szó szerinti
+  "contentDescription minden ikonra" megfogalmazása szerint – a kijelölt állapotot
+  `stateDescription` jelzi.
+
+  `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**, 656
+  teszt (648 → +8), 0 hiba. `.\gradlew.bat ktlintCheck lint --console=plain`
+  **exit 0**, `core/ui` és `feature/learn` lint-jelentése üres. Emulátoros vizuális
+  ellenőrzés nem futott (nem volt tárgya a tasknak). Soron következő: **T-706**.

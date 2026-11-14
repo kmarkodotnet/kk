@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.navigation.compose)
+    // A kategória-technikalista drill-down (T-705) rendszer vissza gombja a
+    // `BackHandler`-t használja, ugyanúgy, mint a `feature/quiz` a kvíz bezárásánál.
+    implementation(libs.androidx.activity.compose)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

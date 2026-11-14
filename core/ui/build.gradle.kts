@@ -44,6 +44,10 @@ dependencies {
     api(libs.compose.material3)
     api(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
+    // Semleges kategória-ikonok (T-705, FR-39) – csak a `categoryIcon()` implementációja
+    // látja közvetlenül az `Icons.Filled.*` típusokat, a hívók csak egy `ImageVector`-t
+    // kapnak vissza, ezért `implementation`, nem `api`.
+    implementation(libs.compose.material.icons.extended)
 
     // `api`, nem `implementation`: a megosztott komponensek publikus API-ja `@StringRes`
     // annotált erőforrás-azonosítókat hordoz (`TechniqueField`, `EmptyStateReason`), és

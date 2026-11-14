@@ -286,6 +286,90 @@ class LearnSetupViewModelTest {
         restoredJob.cancel()
     }
 
+    // ------------------------------------------------------- kategória-drilldown / FR-39
+
+    @Test
+    fun learnSetup_openingCategory_showsItsTechniquesInDrillDown_FR39() = runTest {
+        val viewModel = viewModel()
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onOpenCategory(CategoryId.of("dachi"))
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as LearnSetupUiState.Content
+        val drillDown = checkNotNull(content.drillDown)
+        assertThat(drillDown.categoryId).isEqualTo(CategoryId.of("dachi"))
+        assertThat(drillDown.categoryName).isEqualTo("Állások")
+        // Romaji szerint rendezve (ABC sorrend), nem a betöltési sorrendben.
+        assertThat(drillDown.techniques.map { it.romaji })
+            .containsExactly("Fudo Dachi", "Heisoku Dachi").inOrder()
+        job.cancel()
+    }
+
+    @Test
+    fun learnSetup_drillDown_reflectsWhetherTheCategoryIsSelected_FR39() = runTest {
+        val viewModel = viewModel()
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onOpenCategory(CategoryId.of("dachi"))
+        advanceUntilIdle()
+        assertThat((viewModel.uiState.value as LearnSetupUiState.Content).drillDown?.selected).isFalse()
+
+        viewModel.onToggleCategory(CategoryId.of("dachi"))
+        advanceUntilIdle()
+        assertThat((viewModel.uiState.value as LearnSetupUiState.Content).drillDown?.selected).isTrue()
+        job.cancel()
+    }
+
+    @Test
+    fun learnSetup_closingDrillDown_returnsToTheGrid_FR39() = runTest {
+        val viewModel = viewModel()
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onOpenCategory(CategoryId.of("dachi"))
+        advanceUntilIdle()
+        assertThat((viewModel.uiState.value as LearnSetupUiState.Content).drillDown).isNotNull()
+
+        viewModel.onCloseDrillDown()
+        advanceUntilIdle()
+        assertThat((viewModel.uiState.value as LearnSetupUiState.Content).drillDown).isNull()
+        job.cancel()
+    }
+
+    @Test
+    fun learnSetup_drillDown_survivesSavedStateHandleRestore_FR39() = runTest {
+        val handle = SavedStateHandle()
+        val first = viewModel(savedStateHandle = handle)
+        val firstJob = collectState(first)
+        advanceUntilIdle()
+
+        first.onOpenCategory(CategoryId.of("tsuki"))
+        advanceUntilIdle()
+        firstJob.cancel()
+
+        val restored = viewModel(savedStateHandle = handle)
+        val restoredJob = collectState(restored)
+        advanceUntilIdle()
+
+        val content = restored.uiState.value as LearnSetupUiState.Content
+        assertThat(content.drillDown?.categoryId).isEqualTo(CategoryId.of("tsuki"))
+        restoredJob.cancel()
+    }
+
+    @Test
+    fun learnSetup_noCategoryOpened_drillDownIsNull_FR39() = runTest {
+        val viewModel = viewModel()
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as LearnSetupUiState.Content
+        assertThat(content.drillDown).isNull()
+        job.cancel()
+    }
+
     // ----------------------------------------------------------------------- segédek
 
     private fun TestScope.viewModel(

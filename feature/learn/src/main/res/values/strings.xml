@@ -10,6 +10,18 @@
     <string name="learn_setup_categories_title">Kategóriák</string>
     <!-- Egy kategória sorának találatszáma: pl. „12 technika" (FUNCTIONAL_SPEC 4.1/2.). -->
     <string name="learn_setup_category_count">%1$d technika</string>
+    <!--
+        T-705 (FR-39): a kategóriakártya `stateDescription`-je, ha ki van jelölve – a
+        TalkBack a kártya nevét/darabszámát követően mondja ki. Lásd `CategoryCard` KDoc-ja
+        arról, miért nincs külön `contentDescription` az ikonon.
+    -->
+    <string name="learn_setup_category_a11y_selected">kiválasztva</string>
+
+    <!-- Kategória-drill-down (T-705, FR-39): egy kategória technikalistájának böngészése. -->
+    <string name="learn_setup_drilldown_back">Vissza a kategóriákhoz</string>
+    <string name="learn_setup_drilldown_empty">Ebben a kategóriában nincs megjeleníthető technika.</string>
+    <string name="learn_setup_drilldown_select">Kiválasztás a tanuláshoz</string>
+    <string name="learn_setup_drilldown_selected">Kiválasztva a tanuláshoz</string>
 
     <string name="learn_setup_hide_mode_title">Mit rejtsünk el?</string>
     <string name="learn_setup_hide_japanese">Japán nevet rejtse el</string>
