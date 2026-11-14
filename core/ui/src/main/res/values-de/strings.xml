@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deutsche Übersetzung der UI-Texte (FR-43, ADR-013). Die ungarische `values/` bleibt der Fallback. -->
+<resources>
+
+    <string name="kyo_kanji_content_description">Kyokushin Karate Trainer Emblem</string>
+
+    <string name="illustration_a11y_technique">%1$s – Abbildung von %2$s</string>
+    <string name="illustration_a11y_quiz_option">Abbildung zur Antwortmöglichkeit %1$d</string>
+    <string name="illustration_a11y_quiz_prompt">Die Abbildung der Quizfrage</string>
+    <string name="illustration_a11y_placeholder">Für diese Technik gibt es noch keine Abbildung</string>
+
+    <string name="illustration_placeholder_label">Abbildung in Vorbereitung</string>
+    <string name="illustration_awaiting_review">Das Bild wartet auf fachliche Überprüfung</string>
+
+    <string name="content_unverified">Überprüfung ausstehend</string>
+    <string name="content_incomplete">Unvollständig</string>
+    <string name="content_incomplete_missing_fields">Fehlende Felder: %1$s</string>
+    <string name="content_incomplete_missing_fields_separator">", "</string>
+
+    <string name="content_field_romaji">Romaji-Name</string>
+    <string name="content_field_hungarian">ungarische Bedeutung</string>
+    <string name="content_field_category">Kategorie</string>
+    <string name="content_field_illustration">Abbildung</string>
+    <string name="content_field_japanese_script">japanische Schrift</string>
+    <string name="content_field_description">Beschreibung</string>
+
+    <string name="content_unreviewed_banner">Nicht lektoriertes Übungsmaterial – der Inhalt wartet auf fachliche Überprüfung.</string>
+
+    <string name="empty_library_no_content">Die Wissensdatenbank ist leer. Der Inhalt konnte nicht geladen werden.</string>
+    <string name="empty_library_no_result">Keine Treffer für „%1$s“.</string>
+    <string name="empty_progress_no_data">Noch keine Daten. Starte ein Quiz!</string>
+    <string name="empty_quiz_not_enough_data">Mit den gewählten Einstellungen kann kein Quiz zusammengestellt werden. Wähle mehr Kategorien, aktiviere mehr Fragetypen oder verringere die Fragenanzahl.</string>
+
+    <string name="empty_action_diagnostics">Diagnose</string>
+    <string name="empty_action_clear_filters">Filter zurücksetzen</string>
+
+    <string name="error_load_failed">Der Inhalt konnte nicht geladen werden.</string>
+    <string name="error_action_retry">Erneut versuchen</string>
+
+</resources>

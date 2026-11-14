@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deutsche Übersetzung der UI-Texte (FR-43, ADR-013). Die ungarische `values/` bleibt der Fallback. -->
+<resources>
+
+    <string name="nav_home">Start</string>
+    <string name="nav_library">Wissensdatenbank</string>
+    <string name="nav_learn">Lernen</string>
+    <string name="nav_quiz">Quiz</string>
+    <string name="nav_progress">Fortschritt</string>
+
+    <string name="nav_a11y_back">Zurück</string>
+
+    <string name="nav_title_home">Start</string>
+    <string name="nav_title_library_list">Wissensdatenbank</string>
+    <string name="nav_title_library_detail">Technik</string>
+    <string name="nav_title_learn_setup">Lernen</string>
+    <string name="nav_title_learn_cards">Lernkarten</string>
+    <string name="nav_title_quiz_setup">Quiz</string>
+    <string name="nav_title_quiz_run">Quiz läuft</string>
+    <string name="nav_title_quiz_result">Quizergebnis</string>
+    <string name="nav_title_progress_overview">Fortschritt</string>
+    <string name="nav_title_progress_technique">Fortschritt der Technik</string>
+    <string name="nav_title_settings">Einstellungen</string>
+
+    <string name="nav_placeholder_notice">Dieser Bildschirm befindet sich noch in der Entwicklung. Das Navigationsgerüst funktioniert; der Inhalt entsteht in den nächsten Entwicklungsschritten.</string>
+    <string name="nav_placeholder_argument">Übergebene Kennung: %1$s</string>
+
+    <string name="nav_placeholder_open_technique">Technik öffnen</string>
+    <string name="nav_placeholder_start_cards">Karten starten</string>
+    <string name="nav_placeholder_start_quiz">Quiz starten</string>
+    <string name="nav_placeholder_finish_quiz">Quiz beenden</string>
+    <string name="nav_placeholder_back_to_quiz_setup">Zurück zu den Quiz-Einstellungen</string>
+    <string name="nav_placeholder_open_technique_progress">Fortschritt der Technik</string>
+    <string name="nav_placeholder_open_settings">Einstellungen</string>
+
+    <string name="nav_title_diagnostics">Inhaltsdiagnose</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English UI chrome translation (FR-43, ADR-013). Hungarian `values/` stays the fallback. -->
+<resources>
+    <string name="app_name">Kyokushin Trainer</string>
+    <string name="intro_skip">Skip animation</string>
+</resources>

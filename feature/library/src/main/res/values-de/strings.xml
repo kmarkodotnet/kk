@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deutsche Übersetzung der UI-Texte (FR-43, ADR-013). Die ungarische `values/` bleibt der Fallback. -->
+<resources>
+
+    <!--
+        Die Suche selbst sucht weiterhin nur nach Romaji/ungarischem Namen (FR-03,
+        search_romaji/search_hungarian, ADR-012) – diese Aufgabe fügt keine
+        sprachspezifischen Suchspalten hinzu, der Hinweis bleibt also bei der
+        tatsächlichen Suchlogik, nicht bei der Anzeigesprache.
+    -->
+    <string name="library_search_hint">Suche nach Romaji- oder ungarischem Namen</string>
+    <string name="library_search_clear">Suche löschen</string>
+
+    <string name="library_filter_all">Alle</string>
+    <string name="library_filter_count">%1$s (%2$d)</string>
+
+    <string name="library_matched_alias">Treffer: %1$s</string>
+
+    <string name="library_detail_aliases">Auch bekannt als: %1$s</string>
+
+    <string name="library_detail_quiz_excluded_notice">Dieser Eintrag ist unvollständig und kann daher nicht in einer Quizfrage verwendet werden.</string>
+
+    <string name="library_detail_not_found">Diese Technik wurde in der Wissensdatenbank nicht gefunden.</string>
+
+</resources>

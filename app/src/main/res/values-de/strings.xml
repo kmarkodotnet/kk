@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deutsche Übersetzung der UI-Texte (FR-43, ADR-013). Die ungarische `values/` bleibt der Fallback. -->
+<resources>
+    <string name="app_name">Kyokushin Trainer</string>
+    <string name="intro_skip">Animation überspringen</string>
+</resources>

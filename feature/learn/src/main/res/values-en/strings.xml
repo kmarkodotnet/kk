@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English UI chrome translation (FR-43, ADR-013). Hungarian `values/` stays the fallback. -->
+<resources>
+
+    <string name="learn_setup_categories_title">Categories</string>
+    <string name="learn_setup_category_count">%1$d techniques</string>
+    <string name="learn_setup_category_a11y_selected">selected</string>
+
+    <string name="learn_setup_drilldown_back">Back to categories</string>
+    <string name="learn_setup_drilldown_empty">There are no techniques to show in this category.</string>
+    <string name="learn_setup_drilldown_select">Select for learning</string>
+    <string name="learn_setup_drilldown_selected">Selected for learning</string>
+
+    <string name="learn_setup_start">Start cards</string>
+
+    <string name="learn_setup_start_disabled_no_category">Choose at least one category to start the cards.</string>
+    <string name="learn_setup_start_disabled_no_technique">There are no techniques to show in the selected categories.</string>
+
+    <string name="learn_cards_position_of_total">%1$d / %2$d</string>
+    <string name="learn_cards_a11y_close">Close</string>
+
+    <!--
+        T-706/FR-40 tab labels: the value names the LOCAL/meaning-language side of the
+        card shown under this locale, not literally "Hungarian" – it must match whatever
+        `localizedName()` actually resolves to on this screen (ADR-013).
+    -->
+    <string name="learn_cards_tab_japanese">Japanese names</string>
+    <string name="learn_cards_tab_hungarian">English names</string>
+
+    <string name="learn_cards_reveal_prompt">Tap to reveal</string>
+    <string name="learn_cards_a11y_state_hidden">hidden</string>
+    <string name="learn_cards_a11y_state_revealed">revealed</string>
+
+    <string name="learn_cards_previous">Previous</string>
+    <string name="learn_cards_next">Next</string>
+
+    <string name="learn_cards_self_rate_knew">I knew it</string>
+    <string name="learn_cards_self_rate_needs_practice">I need practice</string>
+    <string name="learn_cards_self_rate_disabled_reason">Reveal the card first to be able to self-rate.</string>
+
+    <string name="learn_cards_image_hidden_title">The image is still hidden</string>
+    <string name="learn_cards_image_hidden_explanation">This illustration shows the technique\'s name, so it\'s only visible after you reveal the card.</string>
+
+    <string name="learn_cards_empty_message">There are no techniques to show in the selected categories.</string>
+    <string name="learn_cards_empty_action">Back to settings</string>
+
+    <string name="learn_cards_finished_title">You went through %1$d cards.</string>
+    <string name="learn_cards_finished_restart">Start over</string>
+    <string name="learn_cards_finished_back_to_setup">Back to settings</string>
+    <string name="learn_cards_finished_start_quiz">Start a quiz with these categories</string>
+
+</resources>

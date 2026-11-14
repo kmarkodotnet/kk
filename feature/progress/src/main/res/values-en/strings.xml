@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English UI chrome translation (FR-43, ADR-013). Hungarian `values/` stays the fallback. -->
+<resources>
+
+    <string name="progress_overview_no_data_message">No data yet. Start a quiz!</string>
+
+    <string name="progress_overview_start_quiz">Start quiz</string>
+
+    <string name="progress_overview_score_fraction">%1$d / %2$d correct</string>
+    <string name="progress_overview_score_percent">Success rate: %1$d%%</string>
+
+    <string name="progress_overview_categories_title">Breakdown by category</string>
+
+    <string name="progress_overview_category_no_data">No data</string>
+
+    <string name="progress_overview_settings_link">Settings</string>
+
+    <string name="progress_overview_needs_practice_title">Needs practice</string>
+
+    <string name="progress_overview_needs_practice_empty">Not enough data yet for a suggestion.</string>
+
+    <string name="progress_last_practiced">Last practiced: %1$s</string>
+
+    <string name="progress_overview_needs_practice_item_a11y">%1$s, %2$s, success rate %3$d percent, %4$s</string>
+
+    <string name="progress_overview_self_rating_title">Self-rating on the learning cards</string>
+
+    <string name="progress_overview_self_rating_counts">Knew it: %1$d · Need practice: %2$d</string>
+
+    <string name="progress_overview_self_rating_note">The self-rating does not count towards the quiz success rate.</string>
+
+    <string name="progress_technique_not_found">This technique could not be found in the knowledge base.</string>
+
+    <string name="progress_technique_open_library_detail">Open in the knowledge base</string>
+
+    <string name="progress_technique_retired_notice">This technique is no longer part of the curriculum, but your earlier results are preserved.</string>
+
+    <string name="progress_technique_stats_title">Quiz statistics</string>
+
+    <string name="progress_technique_stats_no_data">No attempts yet for this technique.</string>
+
+    <!--
+        These four labels name the quiz engine's question types, which stay
+        Hungarian-only in this round (ADR-013, out of scope) – "Hungarian" is kept
+        literal here on purpose, because that is what the quiz actually still asks for,
+        regardless of the UI language.
+    -->
+    <string name="progress_technique_by_question_type_title">Breakdown by question type</string>
+    <string name="progress_technique_type_jp_to_hu">Japanese name → Hungarian meaning</string>
+    <string name="progress_technique_type_hu_to_jp">Hungarian name → Japanese name</string>
+    <string name="progress_technique_type_image_to_jp">Illustration → Japanese name</string>
+    <string name="progress_technique_type_jp_to_image">Japanese name → illustration</string>
+
+    <string name="progress_technique_self_rating_title">Self-rating history</string>
+    <string name="progress_technique_self_rating_empty">No self-rating yet for this technique.</string>
+
+    <string name="progress_technique_self_rating_knew">I knew it</string>
+    <string name="progress_technique_self_rating_needs_practice">I need practice</string>
+
+    <string name="progress_settings_content_info_title">Content information</string>
+    <string name="progress_settings_schema_version">Schema version: %1$s</string>
+    <string name="progress_settings_content_version">Content version: %1$s</string>
+    <string name="progress_settings_version_unknown">unknown</string>
+    <string name="progress_settings_editorial_status">Editorial status: %1$s</string>
+    <string name="progress_settings_editorial_status_reviewed">Reviewed</string>
+    <string name="progress_settings_editorial_status_unreviewed">Unreviewed practice material</string>
+    <string name="progress_settings_record_count">%1$d techniques, %2$d categories</string>
+
+    <string name="progress_settings_version_license_title">Version and source</string>
+    <!--
+        Generalized on purpose (not "Hungarian meanings" literally): this now covers
+        whichever language's translated meaning is on screen (FR-43, ADR-013), not only
+        the Hungarian baseline.
+    -->
+    <string name="progress_settings_translation_notice">The technique names and their translated meanings are pedagogical translations, not an official Kyokushin standard.</string>
+    <string name="progress_settings_illustration_license_notice">The source and license of each illustration are recorded per record in the knowledge base manifest.</string>
+
+    <string name="progress_settings_diagnostics_button">Content diagnostics</string>
+
+    <string name="progress_settings_clear_button">Clear progress</string>
+
+    <string name="progress_settings_clear_first_title">Clear progress</string>
+    <string name="progress_settings_clear_first_message">The following will be permanently deleted: your quiz attempts, your quiz sessions, and your self-ratings. The knowledge base (the techniques and categories) is not deleted. This action cannot be undone.</string>
+    <string name="progress_settings_clear_first_confirm">Continue</string>
+
+    <string name="progress_settings_clear_final_title">Are you sure you want to clear your progress?</string>
+    <string name="progress_settings_clear_final_message">This is the final confirmation: once deleted, your progress cannot be restored.</string>
+    <string name="progress_settings_clear_final_confirm">Delete</string>
+
+    <string name="progress_settings_clear_cancel">Cancel</string>
+
+    <string name="progress_diagnostics_no_report_title">No recent validation report</string>
+    <string name="progress_diagnostics_no_report_message">No content import ran in this session, so there is no detailed report. Restart the app with a modified knowledge base to see diagnostics.</string>
+
+    <string name="progress_diagnostics_summary">Accepted: %1$d records · Rejected: %2$d records</string>
+
+    <string name="progress_diagnostics_dataset_rejected_notice">The entire knowledge base was rejected. The previously loaded content remains in effect.</string>
+
+    <string name="progress_diagnostics_empty_after_filter">There are no findings of this severity.</string>
+
+    <string name="progress_diagnostics_group_title">%1$s (%2$d findings)</string>
+
+    <string name="progress_diagnostics_severity_blocking">Blocking</string>
+    <string name="progress_diagnostics_severity_warning">Warning</string>
+
+    <string name="progress_diagnostics_filter_all">All</string>
+    <string name="progress_diagnostics_filter_blocking">Blocking</string>
+    <string name="progress_diagnostics_filter_warning">Warning</string>
+
+    <string name="progress_diagnostics_record_known">Affected record: %1$s (entry #%2$d)</string>
+    <string name="progress_diagnostics_record_unknown_id">Affected record: unknown identifier (entry #%1$d)</string>
+
+</resources>

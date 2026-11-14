@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English UI chrome translation (FR-43, ADR-013). Hungarian `values/` stays the fallback. -->
+<resources>
+
+    <string name="kyo_kanji_content_description">Kyokushin Karate Trainer emblem</string>
+
+    <string name="illustration_a11y_technique">%1$s – illustration of %2$s</string>
+    <string name="illustration_a11y_quiz_option">Illustration of answer option %1$d</string>
+    <string name="illustration_a11y_quiz_prompt">The quiz question\'s illustration</string>
+    <string name="illustration_a11y_placeholder">No illustration yet for this technique</string>
+
+    <string name="illustration_placeholder_label">Illustration coming soon</string>
+    <string name="illustration_awaiting_review">The image is awaiting professional review</string>
+
+    <string name="content_unverified">Awaiting review</string>
+    <string name="content_incomplete">Incomplete</string>
+    <string name="content_incomplete_missing_fields">Missing fields: %1$s</string>
+    <string name="content_incomplete_missing_fields_separator">", "</string>
+
+    <string name="content_field_romaji">romaji name</string>
+    <string name="content_field_hungarian">Hungarian meaning</string>
+    <string name="content_field_category">category</string>
+    <string name="content_field_illustration">illustration</string>
+    <string name="content_field_japanese_script">Japanese script</string>
+    <string name="content_field_description">description</string>
+
+    <string name="content_unreviewed_banner">Unreviewed practice material – the content is awaiting professional review.</string>
+
+    <string name="empty_library_no_content">The knowledge base is empty. The content failed to load.</string>
+    <string name="empty_library_no_result">No results for “%1$s”.</string>
+    <string name="empty_progress_no_data">No data yet. Start a quiz!</string>
+    <string name="empty_quiz_not_enough_data">A quiz can\'t be assembled with the selected settings. Choose more categories, enable more question types, or reduce the question count.</string>
+
+    <string name="empty_action_diagnostics">Diagnostics</string>
+    <string name="empty_action_clear_filters">Clear filters</string>
+
+    <string name="error_load_failed">The content failed to load.</string>
+    <string name="error_action_retry">Retry</string>
+
+</resources>

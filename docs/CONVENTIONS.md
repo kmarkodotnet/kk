@@ -275,6 +275,50 @@ hogy a mesterprompt felülvizsgálata a felhasználó döntése.
   vezérelni a böngésző `requestAnimationFrame` óráját.
 - Kotlin blokkkommentben egy glob perjel-csillag része is beágyazott kommentet
   nyit, Markdown backtickek között is. KDoc-ban írj helyette „funkciómodulok”-at.
+
+## 10. Többnyelvűsítés (T-711, FR-43, ADR-013)
+
+- **Új nyelv felvétele UI-kezelőszöveg-szinten = egyetlen új `values-<lang>/
+  strings.xml` modulonként, ugyanazokkal a kulcsokkal.** Ez az Android
+  erőforrás-rendszer natív viselkedése, nincs hozzá kód – ha egy modulban új
+  kulcs kerül fel, azt minden `values*` variánsba fel kell venni (a hiányzó
+  fordítás nem build-hiba, csak az alapértelmezett, magyar `values/`-re esik
+  vissza futásidőben, de ez elkerülendő drift).
+- **Új nyelv felvétele technikatartalom-szinten = egy új oszlop a szerkesztési
+  CSV-ben + egy új kulcs a `convert.py` fordítás-map építésében** – a domain
+  modell, a Room séma és a UI kódja nem változik, mert a séma nyitott kulcsú map
+  (`name_translations`/`description_translations`), nem fix mezőnév nyelvenként.
+  Lásd `docs/KNOWLEDGE_BASE.md` új szakasza és ADR-013.
+- **A `.hungarian`/`.descriptionHu`/`.nameHu` közvetlen hívása a megjelenítő
+  képernyőkön szándékosan `localizedName(currentLanguageTag())`-ra váltott, de
+  NEM mindenhol.** A `feature/quiz` és a `core/quiz` motor (kérdésszöveg,
+  disztraktor-kizárás) továbbra is kizárólag a magyar mezőt használja – ez
+  szándékos, dokumentált kivétel (ADR-013 6. pontja), nem hiányosság. Ha egy
+  jövőbeli task ezt is lokalizálni akarja, az önálló, mélyebb döntés (milyen
+  nyelven kérdezzen a kvíz, hogyan viselkedjen a szinonima-kizárás többnyelvű
+  névkészleten).
+- **Azok a `strings.xml`-kulcsok, amelyek egy konkrét, jelenleg Hungarian-only
+  maradó mechanizmust neveznek meg** (pl. a kvíz kérdéstípusai: „Japán név →
+  magyar jelentés”, vagy a keresési súgó: „Keresés romaji vagy magyar név
+  szerint”) **szándékosan szó szerint „Hungarian”/„ungarisch” az angol/német
+  fordításban is** – ez írja le a tényleges viselkedést, nem a UI nyelvét. Ne
+  általánosítsd ezeket a fordítás közben, mert az a UI-ban olyan képességet
+  ígérne (pl. angol nyelvű kvízkérdés), ami nincs megépítve (CLAUDE.md: nincs
+  hamis jelentés).
+- Ahol a megjelenített szöveg tényleg a felhasználó nyelvéhez igazodik (pl. a
+  tanulókártya felső fülváltója, `learn_cards_tab_hungarian`), a fordított
+  STRING ÉRTÉKE is a tényleges nyelvet nevezi meg („English names”/„Deutsche
+  Namen”), nem a magyart – a kulcs neve ettől eltérhet (kódazonosító, nem
+  felhasználói szöveg), de az érték mindig azt kell mondja, amit a képernyő
+  valóban mutat.
+- A fordítás-map (`nameTranslations`/`descriptionTranslations`) Room-tárolása
+  **JSON-stringként** történik egy `@TypeConverter`-rel, NEM relációs táblaként
+  (szemben a `technique_alias` mintájával) – ez azért helyes döntés, mert a
+  fordítás sosem SQL-szűrési/keresési cél (ellentétben a `search_romaji`/
+  `search_hungarian` ADR-012 oszlopokkal), csak megjelenítési adat egy már
+  ismert technikához. Ha egy jövőbeli igény szerint a keresésnek is támogatnia
+  kéne más nyelvű nevet, az új, önálló ADR-et igényel, nem ennek a mintának a
+  kiterjesztését.
 - Nagy részletességű Canvas-videó CDP-exportjánál a teljes base64-adat egyetlen
   WebSocket-válaszban megszakíthatja a kapcsolatot. A `preview_intro.mjs` a
   böngészőben tárolja a kész adatot, majd 256 KiB-os szövegdarabokban olvassa ki.

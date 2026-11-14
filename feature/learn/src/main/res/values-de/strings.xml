@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Deutsche Übersetzung der UI-Texte (FR-43, ADR-013). Die ungarische `values/` bleibt der Fallback. -->
+<resources>
+
+    <string name="learn_setup_categories_title">Kategorien</string>
+    <string name="learn_setup_category_count">%1$d Techniken</string>
+    <string name="learn_setup_category_a11y_selected">ausgewählt</string>
+
+    <string name="learn_setup_drilldown_back">Zurück zu den Kategorien</string>
+    <string name="learn_setup_drilldown_empty">In dieser Kategorie gibt es keine anzeigbaren Techniken.</string>
+    <string name="learn_setup_drilldown_select">Für das Lernen auswählen</string>
+    <string name="learn_setup_drilldown_selected">Für das Lernen ausgewählt</string>
+
+    <string name="learn_setup_start">Karten starten</string>
+
+    <string name="learn_setup_start_disabled_no_category">Wähle mindestens eine Kategorie, um die Karten zu starten.</string>
+    <string name="learn_setup_start_disabled_no_technique">In den ausgewählten Kategorien gibt es keine anzeigbaren Techniken.</string>
+
+    <string name="learn_cards_position_of_total">%1$d / %2$d</string>
+    <string name="learn_cards_a11y_close">Schließen</string>
+
+    <!--
+        T-706/FR-40: Der Wert benennt die LOKALE Bedeutungssprache der Karte in dieser
+        Sprache, nicht wörtlich "ungarisch" – er muss dem entsprechen, was
+        `localizedName()` auf diesem Bildschirm tatsächlich liefert (ADR-013).
+    -->
+    <string name="learn_cards_tab_japanese">Japanische Namen</string>
+    <string name="learn_cards_tab_hungarian">Deutsche Namen</string>
+
+    <string name="learn_cards_reveal_prompt">Zum Aufdecken tippen</string>
+    <string name="learn_cards_a11y_state_hidden">verdeckt</string>
+    <string name="learn_cards_a11y_state_revealed">aufgedeckt</string>
+
+    <string name="learn_cards_previous">Zurück</string>
+    <string name="learn_cards_next">Weiter</string>
+
+    <string name="learn_cards_self_rate_knew">Ich wusste es</string>
+    <string name="learn_cards_self_rate_needs_practice">Ich muss üben</string>
+    <string name="learn_cards_self_rate_disabled_reason">Decke zuerst die Karte auf, um eine Selbsteinschätzung abzugeben.</string>
+
+    <string name="learn_cards_image_hidden_title">Das Bild ist noch verdeckt</string>
+    <string name="learn_cards_image_hidden_explanation">Auf dieser Abbildung steht der Name der Technik, daher ist sie erst nach dem Aufdecken sichtbar.</string>
+
+    <string name="learn_cards_empty_message">In den ausgewählten Kategorien gibt es keine anzeigbaren Techniken.</string>
+    <string name="learn_cards_empty_action">Zurück zu den Einstellungen</string>
+
+    <string name="learn_cards_finished_title">Du bist %1$d Karten durchgegangen.</string>
+    <string name="learn_cards_finished_restart">Neu starten</string>
+    <string name="learn_cards_finished_back_to_setup">Zurück zu den Einstellungen</string>
+    <string name="learn_cards_finished_start_quiz">Quiz mit diesen Kategorien starten</string>
+
+</resources>

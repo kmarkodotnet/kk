@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English UI chrome translation (FR-43, ADR-013). Hungarian `values/` stays the fallback. -->
+<resources>
+
+    <string name="quiz_setup_categories_title">Categories</string>
+    <string name="quiz_setup_category_count">%1$d quiz-ready / %2$d techniques</string>
+
+    <string name="quiz_setup_count_title">Number of questions</string>
+
+    <!--
+        The quiz engine's question types stay Hungarian-only in this round (ADR-013,
+        out of scope) – "Hungarian" is kept literal here on purpose, because that is
+        what the quiz actually still asks for, regardless of the UI language.
+    -->
+    <string name="quiz_setup_types_title">Question types</string>
+    <string name="quiz_setup_type_jp_to_hu">Japanese name → Hungarian meaning</string>
+    <string name="quiz_setup_type_hu_to_jp">Hungarian name → Japanese name</string>
+    <string name="quiz_setup_type_image_to_jp">Illustration → Japanese name</string>
+    <string name="quiz_setup_type_jp_to_image">Japanese name → illustration</string>
+
+    <string name="quiz_setup_type_disabled_images">This needs at least 4 unique, verified illustrations in the selected categories (currently: %1$d).</string>
+
+    <string name="quiz_setup_type_disabled_candidates">This needs at least 4 unique, quiz-ready techniques in the selected categories (currently: %1$d).</string>
+
+    <string name="quiz_setup_message_not_enough_data">A quiz can\'t be assembled with the selected settings. Choose more categories, enable more question types, or reduce the question count.</string>
+
+    <string name="quiz_setup_summary_ready">%1$d questions can be assembled with these settings.</string>
+
+    <string name="quiz_setup_shortfall">Instead of the requested %1$d, there will be %2$d questions, because there are no more suitable techniques.</string>
+
+    <string name="quiz_setup_start">Start quiz</string>
+
+    <string name="quiz_run_progress">%1$d / %2$d</string>
+
+    <string name="quiz_run_close_a11y">Abort quiz</string>
+
+    <string name="quiz_run_prompt_jp_to_hu_prefix">What does this mean:</string>
+    <string name="quiz_run_prompt_hu_to_jp_prefix">Which is the Japanese name for:</string>
+    <string name="quiz_run_prompt_value">%1$s?</string>
+
+    <string name="quiz_run_prompt_image_to_jp">Which technique is this?</string>
+    <string name="quiz_run_prompt_jp_to_image_prefix">Which illustration:</string>
+
+    <string name="quiz_run_answer_correct">Correct</string>
+    <string name="quiz_run_answer_wrong">Incorrect</string>
+    <string name="quiz_run_option_state_correct">correct</string>
+    <string name="quiz_run_option_state_incorrect">incorrect</string>
+
+    <string name="quiz_run_explanation_title">Correct answer</string>
+    <string name="quiz_run_open_detail">Open in the knowledge base</string>
+
+    <string name="quiz_run_next">Next</string>
+    <string name="quiz_run_result">Result</string>
+
+    <string name="quiz_run_abort_title">Abort the quiz?</string>
+    <string name="quiz_run_abort_message">Your answers so far will be kept.</string>
+    <string name="quiz_run_abort_confirm">Abort</string>
+    <string name="quiz_run_abort_dismiss">Continue</string>
+
+    <string name="quiz_run_empty_message">The questions for this quiz could not be loaded.</string>
+    <string name="quiz_run_empty_action">Back to settings</string>
+
+    <string name="quiz_result_score_fraction">%1$d / %2$d correct</string>
+    <string name="quiz_result_score_percent">Success rate: %1$d%%</string>
+
+    <string name="quiz_result_no_answers">You did not answer a single question.</string>
+
+    <string name="quiz_result_aborted">Aborted quiz – %1$d / %2$d questions.</string>
+
+    <string name="quiz_result_wrong_title">Incorrect questions</string>
+    <string name="quiz_result_wrong_correct_label">Correct answer:</string>
+    <string name="quiz_result_wrong_selected_label">Your answer:</string>
+
+    <string name="quiz_result_retry_wrong">Retry the mistakes</string>
+    <string name="quiz_result_new_quiz">New quiz</string>
+    <string name="quiz_result_back_to_progress">Back to progress</string>
+
+    <string name="quiz_result_not_found_message">This quiz session could not be found.</string>
+
+</resources>
