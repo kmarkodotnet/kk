@@ -11,7 +11,9 @@ import hu.kyokushin.trainer.core.data.repository.TechniqueMatch
 import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
+import hu.kyokushin.trainer.core.model.localizedName
 import hu.kyokushin.trainer.core.ui.R
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import hu.kyokushin.trainer.core.ui.state.EmptyStateReason
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -204,10 +206,11 @@ class LibraryListViewModel
                 compareBy({ it.sortOrder }, { it.id.value }),
             )
             val countByCategory = search.matches.groupingBy { it.technique.categoryId }.eachCount()
+            val languageTag = currentLanguageTag()
             val chips = orderedCategories.map { category ->
                 CategoryFilterUiModel(
                     id = category.id,
-                    nameHu = category.nameHu,
+                    nameHu = category.localizedName(languageTag),
                     matchCount = countByCategory[category.id] ?: 0,
                     selected = category.id in selected,
                 )
@@ -258,7 +261,7 @@ class LibraryListViewModel
             }
 
             val sortOrderById = orderedCategories.associate { it.id to it.sortOrder }
-            val nameById = orderedCategories.associate { it.id to it.nameHu }
+            val nameById = orderedCategories.associate { it.id to it.localizedName(languageTag) }
             val items = visible
                 .sortedWith(
                     compareBy(
@@ -269,7 +272,7 @@ class LibraryListViewModel
                         { it.technique.id.value },
                     ),
                 )
-                .map { match -> match.toUiModel(nameById[match.technique.categoryId].orEmpty()) }
+                .map { match -> match.toUiModel(nameById[match.technique.categoryId].orEmpty(), languageTag) }
 
             return LibraryListUiState.Content(
                 items = items,
@@ -312,11 +315,11 @@ class LibraryListViewModel
         }
     }
 
-private fun TechniqueMatch.toUiModel(categoryNameHu: String): LibraryTechniqueUiModel =
+private fun TechniqueMatch.toUiModel(categoryNameHu: String, languageTag: String): LibraryTechniqueUiModel =
     LibraryTechniqueUiModel(
         id = technique.id,
         romaji = technique.romaji,
-        hungarian = technique.hungarian,
+        hungarian = technique.localizedName(languageTag),
         categoryId = technique.categoryId,
         categoryNameHu = categoryNameHu,
         illustration = technique.illustration,

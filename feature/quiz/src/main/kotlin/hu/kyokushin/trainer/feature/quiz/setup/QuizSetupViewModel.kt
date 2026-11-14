@@ -13,12 +13,14 @@ import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.QuestionType
 import hu.kyokushin.trainer.core.model.Technique
+import hu.kyokushin.trainer.core.model.localizedName
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateFilter
 import hu.kyokushin.trainer.core.quiz.generator.QuizCandidateSet
 import hu.kyokushin.trainer.core.quiz.generator.QuizGenerator
 import hu.kyokushin.trainer.core.quiz.generator.QuizRequest
 import hu.kyokushin.trainer.core.quiz.generator.SkipReason
 import hu.kyokushin.trainer.core.quiz.validation.QuizEligibility
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import hu.kyokushin.trainer.feature.quiz.R
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -276,13 +278,14 @@ class QuizSetupViewModel
 
             val datasetTrust = inputs.datasetTrust
 
+            val languageTag = currentLanguageTag()
             val orderedCategories = categories.sortedWith(compareBy({ it.sortOrder }, { it.id.value }))
             val techniquesByCategory = techniques.groupBy { it.categoryId }
             val categoryModels = orderedCategories.map { category ->
                 val inCategory = techniquesByCategory[category.id].orEmpty()
                 QuizCategoryUiModel(
                     id = category.id,
-                    nameHu = category.nameHu,
+                    nameHu = category.localizedName(languageTag),
                     quizEligibleCount = inCategory.count {
                         QuizEligibility.eligibleTypes(it, datasetTrust).isNotEmpty()
                     },

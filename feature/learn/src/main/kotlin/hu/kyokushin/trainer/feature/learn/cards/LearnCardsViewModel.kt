@@ -11,6 +11,8 @@ import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.Technique
+import hu.kyokushin.trainer.core.model.localizedName
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import hu.kyokushin.trainer.feature.learn.HideMode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -264,7 +266,9 @@ class LearnCardsViewModel
                 return LearnCardsUiState.Finished(total = ordered.size, categoryIds = selectedCategories)
             }
 
-            val categoryNameById: Map<CategoryId, String> = categories.associate { it.id to it.nameHu }
+            val languageTag = currentLanguageTag()
+            val categoryNameById: Map<CategoryId, String> =
+                categories.associate { it.id to it.localizedName(languageTag) }
             val clampedPosition = position.coerceIn(0, ordered.lastIndex)
             val technique = ordered[clampedPosition]
 
@@ -273,7 +277,7 @@ class LearnCardsViewModel
                     techniqueId = technique.id,
                     categoryName = categoryNameById[technique.categoryId].orEmpty(),
                     romaji = technique.romaji,
-                    hungarian = technique.hungarian,
+                    hungarian = technique.localizedName(languageTag),
                     illustration = technique.illustration,
                     status = technique.status,
                     revealed = clampedPosition in revealedPositions,

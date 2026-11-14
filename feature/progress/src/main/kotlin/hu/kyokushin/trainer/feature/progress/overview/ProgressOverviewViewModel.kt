@@ -12,7 +12,9 @@ import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.Technique
+import hu.kyokushin.trainer.core.model.localizedName
 import hu.kyokushin.trainer.core.quiz.scoring.Score
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -93,18 +95,19 @@ class ProgressOverviewViewModel
             techniques: List<Technique>,
             studyReviewSummary: StudyReviewSummary,
         ): ProgressOverviewUiState.Content {
+            val languageTag = currentLanguageTag()
             val scoreByCategory = sources.categoryProgress.associateBy { it.categoryId }
             val categoryItems = sources.categories.map { category ->
                 ProgressCategoryItem(
                     categoryId = category.id,
-                    nameHu = category.nameHu,
+                    nameHu = category.localizedName(languageTag),
                     score = scoreByCategory[category.id]?.score ?: NO_ATTEMPTS_SCORE,
                 )
             }
             return ProgressOverviewUiState.Content(
                 overallScore = sources.overall.score,
                 categories = categoryItems,
-                needsPractice = buildNeedsPracticeItems(needsPractice, techniques),
+                needsPractice = buildNeedsPracticeItems(needsPractice, techniques, languageTag),
                 studyReviewSummary = studyReviewSummary,
                 datasetTrust = sources.datasetTrust,
             )
@@ -113,6 +116,7 @@ class ProgressOverviewViewModel
         private fun buildNeedsPracticeItems(
             needsPractice: List<TechniqueProgress>,
             techniques: List<Technique>,
+            languageTag: String,
         ): List<ProgressNeedsPracticeItem> {
             val techniqueById = techniques.associateBy { it.id }
             // `mapNotNull`: lásd az osztály KDoc-ja – egy visszavont technika korábbi
@@ -122,7 +126,7 @@ class ProgressOverviewViewModel
                 ProgressNeedsPracticeItem(
                     techniqueId = progress.techniqueId,
                     romaji = technique.romaji,
-                    hungarian = technique.hungarian,
+                    hungarian = technique.localizedName(languageTag),
                     illustration = technique.illustration,
                     score = progress.score,
                     // A `TechniqueProgress` szerződése szerint `answered >= 1` esetén soha

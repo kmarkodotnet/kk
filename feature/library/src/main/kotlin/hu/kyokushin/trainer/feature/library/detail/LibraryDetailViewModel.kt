@@ -10,6 +10,9 @@ import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
+import hu.kyokushin.trainer.core.model.localizedDescription
+import hu.kyokushin.trainer.core.model.localizedName
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import hu.kyokushin.trainer.core.ui.status.TechniqueField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -133,14 +136,16 @@ class LibraryDetailViewModel
             categories: List<Category>,
             datasetTrust: DatasetTrust,
         ): LibraryDetailUiState.Content {
-            val categoryName = categories.firstOrNull { it.id == categoryId }?.nameHu.orEmpty()
+            val languageTag = currentLanguageTag()
+            val categoryName = categories.firstOrNull { it.id == categoryId }
+                ?.localizedName(languageTag).orEmpty()
             return LibraryDetailUiState.Content(
                 id = id,
                 romaji = romaji,
-                hungarian = hungarian,
+                hungarian = localizedName(languageTag),
                 japaneseScript = japaneseScript,
                 aliases = aliases,
-                descriptionHu = descriptionHu,
+                descriptionHu = localizedDescription(languageTag),
                 illustration = illustration,
                 categoryId = categoryId,
                 categoryNameHu = categoryName,

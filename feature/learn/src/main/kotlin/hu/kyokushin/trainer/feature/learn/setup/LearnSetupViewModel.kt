@@ -11,6 +11,8 @@ import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.Technique
+import hu.kyokushin.trainer.core.model.localizedName
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import hu.kyokushin.trainer.feature.learn.R
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -189,11 +191,12 @@ class LearnSetupViewModel
             // A tanuláshoz nem kell `VERIFIED` vagy `quizEligible` (T-302 „Kész ha"): minden
             // nem visszavont technikát számolunk, a hitelesítési státusztól függetlenül. Az
             // `observeTechniques` már kiszűri a visszavontakat (ADR-004).
+            val languageTag = currentLanguageTag()
             val countByCategory = techniques.groupingBy { it.categoryId }.eachCount()
             val categoryModels = orderedCategories.map { category ->
                 LearnCategoryUiModel(
                     id = category.id,
-                    nameHu = category.nameHu,
+                    nameHu = category.localizedName(languageTag),
                     displayableCount = countByCategory[category.id] ?: 0,
                     selected = category.id in selection.selectedCategories,
                 )
@@ -218,11 +221,17 @@ class LearnSetupViewModel
             val drillDown = drillDownCategory?.let { category ->
                 LearnCategoryDrillDownUiState(
                     categoryId = category.id,
-                    categoryName = category.nameHu,
+                    categoryName = category.localizedName(languageTag),
                     techniques = techniques
                         .filter { it.categoryId == category.id }
                         .sortedBy { it.romaji }
-                        .map { LearnTechniqueUiModel(id = it.id, romaji = it.romaji, hungarian = it.hungarian) },
+                        .map {
+                            LearnTechniqueUiModel(
+                                id = it.id,
+                                romaji = it.romaji,
+                                hungarian = it.localizedName(languageTag),
+                            )
+                        },
                     selected = category.id in selection.selectedCategories,
                 )
             }

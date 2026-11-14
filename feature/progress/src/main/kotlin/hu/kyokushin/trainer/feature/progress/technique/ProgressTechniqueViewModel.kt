@@ -11,6 +11,8 @@ import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.StudyReview
 import hu.kyokushin.trainer.core.model.Technique
 import hu.kyokushin.trainer.core.model.TechniqueId
+import hu.kyokushin.trainer.core.model.localizedName
+import hu.kyokushin.trainer.core.ui.locale.currentLanguageTag
 import hu.kyokushin.trainer.feature.progress.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -141,7 +143,7 @@ class ProgressTechniqueViewModel
         ): ProgressTechniqueUiState.Content = ProgressTechniqueUiState.Content(
             id = id,
             romaji = romaji,
-            hungarian = hungarian,
+            hungarian = localizedName(currentLanguageTag()),
             illustration = illustration,
             retired = retired,
             score = techniqueProgress.score,
