@@ -4,11 +4,12 @@ import androidx.annotation.StringRes
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.TechniqueId
-import hu.kyokushin.trainer.feature.learn.HideMode
 
 /**
- * A tanulás-beállító képernyő teljes állapota (FUNCTIONAL_SPEC 4.1, FR-06, FR-07, US-09,
- * US-10).
+ * A tanulás-beállító képernyő teljes állapota (FUNCTIONAL_SPEC 4.1, FR-06, US-09). Az
+ * elrejtési irány (FR-07) T-706 óta **nem** itteni beállítás – a `learn/cards` felső
+ * fülváltójába költözött (`hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel.onSelectHideMode`),
+ * hogy élőben, kártyánként is váltható legyen, ne csak a munkamenet elején egyszer.
  *
  * ## Miért nincs `quizEligible` vagy `verified` szűrés itt
  *
@@ -30,8 +31,6 @@ import hu.kyokushin.trainer.feature.learn.HideMode
  *   kategória"** (ellentétben a Tudástár szűrőjével és a kvíz kategóriaszűrőjével): a
  *   FUNCTIONAL_SPEC 4.1/4. pontja szerint a „Kártyák indítása" gomb pontosan akkor tiltott,
  *   ha **nincs** kiválasztott kategória – azaz itt a kijelölés kötelező, nem szűrő.
- * @property hideMode melyik nevet rejtse el a kártya (FR-07); az utolsó választás a
- *   `SavedStateHandle`-ben őrződik meg (FUNCTIONAL_SPEC 4.1/5.).
  * @property canStart igaz, ha a „Kártyák indítása" gomb aktív: legalább egy kategória
  *   kijelölve, és a kijelölésben legalább egy megjeleníthető technika van.
  * @property disabledReasonRes a letiltás indoklása, vagy `null`, ha [canStart] igaz
@@ -49,7 +48,6 @@ sealed interface LearnSetupUiState {
     data class Content(
         val categories: List<LearnCategoryUiModel>,
         val selectedCategories: Set<CategoryId>,
-        val hideMode: HideMode,
         val canStart: Boolean,
         @StringRes val disabledReasonRes: Int?,
         val datasetTrust: DatasetTrust,

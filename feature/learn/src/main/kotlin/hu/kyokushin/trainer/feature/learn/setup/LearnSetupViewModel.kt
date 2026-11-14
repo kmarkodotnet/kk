@@ -11,7 +11,6 @@ import hu.kyokushin.trainer.core.data.repository.TechniqueRepository
 import hu.kyokushin.trainer.core.model.Category
 import hu.kyokushin.trainer.core.model.CategoryId
 import hu.kyokushin.trainer.core.model.Technique
-import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.R
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -27,15 +26,19 @@ import javax.inject.Inject
 import hu.kyokushin.trainer.core.ui.R as CoreUiR
 
 /**
- * A tanulás-beállító képernyő állapotkezelése (FR-06, FR-07, FUNCTIONAL_SPEC 4.1, US-09,
- * US-10, G-04 csoport; a kategória-drill-down T-705, FR-39).
+ * A tanulás-beállító képernyő állapotkezelése (FR-06, FUNCTIONAL_SPEC 4.1, US-09, G-04
+ * csoport; a kategória-drill-down T-705, FR-39).
  *
  * ## Mit tesz, és mit nem
  *
- * Öt bemenetből (tartalomimport állapota, kijelölt kategóriák, elrejtési mód, a böngészött
- * kategória, a tartalom) állít elő egyetlen [LearnSetupUiState]-et – ugyanaz a mintázat,
- * mint a [hu.kyokushin.trainer.feature.library.list.LibraryListViewModel]-nél (T-207),
- * csak keresés és debounce nélkül: itt nincs szabad szöveges szűrés.
+ * Négy bemenetből (tartalomimport állapota, kijelölt kategóriák, a böngészött kategória,
+ * a tartalom) állít elő egyetlen [LearnSetupUiState]-et – ugyanaz a mintázat, mint a
+ * [hu.kyokushin.trainer.feature.library.list.LibraryListViewModel]-nél (T-207), csak
+ * keresés és debounce nélkül: itt nincs szabad szöveges szűrés.
+ *
+ * **Az elrejtési irány (FR-07) T-706 óta nem itt él** – a `learn/cards` felső
+ * fülváltójába költözött (`LearnCardsViewModel.onSelectHideMode`), hogy a munkamenet
+ * közben, kártyánként is váltható legyen, ne csak egyszer, a munkamenet elején.
  *
  * A böngészött kategória (T-705) **nem** egy új Navigation Compose route – a
  * kategóriarács és egy adott kategória technikalistája ugyanazon a képernyőn, a
@@ -60,11 +63,11 @@ import hu.kyokushin.trainer.core.ui.R as CoreUiR
  *
  * ### Az „utolsó választás megjegyzése" hatóköre
  *
- * A FUNCTIONAL_SPEC 4.1/5. pontja „a munkamenetek között" őrzi meg a kijelölést és az
- * elrejtési módot. Ehhez tartós (app-újraindítást túlélő) tárolás kellene, de a projekt
- * version catalogjában (`gradle/libs.versions.toml`) nincs DataStore-függőség, és a
- * CLAUDE.md tiltja a verziószám kitalálását és az új, nem tervezett függőség bevezetését
- * (`Nincs korai bővítés`). Ezért a megjegyzés `SavedStateHandle`-ben él: ez túléli a
+ * A FUNCTIONAL_SPEC 4.1/5. pontja „a munkamenetek között" őrzi meg a kijelölést. Ehhez
+ * tartós (app-újraindítást túlélő) tárolás kellene, de a projekt version catalogjában
+ * (`gradle/libs.versions.toml`) nincs DataStore-függőség, és a CLAUDE.md tiltja a
+ * verziószám kitalálását és az új, nem tervezett függőség bevezetését (`Nincs korai
+ * bővítés`). Ezért a megjegyzés `SavedStateHandle`-ben él: ez túléli a
  * képernyőforgatást és a rendszer által kényszerített folyamat-újraindítást (mentett
  * állapotból), de nem egy teljes, a felhasználó által bezárt app újranyitását. Lásd
  * `docs/CONVENTIONS.md` 1. szakasz.
@@ -72,7 +75,7 @@ import hu.kyokushin.trainer.core.ui.R as CoreUiR
  * @property repository a tartalom olvasási felülete.
  * @property contentImporter a csomagolt tudástár betöltése.
  * @property defaultDispatcher CPU-kötött háttérmunka dispatchere.
- * @property savedStateHandle a kijelölt kategóriákat és az elrejtési módot őrzi meg.
+ * @property savedStateHandle a kijelölt kategóriákat és a böngészett kategóriát őrzi meg.
  */
 @HiltViewModel
 class LearnSetupViewModel
@@ -92,10 +95,6 @@ class LearnSetupViewModel
             savedStateHandle.getStateFlow(KEY_SELECTED_CATEGORIES, ArrayList<String>())
                 .map { raw -> raw.map(CategoryId::of).toSet() }
 
-        private val hideModeFlow: Flow<HideMode> =
-            savedStateHandle.getStateFlow(KEY_HIDE_MODE, DEFAULT_HIDE_MODE.name)
-                .map { raw -> runCatching { HideMode.valueOf(raw) }.getOrDefault(DEFAULT_HIDE_MODE) }
-
         /**
          * A böngészett kategória azonosítója, vagy `null`, ha a kategóriarácsot látjuk
          * (T-705, FR-39). `""` jelenti a "nincs drill-down" állapotot a `Bundle`-kompatibilis
@@ -106,8 +105,8 @@ class LearnSetupViewModel
                 .map { raw -> raw.takeIf { it.isNotEmpty() }?.let(CategoryId::of) }
 
         private val selectionFlow: Flow<SetupSelection> =
-            combine(selectedCategoriesFlow, hideModeFlow, drillDownCategoryFlow) { selected, hideMode, drillDown ->
-                SetupSelection(selected, hideMode, drillDown)
+            combine(selectedCategoriesFlow, drillDownCategoryFlow) { selected, drillDown ->
+                SetupSelection(selected, drillDown)
             }
 
         /** A képernyő állapota. */
@@ -140,11 +139,6 @@ class LearnSetupViewModel
                 current + categoryId.value
             }
             savedStateHandle[KEY_SELECTED_CATEGORIES] = ArrayList(next)
-        }
-
-        /** Az elrejtési mód kiválasztása (FR-07, FUNCTIONAL_SPEC 4.1/3.). */
-        fun onSelectHideMode(hideMode: HideMode) {
-            savedStateHandle[KEY_HIDE_MODE] = hideMode.name
         }
 
         /**
@@ -236,7 +230,6 @@ class LearnSetupViewModel
             return LearnSetupUiState.Content(
                 categories = categoryModels,
                 selectedCategories = selection.selectedCategories,
-                hideMode = selection.hideMode,
                 canStart = canStart,
                 disabledReasonRes = disabledReasonRes,
                 datasetTrust = contentState.datasetTrust,
@@ -247,23 +240,15 @@ class LearnSetupViewModel
         /** A tartalombetöltés szakasza. */
         private enum class ImportPhase { RUNNING, DONE, FAILED }
 
-        /** A kijelölt kategóriák, az elrejtési mód és a böngészett kategória egy csomagban. */
+        /** A kijelölt kategóriák és a böngészett kategória egy csomagban. */
         private data class SetupSelection(
             val selectedCategories: Set<CategoryId>,
-            val hideMode: HideMode,
             val drillDownCategoryId: CategoryId?,
         )
 
         companion object {
             private const val KEY_SELECTED_CATEGORIES = "learn.setup.categories"
-            private const val KEY_HIDE_MODE = "learn.setup.hideMode"
             private const val KEY_DRILLDOWN_CATEGORY = "learn.setup.drillDownCategory"
-
-            /**
-             * Alapértelmezett elrejtési mód, amíg a felhasználó nem választott: a japán név
-             * elrejtése, a FUNCTIONAL_SPEC 4.1/3. pontjában felsorolt első lehetőség.
-             */
-            private val DEFAULT_HIDE_MODE = HideMode.HIDE_JAPANESE
 
             /** A konfigurációváltás alatt életben tartja a feliratkozást. */
             private const val STOP_TIMEOUT_MS = 5_000L

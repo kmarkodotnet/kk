@@ -16,11 +16,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -86,6 +89,7 @@ fun LearnCardsRoute(
         onNeedsPractice = viewModel::onNeedsPractice,
         onNext = viewModel::onNext,
         onPrevious = viewModel::onPrevious,
+        onSelectHideMode = viewModel::onSelectHideMode,
         onRestart = viewModel::onRestart,
         onExit = onExit,
         onStartQuiz = onStartQuiz,
@@ -93,7 +97,7 @@ fun LearnCardsRoute(
     )
 }
 
-/** A tanulókártya képernyő – stateless (FUNCTIONAL_SPEC 4.2). */
+/** A tanulókártya képernyő – stateless (FUNCTIONAL_SPEC 4.2; a fülváltó T-706, FR-40). */
 @Composable
 fun LearnCardsScreen(
     uiState: LearnCardsUiState,
@@ -102,6 +106,7 @@ fun LearnCardsScreen(
     onNeedsPractice: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onSelectHideMode: (HideMode) -> Unit,
     onRestart: () -> Unit,
     onExit: () -> Unit,
     onStartQuiz: (Set<CategoryId>) -> Unit,
@@ -125,6 +130,7 @@ fun LearnCardsScreen(
                 onNeedsPractice = onNeedsPractice,
                 onNext = onNext,
                 onPrevious = onPrevious,
+                onSelectHideMode = onSelectHideMode,
                 onExit = onExit,
             )
 
@@ -166,7 +172,10 @@ private fun LearnCardsEmptyContent(
     }
 }
 
-/** A tényleges kártya tartalom: felső sáv, kártya, önértékelés, alsó Előző/Következő sáv. */
+/**
+ * A tényleges kártya tartalom: felső sáv, fülváltó, kártya, önértékelés, alsó
+ * Előző/Következő sáv (a fülváltó T-706, FR-40).
+ */
 @Composable
 private fun LearnCardsContent(
     state: LearnCardsUiState.Content,
@@ -175,11 +184,14 @@ private fun LearnCardsContent(
     onNeedsPractice: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onSelectHideMode: (HideMode) -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         LearnCardsTopBar(state = state, onExit = onExit)
+
+        HideModeTabRow(hideMode = state.hideMode, onSelectHideMode = onSelectHideMode)
 
         Box(
             modifier = Modifier
@@ -312,6 +324,44 @@ private fun LearnCardsTopBar(
                 contentDescription = stringResource(R.string.learn_cards_a11y_close),
             )
         }
+    }
+}
+
+/**
+ * Felső fülváltó: melyik nevet mutassa elsőként a kártya (T-706, FR-40).
+ *
+ * A fül **neve** a kezdő, látható oldalt nevezi meg ("Japán nevek" = a romaji látszik
+ * elsőként, a [HideMode.HIDE_HUNGARIAN] a bemutatott oldal – lásd [LearnCardSurface]
+ * `when`-ágát), **nem** a rejtett oldalt – ez szándékosan a [HideMode] enumnevekhez
+ * képest fordított leképezés, mert a felhasználó a kérésben "Kiindulás: Japán nevek /
+ * Magyar nevek" megfogalmazást használta: a fül azt mondja meg, mivel **indul** a
+ * kártya, nem azt, mi van elrejtve.
+ *
+ * A `Tab` Material3 komponens már önmagában `Role.Tab` + `selected` szemantikát ad,
+ * amit a TalkBack fülváltás után automatikusan bejelent – nincs szükség külön
+ * `stateDescription`-re.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HideModeTabRow(
+    hideMode: HideMode,
+    onSelectHideMode: (HideMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val selectedIndex = if (hideMode == HideMode.HIDE_HUNGARIAN) 0 else 1
+    SecondaryTabRow(selectedTabIndex = selectedIndex, modifier = modifier) {
+        Tab(
+            selected = selectedIndex == 0,
+            onClick = { onSelectHideMode(HideMode.HIDE_HUNGARIAN) },
+            text = { Text(text = stringResource(R.string.learn_cards_tab_japanese)) },
+            modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET),
+        )
+        Tab(
+            selected = selectedIndex == 1,
+            onClick = { onSelectHideMode(HideMode.HIDE_JAPANESE) },
+            text = { Text(text = stringResource(R.string.learn_cards_tab_hungarian)) },
+            modifier = Modifier.heightIn(min = MIN_TOUCH_TARGET),
+        )
     }
 }
 
@@ -552,6 +602,7 @@ private fun LearnCardsScreenHiddenPreview() {
             onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
+            onSelectHideMode = {},
             onRestart = {},
             onExit = {},
             onStartQuiz = {},
@@ -582,6 +633,7 @@ private fun LearnCardsScreenRevealedPreview() {
             onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
+            onSelectHideMode = {},
             onRestart = {},
             onExit = {},
             onStartQuiz = {},
@@ -613,6 +665,7 @@ private fun LearnCardsScreenCaptionedImageHiddenPreview() {
             onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
+            onSelectHideMode = {},
             onRestart = {},
             onExit = {},
             onStartQuiz = {},
@@ -636,6 +689,7 @@ private fun LearnCardsScreenEmptyPreview() {
             onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
+            onSelectHideMode = {},
             onRestart = {},
             onExit = {},
             onStartQuiz = {},
@@ -662,6 +716,7 @@ private fun LearnCardsScreenFinishedPreview() {
             onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
+            onSelectHideMode = {},
             onRestart = {},
             onExit = {},
             onStartQuiz = {},
@@ -685,6 +740,7 @@ private fun LearnCardsScreenLoadingPreview() {
             onNeedsPractice = {},
             onNext = {},
             onPrevious = {},
+            onSelectHideMode = {},
             onRestart = {},
             onExit = {},
             onStartQuiz = {},

@@ -3782,3 +3782,21 @@ drill-down állapot, `androidx.activity.compose` függőség a `BackHandler`-hez
 körben, és a task saját `Teszt` mezője csak ViewModel tesztet és `@Preview`-t kér.
 A tényleges megjelenés igazolása a `@Preview`-k (hat állapot, világos/sötét) és a
 lint/ktlint tiszta futása, nem kézi eszközpróba.
+
+---
+
+## 2026-11-14 – T-706 (felső fülváltó "Japán nevek"/"Magyar nevek", Fázis 9.6 bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL`; 659 teszt összesen (656 → +3: nettó 5 új `LearnCardsViewModelTest`, 2 törölve `LearnSetupViewModelTest`-ből), 0 hiba. Az `app:mergeDebugResources`/`processDebugUnitTestResources` lépések "string too large to encode using UTF-8" figyelmeztetést írnak a nagy kanji-vektor (`core/ui/.../ic_kyo_kanji.xml`) miatt – ez a párhuzamos intro-munka ismert, a buildet nem buktató jelensége, nem T-706-hoz tartozik. |
+| `.\gradlew.bat ktlintCheck lint --console=plain` | 0 | `BUILD SUCCESSFUL`; `feature/learn`, `navigation` és `core/ui` lint-jelentése is 0 találat. |
+
+Érintett modulok: `feature/learn` (`LearnCardsViewModel`/`Screen`: élő fülváltó;
+`LearnSetupUiState`/`ViewModel`/`Screen`: a `HideMode` eltávolítva), `navigation`
+(`KyokushinScreen.LEARN_CARDS` route, `KyokushinRoutes.learnCards`,
+`KyokushinNavHost` – a `hideMode` route-argumentum megszűnt, mechanikus
+következmény).
+
+**NEM FUTOTT:** emulátoros vizuális ellenőrzés – nem volt futó emulátor, és a task
+saját `Teszt` mezője sem kérte; a `@Preview`-k adják a vizuális bizonyítékot.

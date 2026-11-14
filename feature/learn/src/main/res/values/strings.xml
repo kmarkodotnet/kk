@@ -23,9 +23,12 @@
     <string name="learn_setup_drilldown_select">Kiválasztás a tanuláshoz</string>
     <string name="learn_setup_drilldown_selected">Kiválasztva a tanuláshoz</string>
 
-    <string name="learn_setup_hide_mode_title">Mit rejtsünk el?</string>
-    <string name="learn_setup_hide_japanese">Japán nevet rejtse el</string>
-    <string name="learn_setup_hide_hungarian">Magyar nevet rejtse el</string>
+    <!--
+        T-706: az elrejtési irány (FR-07) beállítása a `learn/setup`-ból a `learn/cards`
+        felső fülváltójába költözött – a korábbi "Mit rejtsünk el?" választó itt
+        megszűnt, hogy ne maradjon két, egymásnak ellentmondó vezérlő ugyanarra az
+        állapotra (T-706 Teendők 4. pontja).
+    -->
 
     <string name="learn_setup_start">Kártyák indítása</string>
 
@@ -42,6 +45,14 @@
     <!-- Felső sáv pozíciója: „3 / 12" (FUNCTIONAL_SPEC 4.2/1.). -->
     <string name="learn_cards_position_of_total">%1$d / %2$d</string>
     <string name="learn_cards_a11y_close">Bezárás</string>
+
+    <!--
+        Felső fülváltó (T-706, FR-40): melyik nevet mutassa elsőként a kártya. A fül
+        neve a KEZDŐ, látható oldalt nevezi meg, nem a rejtettet – lásd `HideModeTabRow`
+        KDoc-ja a `LearnCardsScreen.kt`-ban.
+    -->
+    <string name="learn_cards_tab_japanese">Japán nevek</string>
+    <string name="learn_cards_tab_hungarian">Magyar nevek</string>
 
     <!-- A felfedésre váró felület felirata és a `stateDescription` két értéke
          (T-304 „Kész ha": „felfedés előtt »elrejtve«, utána »felfedve«"). -->

@@ -75,16 +75,18 @@ enum class KyokushinScreen(
     ),
 
     /**
-     * A `categoryIds`/`hideMode` opcionális lekérdezőparaméter neve **szándékosan**
-     * egyezik a [LearnCardsViewModel.KEY_CATEGORY_IDS]/[LearnCardsViewModel.KEY_HIDE_MODE]
-     * kulccsal (T-303 KDoc-ja, T-304): a Navigation Compose a route argumentumokat
-     * automatikusan a cél `NavBackStackEntry` `SavedStateHandle`-jébe teszi, tehát a
-     * ViewModel ugyanazzal a kulccsal olvassa vissza, amivel ide kerültek – lásd
-     * [KyokushinRoutes.learnCards].
+     * A `categoryIds` opcionális lekérdezőparaméter neve **szándékosan** egyezik a
+     * [LearnCardsViewModel.KEY_CATEGORY_IDS] kulccsal (T-303 KDoc-ja, T-304): a
+     * Navigation Compose a route argumentumokat automatikusan a cél
+     * `NavBackStackEntry` `SavedStateHandle`-jébe teszi, tehát a ViewModel ugyanazzal a
+     * kulccsal olvassa vissza, amivel ide kerültek – lásd [KyokushinRoutes.learnCards].
+     *
+     * **Nincs `hideMode` argumentum** (T-706 óta): az elrejtési irány a kártyaképernyő
+     * felső fülváltójával élőben váltható, nem a `learn/setup`-ból érkező, egyszeri
+     * route-bemenet – lásd `LearnCardsViewModel.onSelectHideMode`.
      */
     LEARN_CARDS(
-        routePattern = "learn/cards?${LearnCardsViewModel.KEY_CATEGORY_IDS}={${LearnCardsViewModel.KEY_CATEGORY_IDS}}" +
-            "&${LearnCardsViewModel.KEY_HIDE_MODE}={${LearnCardsViewModel.KEY_HIDE_MODE}}",
+        routePattern = "learn/cards?${LearnCardsViewModel.KEY_CATEGORY_IDS}={${LearnCardsViewModel.KEY_CATEGORY_IDS}}",
         titleRes = R.string.nav_title_learn_cards,
         section = NavSection.LEARN,
         topLevel = false,
@@ -188,11 +190,10 @@ object KyokushinRoutes {
      *
      * @param categoryIds a [LearnCardsViewModel.CATEGORY_ID_SEPARATOR]-rel elválasztott
      *   kategória-azonosítók, ugyanabban az alakban, ahogy a `LearnCardsViewModel` olvassa.
-     * @param hideMode a `HideMode` enum neve (`HideMode.name`).
+     *   Nincs `hideMode` paraméter (T-706) – lásd [KyokushinScreen.LEARN_CARDS] KDoc-ja.
      */
-    fun learnCards(categoryIds: String, hideMode: String): String =
-        "learn/cards?${LearnCardsViewModel.KEY_CATEGORY_IDS}=$categoryIds" +
-            "&${LearnCardsViewModel.KEY_HIDE_MODE}=$hideMode"
+    fun learnCards(categoryIds: String): String =
+        "learn/cards?${LearnCardsViewModel.KEY_CATEGORY_IDS}=$categoryIds"
 
     fun quizRun(sessionId: String): String = "quiz/run/$sessionId"
 

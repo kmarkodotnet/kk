@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,7 +25,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -51,26 +48,27 @@ import hu.kyokushin.trainer.core.ui.category.categoryIcon
 import hu.kyokushin.trainer.core.ui.state.ErrorState
 import hu.kyokushin.trainer.core.ui.status.UnreviewedBanner
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
-import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.R
 
 /**
- * A tanulás-beállító képernyő route-szintű bekötése (FR-06, FR-07, FUNCTIONAL_SPEC 4.1;
- * a kategória-drill-down T-705, FR-39).
+ * A tanulás-beállító képernyő route-szintű bekötése (FR-06, FUNCTIONAL_SPEC 4.1; a
+ * kategória-drill-down T-705, FR-39). Az elrejtési irány (FR-07) T-706 óta **nem**
+ * ennek a képernyőnek a bemenete – lásd [onStartCards] dokumentációja.
  *
  * Ez az egyetlen composable a `setup` csomagban, amely [LearnSetupViewModel]-t lát: innen
  * lefelé minden összetevő [LearnSetupUiState]-et és lambda eseményeket kap, nem ViewModelt
  * (L5 – a feature modul nem navigál magától, lambdát ad kifelé).
  *
- * @param onStartCards a „Kártyák indítása" gomb művelete: a kijelölt kategóriák és az
- *   elrejtési mód a kártyaállapot (T-303, `LearnCardsViewModel`) bemenete lesz.
+ * @param onStartCards a „Kártyák indítása" gomb művelete: a kijelölt kategóriák a
+ *   kártyaállapot (T-303, `LearnCardsViewModel`) bemenete lesznek. Az elrejtési irányt a
+ *   kártyaképernyő felső fülváltója dönti el (T-706), nem ez a hívás.
  * @param modifier a szokásos Compose modifier.
  * @param viewModel a Hilt által adott ViewModel; teszt vagy előnézet nem ezt a
  *   konstruktort hívja, hanem közvetlenül a stateless [LearnSetupScreen]-t.
  */
 @Composable
 fun LearnSetupRoute(
-    onStartCards: (Set<CategoryId>, HideMode) -> Unit,
+    onStartCards: (Set<CategoryId>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LearnSetupViewModel = hiltViewModel(),
 ) {
@@ -79,7 +77,6 @@ fun LearnSetupRoute(
     LearnSetupScreen(
         uiState = uiState,
         onToggleCategory = viewModel::onToggleCategory,
-        onSelectHideMode = viewModel::onSelectHideMode,
         onOpenCategory = viewModel::onOpenCategory,
         onCloseDrillDown = viewModel::onCloseDrillDown,
         onRetry = viewModel::onRetry,
@@ -93,11 +90,10 @@ fun LearnSetupRoute(
 fun LearnSetupScreen(
     uiState: LearnSetupUiState,
     onToggleCategory: (CategoryId) -> Unit,
-    onSelectHideMode: (HideMode) -> Unit,
     onOpenCategory: (CategoryId) -> Unit,
     onCloseDrillDown: () -> Unit,
     onRetry: () -> Unit,
-    onStartCards: (Set<CategoryId>, HideMode) -> Unit,
+    onStartCards: (Set<CategoryId>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -115,25 +111,23 @@ fun LearnSetupScreen(
             is LearnSetupUiState.Content -> LearnSetupContent(
                 state = uiState,
                 onToggleCategory = onToggleCategory,
-                onSelectHideMode = onSelectHideMode,
                 onOpenCategory = onOpenCategory,
                 onCloseDrillDown = onCloseDrillDown,
-                onStartCards = { onStartCards(uiState.selectedCategories, uiState.hideMode) },
+                onStartCards = { onStartCards(uiState.selectedCategories) },
             )
         }
     }
 }
 
 /**
- * A tényleges beállító tartalom: vagy a kategóriarács + elrejtésválasztó + indítógomb,
- * vagy – ha [LearnSetupUiState.Content.drillDown] nem `null` – egy kategória
- * technikalistája (T-705). A kettő ugyanazon a képernyőn vált, nem külön route.
+ * A tényleges beállító tartalom: vagy a kategóriarács + indítógomb, vagy – ha
+ * [LearnSetupUiState.Content.drillDown] nem `null` – egy kategória technikalistája
+ * (T-705). A kettő ugyanazon a képernyőn vált, nem külön route.
  */
 @Composable
 private fun LearnSetupContent(
     state: LearnSetupUiState.Content,
     onToggleCategory: (CategoryId) -> Unit,
-    onSelectHideMode: (HideMode) -> Unit,
     onOpenCategory: (CategoryId) -> Unit,
     onCloseDrillDown: () -> Unit,
     onStartCards: () -> Unit,
@@ -169,15 +163,6 @@ private fun LearnSetupContent(
                 modifier = Modifier.padding(bottom = 4.dp),
             )
             CategoryIconGrid(categories = state.categories, onOpenCategory = onOpenCategory)
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            Text(
-                text = stringResource(R.string.learn_setup_hide_mode_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 4.dp),
-            )
-            HideModeSelector(hideMode = state.hideMode, onSelectHideMode = onSelectHideMode)
         }
 
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
@@ -401,47 +386,6 @@ private fun TechniqueRow(technique: LearnTechniqueUiModel, modifier: Modifier = 
     }
 }
 
-/** Két kölcsönösen kizáró lehetőség rádiógombbal (FR-07, FUNCTIONAL_SPEC 4.1/3.). */
-@Composable
-private fun HideModeSelector(
-    hideMode: HideMode,
-    onSelectHideMode: (HideMode) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        HideModeOption(
-            label = stringResource(R.string.learn_setup_hide_japanese),
-            selected = hideMode == HideMode.HIDE_JAPANESE,
-            onClick = { onSelectHideMode(HideMode.HIDE_JAPANESE) },
-        )
-        HideModeOption(
-            label = stringResource(R.string.learn_setup_hide_hungarian),
-            selected = hideMode == HideMode.HIDE_HUNGARIAN,
-            onClick = { onSelectHideMode(HideMode.HIDE_HUNGARIAN) },
-        )
-    }
-}
-
-@Composable
-private fun HideModeOption(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = MIN_TOUCH_TARGET)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = label, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
 /** A gomb minimális érintési célpontja (FUNCTIONAL_SPEC 9., NFR-04). */
 private val MIN_TOUCH_TARGET: Dp = 48.dp
 
@@ -460,7 +404,7 @@ private val PREVIEW_DRILLDOWN_TECHNIQUES = listOf(
     LearnTechniqueUiModel(id = TechniqueId.of("KY-0002"), romaji = "Fudo Dachi", hungarian = "Természetes állás"),
 )
 
-private val NO_OP_START_CARDS: (Set<CategoryId>, HideMode) -> Unit = { _, _ -> }
+private val NO_OP_START_CARDS: (Set<CategoryId>) -> Unit = {}
 
 @Preview(name = "Kategóriarács – világos", showBackground = true)
 @Preview(
@@ -475,13 +419,11 @@ private fun LearnSetupScreenContentPreview() {
             uiState = LearnSetupUiState.Content(
                 categories = PREVIEW_CATEGORIES,
                 selectedCategories = setOf(CategoryId.of("dachi")),
-                hideMode = HideMode.HIDE_JAPANESE,
                 canStart = true,
                 disabledReasonRes = null,
                 datasetTrust = DatasetTrust.PRACTICE_ON_UNREVIEWED,
             ),
             onToggleCategory = {},
-            onSelectHideMode = {},
             onOpenCategory = {},
             onCloseDrillDown = {},
             onRetry = {},
@@ -503,7 +445,6 @@ private fun LearnSetupScreenDrillDownSelectedPreview() {
             uiState = LearnSetupUiState.Content(
                 categories = PREVIEW_CATEGORIES,
                 selectedCategories = setOf(CategoryId.of("dachi")),
-                hideMode = HideMode.HIDE_JAPANESE,
                 canStart = true,
                 disabledReasonRes = null,
                 datasetTrust = DatasetTrust.PRACTICE_ON_UNREVIEWED,
@@ -515,7 +456,6 @@ private fun LearnSetupScreenDrillDownSelectedPreview() {
                 ),
             ),
             onToggleCategory = {},
-            onSelectHideMode = {},
             onOpenCategory = {},
             onCloseDrillDown = {},
             onRetry = {},
@@ -537,7 +477,6 @@ private fun LearnSetupScreenDrillDownEmptyPreview() {
             uiState = LearnSetupUiState.Content(
                 categories = PREVIEW_CATEGORIES,
                 selectedCategories = emptySet(),
-                hideMode = HideMode.HIDE_JAPANESE,
                 canStart = false,
                 disabledReasonRes = R.string.learn_setup_start_disabled_no_category,
                 datasetTrust = DatasetTrust.REVIEWED,
@@ -549,7 +488,6 @@ private fun LearnSetupScreenDrillDownEmptyPreview() {
                 ),
             ),
             onToggleCategory = {},
-            onSelectHideMode = {},
             onOpenCategory = {},
             onCloseDrillDown = {},
             onRetry = {},
@@ -571,13 +509,11 @@ private fun LearnSetupScreenDisabledPreview() {
             uiState = LearnSetupUiState.Content(
                 categories = PREVIEW_CATEGORIES.map { it.copy(selected = false) },
                 selectedCategories = emptySet(),
-                hideMode = HideMode.HIDE_HUNGARIAN,
                 canStart = false,
                 disabledReasonRes = R.string.learn_setup_start_disabled_no_category,
                 datasetTrust = DatasetTrust.REVIEWED,
             ),
             onToggleCategory = {},
-            onSelectHideMode = {},
             onOpenCategory = {},
             onCloseDrillDown = {},
             onRetry = {},
@@ -598,7 +534,6 @@ private fun LearnSetupScreenLoadingPreview() {
         LearnSetupScreen(
             uiState = LearnSetupUiState.Loading,
             onToggleCategory = {},
-            onSelectHideMode = {},
             onOpenCategory = {},
             onCloseDrillDown = {},
             onRetry = {},
@@ -621,7 +556,6 @@ private fun LearnSetupScreenErrorPreview() {
                 messageRes = hu.kyokushin.trainer.core.ui.R.string.error_load_failed,
             ),
             onToggleCategory = {},
-            onSelectHideMode = {},
             onOpenCategory = {},
             onCloseDrillDown = {},
             onRetry = {},

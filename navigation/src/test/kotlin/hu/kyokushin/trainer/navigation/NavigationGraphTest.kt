@@ -22,7 +22,7 @@ class NavigationGraphTest {
             "library/list",
             "library/detail/{techniqueId}",
             "learn/setup",
-            "learn/cards?categoryIds={categoryIds}&hideMode={hideMode}",
+            "learn/cards?categoryIds={categoryIds}",
             "quiz/setup",
             "quiz/run/{sessionId}",
             "quiz/result/{sessionId}",
@@ -172,27 +172,25 @@ class NavigationGraphTest {
     }
 
     /**
-     * A `learn/cards` lekérdezőparaméterei a [LearnCardsViewModel] kulcsait használják,
+     * A `learn/cards` lekérdezőparamétere a [LearnCardsViewModel] kulcsát használja,
      * nem a `NavArgs`-t: a Navigation Compose a route argumentumokat automatikusan a cél
      * `SavedStateHandle`-jébe teszi, tehát a ViewModel ugyanazzal a névvel olvassa vissza,
-     * amivel ide kerültek (T-303 KDoc-ja, T-304).
+     * amivel ide kerültek (T-303 KDoc-ja, T-304). **Nincs `hideMode` argumentum** (T-706) –
+     * az elrejtési irány a kártyaképernyő felső fülváltójával élőben váltható.
      */
     @Test
     fun learnCards_routeArgumentNames_matchTheViewModelKeys_NFR03() {
         assertThat(KyokushinScreen.LEARN_CARDS.routePattern)
             .contains("{${LearnCardsViewModel.KEY_CATEGORY_IDS}}")
-        assertThat(KyokushinScreen.LEARN_CARDS.routePattern)
-            .contains("{${LearnCardsViewModel.KEY_HIDE_MODE}}")
     }
 
     @Test
-    fun routeBuilders_learnCards_fillsCategoryIdsAndHideMode_NFR03() {
-        val built = KyokushinRoutes.learnCards(categoryIds = "dachi,tsuki", hideMode = "HIDE_JAPANESE")
+    fun routeBuilders_learnCards_fillsCategoryIds_NFR03() {
+        val built = KyokushinRoutes.learnCards(categoryIds = "dachi,tsuki")
 
         assertThat(built).isEqualTo(
             KyokushinScreen.LEARN_CARDS.routePattern
-                .replace("{${LearnCardsViewModel.KEY_CATEGORY_IDS}}", "dachi,tsuki")
-                .replace("{${LearnCardsViewModel.KEY_HIDE_MODE}}", "HIDE_JAPANESE"),
+                .replace("{${LearnCardsViewModel.KEY_CATEGORY_IDS}}", "dachi,tsuki"),
         )
     }
 }

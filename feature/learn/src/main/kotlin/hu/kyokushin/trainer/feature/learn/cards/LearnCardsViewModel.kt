@@ -26,19 +26,25 @@ import kotlin.random.Random
 
 /**
  * A tanulókártya munkamenet állapotkezelése (T-303, FR-09, NFR-07, FUNCTIONAL_SPEC 4.2,
- * US-09, G-04 csoport).
+ * US-09, G-04 csoport; a felső fülváltó T-706, FR-40).
  *
  * ## Bemenet: a `learn/setup` (T-302) kijelölése
  *
- * A kijelölt kategóriákat és az elrejtési módot a [savedStateHandle] hordozza, a
- * [KEY_CATEGORY_IDS] és a [KEY_HIDE_MODE] kulcson. Ugyanaz a minta, mint a
+ * A kijelölt kategóriákat a [savedStateHandle] hordozza, a [KEY_CATEGORY_IDS] kulcson.
+ * Ugyanaz a minta, mint a
  * [hu.kyokushin.trainer.feature.library.detail.LibraryDetailViewModel] `techniqueId`
- * argumentumánál (T-209): a kulcsok csak **névben** egyeznek majd a jövőbeli navigációs
- * argumentummal, a `navigation` modul importálása nélkül (L5). Az aktuális navigációs
- * bekötés (route-argumentumok, a `learn/cards` útvonalminta bővítése) a kártya UI-t építő
- * T-304 tárgya – ott derül ki, milyen alakban kapja a képernyő a két értéket. Eddig a
- * pontig ez a ViewModel önmagában, kézzel összerakott `SavedStateHandle`-lel tesztelt
- * (lásd `LearnCardsViewModelTest`).
+ * argumentumánál (T-209): a kulcs csak **névben** egyezik a navigációs argumentummal, a
+ * `navigation` modul importálása nélkül (L5).
+ *
+ * ## Az elrejtési irány T-706 óta élőben váltható, nem a `learn/setup` egyszeri bemenete
+ *
+ * A [HideMode] eredetileg (T-302/T-303) a `learn/setup`-ból érkező, a munkamenet elején
+ * **egyszer** rögzített érték volt. T-706-tal ez megszűnt: a kártya felső fülváltója
+ * ([onSelectHideMode]) bármikor átállíthatja, a [hideModeFlow] ezért a [KEY_CATEGORY_IDS]-
+ * hez hasonlóan `SavedStateHandle`-ben él, de **reaktívan** (`getStateFlow`), nem egyszer
+ * kiolvasott `val`-ként – a `learn/setup` (és a `navigation` route) innentől **nem** ad
+ * át kezdeti elrejtési irányt, a kártyaképernyő saját alapértelmezéssel indul
+ * ([DEFAULT_HIDE_MODE]).
  *
  * ## Seedelt keverés – egyszer sorsolva, a munkamenet elején
  *
@@ -125,10 +131,14 @@ class LearnCardsViewModel
                 .map(CategoryId::of)
                 .toSet()
 
-        private val hideMode: HideMode =
-            savedStateHandle.get<String>(KEY_HIDE_MODE)
-                ?.let { runCatching { HideMode.valueOf(it) }.getOrNull() }
-                ?: HideMode.HIDE_JAPANESE
+        /**
+         * Melyik nevet rejti el a kártya – T-706 óta **élőben váltható** a kártya felső
+         * fülváltójával ([onSelectHideMode]), nem csak a `learn/setup`-ból érkező,
+         * egyszer beállított érték (lásd az osztály KDoc-ja).
+         */
+        private val hideModeFlow: Flow<HideMode> =
+            savedStateHandle.getStateFlow(KEY_HIDE_MODE, DEFAULT_HIDE_MODE.name)
+                .map { raw -> runCatching { HideMode.valueOf(raw) }.getOrDefault(DEFAULT_HIDE_MODE) }
 
         /** Egyszer sorsolva: ha már volt, a mentett értéket olvassuk vissza (lásd osztály KDoc). */
         private val seed: Long =
@@ -146,8 +156,9 @@ class LearnCardsViewModel
             repository.observeCategories(),
             positionFlow,
             revealedPositionsFlow,
-        ) { techniques, categories, position, revealedPositions ->
-            buildState(techniques, categories, position, revealedPositions)
+            hideModeFlow,
+        ) { techniques, categories, position, revealedPositions, hideMode ->
+            buildState(techniques, categories, position, revealedPositions, hideMode)
         }
             .flowOn(defaultDispatcher)
             .stateIn(
@@ -209,6 +220,24 @@ class LearnCardsViewModel
         }
 
         /**
+         * A felső fülváltó (T-706, FR-40): melyik nevet mutassa elsőként a kártya.
+         *
+         * Az **aktuális** kártya felfedettsége törlődik (US-10 3. elfogadási kritériuma:
+         * a felirat elrejtése nem sérülhet – ha a kártya már fel volt fedve a régi
+         * irányban, a fülváltás után újra el kell rejteni, hogy a felidézés valódi
+         * próba maradjon), de a **pozíció nem változik**, és a többi, már megtekintett
+         * kártya felfedettsége is érintetlen marad – csak az éppen látott kártyáé törlődik.
+         */
+        fun onSelectHideMode(hideMode: HideMode) {
+            savedStateHandle[KEY_HIDE_MODE] = hideMode.name
+            val position = savedStateHandle.get<Int>(KEY_POSITION) ?: 0
+            val revealed = savedStateHandle.get<ArrayList<String>>(KEY_REVEALED).orEmpty()
+            if (position.toString() in revealed) {
+                savedStateHandle[KEY_REVEALED] = ArrayList(revealed - position.toString())
+            }
+        }
+
+        /**
          * Visszaállás az első kártyára, üres felfedettségi készlettel (T-307, a záróképernyő
          * „Újrakezdés" gombja). A [seed] – és vele a kártyák sorrendje – **nem** változik,
          * lásd az osztály KDoc-ja.
@@ -223,6 +252,7 @@ class LearnCardsViewModel
             categories: List<Category>,
             position: Int,
             revealedPositions: Set<Int>,
+            hideMode: HideMode,
         ): LearnCardsUiState {
             if (techniques.isEmpty()) return LearnCardsUiState.Empty
 
@@ -278,11 +308,23 @@ class LearnCardsViewModel
              */
             const val KEY_CATEGORY_IDS = "categoryIds"
 
-            /** A [HideMode] enum neve sztringként. Nem `private`, lásd [KEY_CATEGORY_IDS]. */
+            /**
+             * A [HideMode] enum neve sztringként. T-706 óta **nem** navigációs argumentum
+             * (a fülváltás a kártya képernyőjén élőben történik, nem a `learn/setup`-ból jön)
+             * – a láthatóság a tesztfixtúra (`LearnCardsViewModelTest.handleFor`) direkt
+             * `SavedStateHandle`-előtöltése miatt maradt nem `private`.
+             */
             const val KEY_HIDE_MODE = "hideMode"
 
             /** Elválasztó a [KEY_CATEGORY_IDS] értékében; a `CategoryId` nem tartalmazhat vesszőt. */
             const val CATEGORY_ID_SEPARATOR = ","
+
+            /**
+             * Alapértelmezett irány, amíg a felhasználó nem váltott fület (T-706): a
+             * "Japán nevek" fül aktív először – FR-40/a felhasználói kérés szövege
+             * ("Kiindulás: Japán nevek, Magyar nevek") ezt sorolja elsőként.
+             */
+            private val DEFAULT_HIDE_MODE = HideMode.HIDE_HUNGARIAN
 
             private const val KEY_SEED = "learn.cards.seed"
             private const val KEY_POSITION = "learn.cards.position"

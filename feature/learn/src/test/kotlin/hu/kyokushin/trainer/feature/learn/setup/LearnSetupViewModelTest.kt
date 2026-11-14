@@ -12,7 +12,6 @@ import hu.kyokushin.trainer.feature.learn.ALL_LEARN_TECHNIQUES
 import hu.kyokushin.trainer.feature.learn.FakeLearnContentImporter
 import hu.kyokushin.trainer.feature.learn.FakeLearnTechniqueRepository
 import hu.kyokushin.trainer.feature.learn.GatedLearnContentImporter
-import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.learnImportedState
 import hu.kyokushin.trainer.feature.learn.learnTechnique
 import kotlinx.coroutines.Dispatchers
@@ -233,44 +232,19 @@ class LearnSetupViewModelTest {
         job.cancel()
     }
 
-    // ----------------------------------------------------------- elrejtési mód / FR-07
+    // ------------------------------------------------- SavedStateHandle megőrzés / FR-06
+    //
+    // Az elrejtési mód (FR-07) tesztjei T-706 óta a `LearnCardsViewModelTest`-ben élnek –
+    // a `learn/setup` már nem dönt erről, lásd `LearnSetupUiState` osztály KDoc-ja.
 
     @Test
-    fun learnSetup_defaultHideModeIsHideJapanese_FR07() = runTest {
-        val viewModel = viewModel()
-        val job = collectState(viewModel)
-        advanceUntilIdle()
-
-        val content = viewModel.uiState.value as LearnSetupUiState.Content
-        assertThat(content.hideMode).isEqualTo(HideMode.HIDE_JAPANESE)
-        job.cancel()
-    }
-
-    @Test
-    fun learnSetup_selectingHideModeUpdatesState_FR07() = runTest {
-        val viewModel = viewModel()
-        val job = collectState(viewModel)
-        advanceUntilIdle()
-
-        viewModel.onSelectHideMode(HideMode.HIDE_HUNGARIAN)
-        advanceUntilIdle()
-
-        val content = viewModel.uiState.value as LearnSetupUiState.Content
-        assertThat(content.hideMode).isEqualTo(HideMode.HIDE_HUNGARIAN)
-        job.cancel()
-    }
-
-    // ------------------------------------------------- SavedStateHandle megőrzés / FR-06, FR-07
-
-    @Test
-    fun learnSetup_savedStateHandle_restoresSelectionAndHideModeAfterRecreate_FR06() = runTest {
+    fun learnSetup_savedStateHandle_restoresSelectionAfterRecreate_FR06() = runTest {
         val handle = SavedStateHandle()
         val first = viewModel(savedStateHandle = handle)
         val firstJob = collectState(first)
         advanceUntilIdle()
 
         first.onToggleCategory(CategoryId.of("tsuki"))
-        first.onSelectHideMode(HideMode.HIDE_HUNGARIAN)
         advanceUntilIdle()
         firstJob.cancel()
 
@@ -282,7 +256,6 @@ class LearnSetupViewModelTest {
 
         val content = restored.uiState.value as LearnSetupUiState.Content
         assertThat(content.selectedCategories).containsExactly(CategoryId.of("tsuki"))
-        assertThat(content.hideMode).isEqualTo(HideMode.HIDE_HUNGARIAN)
         restoredJob.cancel()
     }
 

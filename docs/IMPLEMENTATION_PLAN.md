@@ -169,7 +169,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | ✅ **kész** (T-703, 2026-11-14) – új `feature/home` modul |
 | 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | ✅ **kész** (T-704, 2026-11-14) |
 | 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | ✅ **kész** (T-705, 2026-11-14) |
-| 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | 🔴 **nyitott** – T-706 |
+| 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | ✅ **kész** (T-706, 2026-11-14) |
 | 9.7 | Illusztráció-befogadási munkafolyamat | FR-41 | 🔴 **nyitott** – T-707 |
 | 9.8 | Fordítások ellenőrzése hiteles forrásokból | FR-42 | 🔴 **nyitott** – T-708 |
 | 9.9 | Japán kiejtés lejátszása | — | ⛔ **jövőbeli, nem indítható** – T-709 (OQ-05) |
@@ -194,8 +194,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 ## Következő lépés
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
-igénysor: a soron következő, `/dev`-del indítható feladat a **T-706** (nincs
-függősége – a T-701…T-705 elkészültek). A T-709…T-711 szándékosan **nem**
+igénysor: a soron következő, `/dev`-del indítható feladat a **T-707** (nincs
+függősége – a T-701…T-706 elkészültek; a T-708 és a T-712 is függetlenül indítható,
+de a `/dev` a legkisebb azonosítót választja). A T-709…T-711 szándékosan **nem**
 indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
 
 <details>
@@ -1713,3 +1714,29 @@ ellenőrzés mind a 168 ágat igazolja. Videó/HTML/APK frissítve, build exit 0
   teszt (648 → +8), 0 hiba. `.\gradlew.bat ktlintCheck lint --console=plain`
   **exit 0**, `core/ui` és `feature/learn` lint-jelentése üres. Emulátoros vizuális
   ellenőrzés nem futott (nem volt tárgya a tasknak). Soron következő: **T-706**.
+- 2026-11-14 – **T-706 kész (Fázis 9.6, E7): felső fülváltó "Japán nevek"/"Magyar
+  nevek" a tanulókártyán.** Az elrejtési irány (FR-07) a `learn/setup`-ból a
+  `learn/cards` felső `SecondaryTabRow`-jába költözött – élőben váltható
+  (`LearnCardsViewModel.onSelectHideMode`), nem csak a munkamenet elején egyszer
+  eldöntött beállítás. Fülváltáskor csak az ÉPPEN LÁTOTT kártya felfedettsége
+  törlődik, a pozíció és a többi kártya felfedettsége érintetlen. A korábbi,
+  önálló "Mit rejtsünk el?" rádiógombos választó megszűnt a `learn/setup`-ból (nem
+  maradt két ellentmondó vezérlő); ennek a `onStartCards` szerződésváltásán
+  keresztül a `navigation` modul route-ja (`KyokushinScreen.LEARN_CARDS`,
+  `KyokushinRoutes.learnCards`) is mechanikusan módosult: nincs több `hideMode`
+  route-argumentum.
+
+  **Tervezési döntés:** a fülnév a KEZDŐ, látható oldalt nevezi meg, nem a
+  rejtettet – "Japán nevek" = `HideMode.HIDE_HUNGARIAN`, "Magyar nevek" =
+  `HideMode.HIDE_JAPANESE` (fordított leképezés a `HideMode` enumnevekhez képest,
+  dokumentálva a kódban). Az alapértelmezés is "Japán nevek"-re váltott (korábban
+  `HIDE_JAPANESE` volt az alapértelmezés) – szándékos, a felhasználó kérésének
+  szórendje ("Kiindulás: Japán nevek, Magyar nevek") alapján.
+
+  `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**, 659
+  teszt (656 → +3), 0 hiba. `.\gradlew.bat ktlintCheck lint --console=plain`
+  **exit 0**, `feature/learn`, `navigation` és `core/ui` lint-jelentése üres.
+  Ismert, nem ebben a körben javított drift: `FUNCTIONAL_SPEC.md` 4.1/3. és 4.2
+  még a régi "Mit rejtsünk el?" választót írja le (`docs/CONVENTIONS.md` 8.
+  szakasz új sora). Soron következő: **T-707** (T-708 és T-712 is függetlenül
+  indítható).

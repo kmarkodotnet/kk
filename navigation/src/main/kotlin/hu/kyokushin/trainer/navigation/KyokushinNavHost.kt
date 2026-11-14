@@ -35,7 +35,6 @@ import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 import hu.kyokushin.trainer.feature.home.HomeRoute
-import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.cards.LearnCardsRoute
 import hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel
 import hu.kyokushin.trainer.feature.learn.setup.LearnSetupRoute
@@ -244,18 +243,18 @@ private fun KyokushinNavGraph(
 
         composable(KyokushinScreen.LEARN_SETUP.routePattern) {
             LearnSetupRoute(
-                // A kijelölt kategóriák és az elrejtési mód a `learn/cards` route
-                // lekérdezőparamétereként mennek tovább – a Navigation Compose ezeket
-                // automatikusan a cél `SavedStateHandle`-jébe teszi, ugyanazzal a névvel,
-                // amivel a `LearnCardsViewModel` olvassa (T-303/T-304, lásd
-                // `KyokushinScreen.LEARN_CARDS` KDoc-ja).
-                onStartCards = { categoryIds, hideMode ->
+                // A kijelölt kategóriák a `learn/cards` route lekérdezőparaméterként
+                // mennek tovább – a Navigation Compose ezt automatikusan a cél
+                // `SavedStateHandle`-jébe teszi, ugyanazzal a névvel, amivel a
+                // `LearnCardsViewModel` olvassa (T-303/T-304, lásd
+                // `KyokushinScreen.LEARN_CARDS` KDoc-ja). Az elrejtési irányt T-706 óta a
+                // kártyaképernyő felső fülváltója dönti el, nem ez a route.
+                onStartCards = { categoryIds ->
                     navController.navigate(
                         KyokushinRoutes.learnCards(
                             categoryIds = categoryIds.joinToString(
                                 LearnCardsViewModel.CATEGORY_ID_SEPARATOR,
                             ) { it.value },
-                            hideMode = hideMode.name,
                         ),
                     )
                 },
@@ -266,7 +265,6 @@ private fun KyokushinNavGraph(
             route = KyokushinScreen.LEARN_CARDS.routePattern,
             arguments = listOf(
                 navArgument(LearnCardsViewModel.KEY_CATEGORY_IDS) { defaultValue = "" },
-                navArgument(LearnCardsViewModel.KEY_HIDE_MODE) { defaultValue = HideMode.HIDE_JAPANESE.name },
             ),
         ) {
             LearnCardsRoute(

@@ -391,6 +391,106 @@ class LearnCardsViewModelTest {
         restoredJob.cancel()
     }
 
+    // ------------------------------------------------- felső fülváltó / FR-40, T-706
+
+    @Test
+    fun learnCards_defaultHideMode_isHideHungarian_showingJapaneseFirst_FR40() = runTest {
+        // "Japán nevek" fül aktív alapértelmezésben (FR-40/a felhasználói kérés
+        // "Kiindulás: Japán nevek, Magyar nevek" sorrendje) = a romaji látszik elsőként.
+        val viewModel = viewModel(savedStateHandle = handleFor(setOf(CategoryId.of("dachi")), hideMode = null))
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        val content = viewModel.uiState.value as LearnCardsUiState.Content
+        assertThat(content.hideMode).isEqualTo(HideMode.HIDE_HUNGARIAN)
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_onSelectHideMode_updatesState_FR40() = runTest {
+        val viewModel = viewModel(savedStateHandle = handleFor(setOf(CategoryId.of("dachi")), hideMode = null))
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onSelectHideMode(HideMode.HIDE_JAPANESE)
+        advanceUntilIdle()
+
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).hideMode)
+            .isEqualTo(HideMode.HIDE_JAPANESE)
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_onSelectHideMode_hidesTheCurrentCardAgain_butKeepsPosition_FR40() = runTest {
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki")), hideMode = null),
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onNext()
+        advanceUntilIdle()
+        viewModel.onReveal()
+        advanceUntilIdle()
+        val revealedContent = viewModel.uiState.value as LearnCardsUiState.Content
+        assertThat(revealedContent.position).isEqualTo(1)
+        assertThat(revealedContent.card.revealed).isTrue()
+
+        viewModel.onSelectHideMode(HideMode.HIDE_JAPANESE)
+        advanceUntilIdle()
+
+        val afterSwitch = viewModel.uiState.value as LearnCardsUiState.Content
+        // A pozíció nem változik (T-706 Teendők 2. pontja), csak az aktuális kártya
+        // felfedettsége törlődik.
+        assertThat(afterSwitch.position).isEqualTo(1)
+        assertThat(afterSwitch.card.revealed).isFalse()
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_onSelectHideMode_doesNotAffectOtherAlreadyRevealedCards_FR40() = runTest {
+        val viewModel = viewModel(
+            savedStateHandle = handleFor(setOf(CategoryId.of("dachi"), CategoryId.of("tsuki")), hideMode = null),
+        )
+        val job = collectState(viewModel)
+        advanceUntilIdle()
+
+        // Az első kártya felfedve marad...
+        viewModel.onReveal()
+        advanceUntilIdle()
+        // ...a fülváltás a MÁSODIK (még fel nem fedett) kártyán történik.
+        viewModel.onNext()
+        advanceUntilIdle()
+        viewModel.onSelectHideMode(HideMode.HIDE_JAPANESE)
+        advanceUntilIdle()
+
+        viewModel.onPrevious()
+        advanceUntilIdle()
+        // Az első kártya felfedettsége érintetlen – csak az ÉPPEN LÁTOTT kártyáé törlődik.
+        assertThat((viewModel.uiState.value as LearnCardsUiState.Content).card.revealed).isTrue()
+        job.cancel()
+    }
+
+    @Test
+    fun learnCards_hideMode_survivesRecreateWithSameSavedStateHandle_FR40() = runTest {
+        val handle = handleFor(setOf(CategoryId.of("dachi")), hideMode = null)
+        val first = viewModel(savedStateHandle = handle)
+        val firstJob = collectState(first)
+        advanceUntilIdle()
+
+        first.onSelectHideMode(HideMode.HIDE_JAPANESE)
+        advanceUntilIdle()
+        firstJob.cancel()
+
+        val restored = viewModel(savedStateHandle = handle)
+        val restoredJob = collectState(restored)
+        advanceUntilIdle()
+
+        assertThat((restored.uiState.value as LearnCardsUiState.Content).hideMode)
+            .isEqualTo(HideMode.HIDE_JAPANESE)
+        restoredJob.cancel()
+    }
+
     // -------------------------------------------------------------------- üres kijelölés
 
     @Test
@@ -407,16 +507,22 @@ class LearnCardsViewModelTest {
 
     // ----------------------------------------------------------------------- segédek
 
+    /**
+     * @param hideMode előtölti a [LearnCardsViewModel.KEY_HIDE_MODE] kulcsot, vagy – ha
+     *   `null` – szándékosan **nem** tölti elő, hogy a ViewModel saját alapértelmezése
+     *   (T-706, `DEFAULT_HIDE_MODE`) érvényesüljön (lásd a fülváltó tesztjeit).
+     */
     private fun handleFor(
         categories: Set<CategoryId>,
-        hideMode: HideMode = HideMode.HIDE_JAPANESE,
+        hideMode: HideMode? = HideMode.HIDE_JAPANESE,
     ): SavedStateHandle = SavedStateHandle(
-        mapOf(
-            LearnCardsViewModel.KEY_CATEGORY_IDS to categories.joinToString(
-                LearnCardsViewModel.CATEGORY_ID_SEPARATOR,
-            ) { it.value },
-            LearnCardsViewModel.KEY_HIDE_MODE to hideMode.name,
-        ),
+        buildMap {
+            put(
+                LearnCardsViewModel.KEY_CATEGORY_IDS,
+                categories.joinToString(LearnCardsViewModel.CATEGORY_ID_SEPARATOR) { it.value },
+            )
+            if (hideMode != null) put(LearnCardsViewModel.KEY_HIDE_MODE, hideMode.name)
+        },
     )
 
     private fun TestScope.viewModel(
