@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +34,7 @@ import androidx.navigation.navArgument
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.quiz.generator.QuizRunStateCodec
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
+import hu.kyokushin.trainer.feature.home.HomeRoute
 import hu.kyokushin.trainer.feature.learn.HideMode
 import hu.kyokushin.trainer.feature.learn.cards.LearnCardsRoute
 import hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel
@@ -103,7 +105,7 @@ fun KyokushinNavHost(
                 title = {
                     Text(
                         text = stringResource(
-                            currentScreen?.titleRes ?: R.string.nav_title_library_list,
+                            currentScreen?.titleRes ?: R.string.nav_title_home,
                         ),
                     )
                 },
@@ -173,6 +175,7 @@ private fun KyokushinBottomBar(
 /** A fülhöz tartozó ikon. Compose-típus, ezért nem az enumban él. */
 private fun bottomNavIcon(destination: BottomNavDestination): ImageVector =
     when (destination) {
+        BottomNavDestination.HOME -> Icons.Filled.Home
         BottomNavDestination.LIBRARY -> Icons.AutoMirrored.Filled.MenuBook
         BottomNavDestination.LEARN -> Icons.Filled.School
         BottomNavDestination.QUIZ -> Icons.Filled.Quiz
@@ -207,6 +210,10 @@ private fun KyokushinNavGraph(
         startDestination = KyokushinScreen.startRoute,
         modifier = modifier,
     ) {
+        composable(KyokushinScreen.HOME.routePattern) {
+            HomeRoute()
+        }
+
         composable(KyokushinScreen.LIBRARY_LIST.routePattern) {
             LibraryListRoute(
                 onDiagnostics = { navController.navigate(KyokushinScreen.DIAGNOSTICS.routePattern) },

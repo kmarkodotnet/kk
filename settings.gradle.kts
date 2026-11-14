@@ -40,6 +40,7 @@ include(":core:data")
 include(":core:ui")
 
 // Funkciómodulok
+include(":feature:home")
 include(":feature:library")
 include(":feature:learn")
 include(":feature:quiz")

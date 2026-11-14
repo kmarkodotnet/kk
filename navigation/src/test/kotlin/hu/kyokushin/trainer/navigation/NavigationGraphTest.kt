@@ -18,6 +18,7 @@ class NavigationGraphTest {
         val routes = KyokushinScreen.entries.map { it.routePattern }
 
         assertThat(routes).containsExactly(
+            "home",
             "library/list",
             "library/detail/{techniqueId}",
             "learn/setup",
@@ -40,16 +41,20 @@ class NavigationGraphTest {
     }
 
     @Test
-    fun navGraph_startsOnTheLibraryList_NFR03() {
-        assertThat(KyokushinScreen.startRoute).isEqualTo(KyokushinScreen.LIBRARY_LIST.routePattern)
-        assertThat(KyokushinScreen.LIBRARY_LIST.topLevel).isTrue()
+    fun navGraph_startsOnTheHomeScreen_FR37() {
+        // T-703: a Kezdőoldal váltotta fel a Tudástár listáját induló útvonalként.
+        assertThat(KyokushinScreen.startRoute).isEqualTo(KyokushinScreen.HOME.routePattern)
+        assertThat(KyokushinScreen.HOME.topLevel).isTrue()
     }
 
     @Test
-    fun bottomNav_hasTheFourSpecifiedDestinationsInOrder_NFR03() {
+    fun bottomNav_hasTheFiveSpecifiedDestinationsInOrder_NFR03_FR37() {
         val destinations = BottomNavDestination.entries
 
+        // A Főoldal (T-703, FR-37) a sor bal szélén; a többi sorrendje (és a Tudástár
+        // jobbra kerülése) a T-704 tárgya, egyelőre változatlan.
         assertThat(destinations.map { it.route }).containsExactly(
+            "home",
             "library/list",
             "learn/setup",
             "quiz/setup",

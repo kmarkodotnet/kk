@@ -3621,3 +3621,97 @@ ebben a körben nem futott újra – a `@Preview` és a `SplashContrastTest` adj
 kontraszt-bizonyítékot). Az Android 12+ natív `SplashScreen` API bekötése szándékosan
 nincs megépítve (lásd `docs/done/T-701…md` „Megjegyzés" szakasza) – nem tesztkérdés, hanem
 egy új, jóváhagyást igénylő task.
+
+---
+
+## 2026-11-13 – Felhasználói kérés: 14 mp-es filmes intro és részletes kanji
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `python tools/trace_kanji.py` | 0 | 736×1779 viewport, 16 kontúr, belső kivágások; SVG, Android vector, JSON és összehasonlító kép. |
+| `python tools/build_intro.py` | 0 | Azonos offline HTML a preview-ban és az APK assets könyvtárában. |
+| `node tools/preview_intro.mjs --video` | 0 | Hat renderelt képkocka (1,8; 3,35; 4,5; 7; 10; 13,8 mp), WebM-videó. |
+| `.\gradlew.bat testDebugUnitTest assembleDebug :app:lintDebug :app:ktlintCheck --console=plain` | 0 | `BUILD SUCCESSFUL`; 648 unit teszteredmény, 0 failure/error, APK; a végső ismétlésben a változatlan unit feladatok UP-TO-DATE. |
+| `.\gradlew.bat :app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=hu.kyokushin.trainer.IntroFlowTest' --console=plain` | 0 | `BUILD SUCCESSFUL in 36s`, 2 teszt, 0 hiba, Medium_Phone_API_37.0. |
+
+Az eszköztesztek a tényleges Android accessibility-fán ellenőrzik az átugrást,
+a bezárt intro Activity-újralétrehozás utáni távolmaradását és a lejátszás utáni
+automatikus továbblépést. Az automatikus menet a 17 mp-es védőidőzítő előtti
+befejezést várja. A manifest INTERNET-tilalmát a unit teszt is ellenőrzi.
+
+A végső képkockákon ellenőrizve: jobbról balra érkező, sraffozott ököl; vízszintes,
+kitöltetlen töréskontúrok; vízszintes kék energia; sötétben elforduló, majd tiszta
+függőleges kanji. A fotó–vektor összehasonlítást külön kép mutatja.
+
+Korábbi sikertelen körök: a közös logó KDoc-jában szereplő perjel-csillag
+karaktersor lezáratlan Kotlin-kommentet nyitott (javítva); a teszt első importja
+téves volt (javítva); egy PowerShellben nem idézőjelezett `-P` argumentum szétesett
+(a végső parancs idézőjelezett). A Compose-idle alapú introteszt nem érte el a
+lejátszás közbeni állapotot; helyette közvetlen Android-ellenőrzés fut.
+Az emulátoron maradt régi USB-kulcs párbeszédablakot elutasítottuk, a normál
+fejlesztői kulcs kapcsolatának helyreállítása után futottak a sikeres tesztek.
+
+**NEM FUTOTT:** teljes regressziós connected suite, fizikai telefonos teljesítmény-
+ellenőrzés, release build. A végső kör a két érintett eszköztesztre szűkült.
+Az új felhasználói igény nem módosítja a T-703…T-712 feladatok készültségét.
+
+## 2026-11-14 – Fehér háttér, referenciaököl, középvonalból növő repedés
+
+| Parancs | Exit | Eredmény |
+|---|---|---|
+| `python tools/build_intro_centerlines.py` | 0 | 168 belső középvonalág, 1867 helyi vastagságminta az eredeti kanji kitöltéséből. |
+| `python tools/build_intro.py` | 0 | Referencia alapján készült ököl és rajzolt fametszet beágyazott WebP-ként; offline HTML kb. 1,6 MB. |
+| `node tools/preview_intro.mjs --video` | 0 | 29 időpontban fehér képsarkok, 3 időpontban kizárólag balra terjedő tűz, vízszintes–függőleges fordulás: PASS. Nyolc vizuálisan ellenőrzött képkocka; új WebM 4 434 645 bájt. |
+| `.\gradlew.bat testDebugUnitTest assembleDebug :app:lintDebug :app:ktlintCheck --console=plain` | 0 | `BUILD SUCCESSFUL in 7s`, APK, app lint/ktlint sikeres. Változatlan unit feladatok UP-TO-DATE; app tesztek újrafutottak. |
+| `.\gradlew.bat :app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=hu.kyokushin.trainer.IntroFlowTest' --console=plain` | 0 | `BUILD SUCCESSFUL in 32s`, 2 teszt, 0 hiba; végleges középvonalszalagos renderelő. |
+
+A korábbi sötét környezet, sugaras tűzterjedés és kontúr alapú törésrajz teljesen
+lecserélve. Az ököl a felhasználó `asserts/fist.jpg` referenciájának kéztartását
+követi; a generált rajzok és promptok az `INTRO_ART_PROMPTS.md`-ben szerepelnek.
+A kanji végső vektora változatlan. A HTML mindkét képet dekódolja az időzítés
+indítása előtt. A natív WebView induló háttérszíne is fehér.
+
+Az első középvonalgenerálás NumPy-skalárok JSON-szerializálásán bukott; explicit
+Python `int` konverzió javította. A nagyobb videó egyetlen CDP-válaszba töltése
+két sikertelen exportot okozott; a végső, 256 KiB-os darabokban olvasó export
+exit 0-val elkészült. A középvonal növekedése változó vastagságú szalagokat használ,
+korlátozott gyorsítótárral, sok átfedő korong helyett.
+
+**NEM FUTOTT:** fizikai telefonos teljesítménymérés, teljes connected regressziós
+suite, release build. A letölthető APK debug build.
+
+### 2026-11-14 – Deszka és fordított induló kanji
+
+- `python tools/build_intro.py` → exit 0: a beágyazott faelem most
+  `asserts/intro-wood-board.png`.
+- `node tools/preview_intro.mjs --video` → exit 0: fehér háttér 29 mintán,
+  balra terjedés 3 mintán, +90° → 0° orientáció és csökkenő forgásszög ellenőrizve;
+  nyolc képkocka és friss WebM. A 7 és 11,5 mp-es képkocka vizuálisan is ellenőrizve.
+- `.\gradlew.bat testDebugUnitTest assembleDebug :app:lintDebug :app:ktlintCheck --console=plain`
+  → exit 0, `BUILD SUCCESSFUL in 26s`. Változatlan unit feladatok UP-TO-DATE,
+  app unit tesztek újrafutottak. A friss APK az `output/Kyokushin-Trainer.apk`.
+- A preview-böngésző elsőre nem futott (`ECONNREFUSED`); a külön tesztprofil
+  elindítása után a teljes grafikai ellenőrzés és export sikerült.
+- Eszközteszt ebben a kizárólag grafikai körben **NEM FUTOTT újra**; az indítás,
+  befejezés és átugrás Kotlin-kódja nem változott.
+
+---
+
+## 2026-11-14 – T-703 (Kezdőoldal + Főoldal gomb, Fázis 9.3 bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL in 31s`; 648 teszt összesen (változatlan a T-702 óta – `feature/home`-nak nincs saját unit tesztje, állapotmentes), 0 hiba; `:feature:home:assembleDebug` is lefutott (`BUILD SUCCESSFUL`, 34 feladat). |
+| `.\gradlew.bat ktlintCheck lint --console=plain` | 0 | `BUILD SUCCESSFUL in 9s`; `feature/home/build/reports/lint-results-debug.html` és `navigation/build/reports/lint-results-debug.html` is 0 találat. |
+
+Érintett modulok: új `feature/home` (`HomeRoute`/`HomeScreen`, nincs ViewModel/Hilt),
+`navigation` (`KyokushinScreen.HOME`, induló útvonal, `BottomNavDestination.HOME`,
+`NavigationGraphTest` bővítve), `core/ui` (új `KyoKanjiMark` komponens + a splash-
+drawable és -string áthelyezése ide `app`-ból), `app` (`SplashScreen` a megosztott
+komponenst hívja).
+
+**NEM FUTOTT:** emulátoros navigációs próba erre a konkrét útvonalra (a meglévő
+`connectedDebugAndroidTest` a párhuzamos intro-munka `IntroFlowTest`-jével már
+lefutott más körben, lásd fentebb – azt nem futtattam újra ebben a körben, mert a
+Kezdőoldal maga `@Preview`-val és a sima JVM `NavigationGraphTest`-tel már igazolt,
+és nem érintette az intro saját tesztjét).

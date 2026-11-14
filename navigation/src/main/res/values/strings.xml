@@ -5,7 +5,11 @@
 -->
 <resources>
 
-    <!-- A bottom navigation négy fülének felirata (FUNCTIONAL_SPEC 1.). -->
+    <!--
+        A bottom navigation füleinek felirata (FUNCTIONAL_SPEC 1. + T-703/FR-37
+        bővítés: a Főoldal gomb a sor bal szélén).
+    -->
+    <string name="nav_home">Főoldal</string>
     <string name="nav_library">Tudástár</string>
     <string name="nav_learn">Tanulás</string>
     <string name="nav_quiz">Kvíz</string>
@@ -18,6 +22,7 @@
         A képernyők címei a felső sávban. A funkciómodulok (T-207-tól) ugyanezeket a
         kulcsokat használják, hogy a cím a navigációval együtt maradjon konzisztens.
     -->
+    <string name="nav_title_home">Főoldal</string>
     <string name="nav_title_library_list">Tudástár</string>
     <string name="nav_title_library_detail">Technika</string>
     <string name="nav_title_learn_setup">Tanulás</string>

@@ -10,6 +10,7 @@ import hu.kyokushin.trainer.feature.learn.cards.LearnCardsViewModel
  * [NavSection.PROGRESS] szakaszhoz tartozik, és megnyitva is a Haladás fül marad kijelölve.
  */
 enum class NavSection {
+    HOME,
     LIBRARY,
     LEARN,
     QUIZ,
@@ -40,6 +41,17 @@ enum class KyokushinScreen(
     val topLevel: Boolean,
     val showsBottomBar: Boolean,
 ) {
+    /**
+     * A Kezdőoldal (T-703, FR-37) – a splash után, és az alsó navigáció bal szélén lévő
+     * "Főoldal" gombbal is ez az induló útvonal.
+     */
+    HOME(
+        routePattern = "home",
+        titleRes = R.string.nav_title_home,
+        section = NavSection.HOME,
+        topLevel = true,
+        showsBottomBar = true,
+    ),
     LIBRARY_LIST(
         routePattern = "library/list",
         titleRes = R.string.nav_title_library_list,
@@ -147,8 +159,11 @@ enum class KyokushinScreen(
         fun forRoutePattern(routePattern: String?): KyokushinScreen? =
             entries.firstOrNull { it.routePattern == routePattern }
 
-        /** Az alkalmazás indulási útvonala: a Tudástár listája (FUNCTIONAL_SPEC 1.). */
-        val startRoute: String get() = LIBRARY_LIST.routePattern
+        /**
+         * Az alkalmazás indulási útvonala: a Kezdőoldal (T-703, FR-37). A Tudástár listája
+         * volt az induló útvonal T-206-tól T-702-ig.
+         */
+        val startRoute: String get() = HOME.routePattern
     }
 }
 

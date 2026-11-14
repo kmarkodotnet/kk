@@ -130,6 +130,20 @@ téma- vagy új komponens-stílus munkába kezdesz, azt olvasd el előbb.
 | **Kategórianév + pontszám párosítása azonosító szerint, nem index szerint** (`ProgressOverviewViewModel`, T-503) | Amikor két `Flow` (itt: `TechniqueRepository.observeCategories()` a névhez, `ProgressRepository.observeCategoryProgress()` a pontszámhoz) ugyanazt a listát két külön forrásból adja vissza, és a dokumentált szerződésük szerint „ugyanaz a sorrend" (lásd a T-501 sorát a 1. szakaszban), a hívó **mégsem** zippeli index szerint: egy `associateBy { it.categoryId }` + a névlista szerinti `map` garantálja a helyes párosítást akkor is, ha a két forrás sorrendje valamikor szétcsúszna (pl. egy jövőbeli migráció vagy egy üres kategória miatt) – egy hiányzó párra pedig „nincs adat"`Score`, nem kivétel (védelmi háló, nem a T-501 szerződésének megkérdőjelezése). |
 | **Egy modulon belüli, de másik csomagban élő `@Composable`-mentes döntési logika szabadon újrahasznosítható, ha nem `internal`** (`progressScoreDisplay`/`ProgressScoreDisplay`, `formatLastPracticed`, T-506) | A `feature/progress/overview` csomag `ProgressMessages.kt`-ja (T-503) és a modul gyökerében élő `ProgressFormatting.kt` (T-504) a hívó módosítása nélkül, egyszerű importtal felhasználható a `feature/progress/technique` csomagból (T-506) – a Kotlin láthatósági szabály **modul**-szintű, nem csomagszintű: egy nem `internal`/`private` top-level `fun`/`sealed interface` bármely csomagból importálható **ugyanazon Gradle-modulon belül**. Ha egy már bizonyított döntési logika (itt: „nincs adat vs. százalék") egy másik képernyőn ugyanazt a szabályt követi, **importáld**, ne írd újra – ez nem ugyanaz, mint a feature modulok közötti duplikáció (ADR-001 L5, lásd a „Kétszámos kategóriaszám-formátum" sort), ahol a modulhatár tényleg más forrást kényszerít ki. A `strings.xml` erőforrások ugyanígy modul-szintűek (nem csomagszintűek): a `progress_overview_score_percent` és a `progress_last_practiced` is importálás nélkül, az `R` osztályon keresztül elérhető a `technique` csomagból. |
 
+## 4b. Megosztott brand-elem (kép + leírás) két hívó modul között (`KyoKanjiMark`, T-703)
+
+Ha egy drawable/string eredetileg az `app` modulban élt (itt: a T-701 splash logója),
+és egy KÉSŐBBI feladat egy `feature/*` modulnak is ugyanazt a képet adná, a drawable-t
+**nem** lehet ott hagyni: egy `feature/*` modul nem függhet az `app`-ra (ADR-001, L5 –
+a függőség iránya fordítva áll, az `app` függ a feature modulokra, nem viszont). A
+helyes irány: a drawable és a hozzá tartozó string át/felkerül a `core/ui`-ba (amit
+minden modul lát), egy önálló, apró, saját `@Composable` mögé rejtve (itt:
+`hu.kyokushin.trainer.core.ui.brand.KyoKanjiMark`) – az `app` és a `feature/*` hívó is
+ugyanazt a komponenst hívja, nem két külön helyen duplikálja a képet/szöveget. Ha egy
+generáló szkript (itt: `tools/trace_kanji.py`) korábban az `app` útvonalára írt, a
+kimeneti útvonalát is érdemes a mozgatással együtt frissíteni, különben a következő
+futtatás egy használaton kívüli, lint-panaszt okozó másolatot hoz létre a régi helyen.
+
 ## 5. Navigáció
 
 | Tudnivaló | Részlet |
@@ -241,3 +255,13 @@ hogy a mesterprompt felülvizsgálata a felhasználó döntése.
 - A `ktlintFormat` forrást módosít: külön fejezd be, mielőtt fordítást indítasz.
   Windows Gradle cache-lock esetén ne töröld a cache-t; a szabályos `gradlew --stop`
   után egyetlen buildfolyamatot indíts.
+- Egy valós idejű WebView-intro vizsgálatakor a Compose/Espresso idle-várakozás
+  elnyelheti a lejátszás közbeni állapotot. Az `IntroFlowTest` közvetlen Android
+  accessibility-lekérdezést és valódi időt használ, nem Compose-órával próbálja
+  vezérelni a böngésző `requestAnimationFrame` óráját.
+- Kotlin blokkkommentben egy glob perjel-csillag része is beágyazott kommentet
+  nyit, Markdown backtickek között is. KDoc-ban írj helyette „funkciómodulok”-at.
+- Nagy részletességű Canvas-videó CDP-exportjánál a teljes base64-adat egyetlen
+  WebSocket-válaszban megszakíthatja a kapcsolatot. A `preview_intro.mjs` a
+  böngészőben tárolja a kész adatot, majd 256 KiB-os szövegdarabokban olvassa ki.
+  Ez nem a videó generálásának hibája; az adatátvitel méretét is ellenőrizni kell.

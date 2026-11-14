@@ -20,6 +20,11 @@ enum class BottomNavDestination(
     val screen: KyokushinScreen,
     @StringRes val labelRes: Int,
 ) {
+    /**
+     * A sor bal szélén (T-703, FR-37) – bármelyik fülről ide vezet vissza a felhasználó.
+     * A többi fül sorrendje (és a Tudástár jobbra kerülése) a T-704 tárgya.
+     */
+    HOME(KyokushinScreen.HOME, R.string.nav_home),
     LIBRARY(KyokushinScreen.LIBRARY_LIST, R.string.nav_library),
     LEARN(KyokushinScreen.LEARN_SETUP, R.string.nav_learn),
     QUIZ(KyokushinScreen.QUIZ_SETUP, R.string.nav_quiz),

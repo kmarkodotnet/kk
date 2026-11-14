@@ -166,7 +166,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 9.1 | Indítóképernyő – kék kandzsi logó fehér háttéren (`asserts/kyo.png` vektorizálva: `asserts/kyo_kanji.svg`, `asserts/ic_kyo_kanji.xml`) | FR-36 | ✅ **kész** (T-701, 2026-11-13) |
 | 9.2 | Vizuális arculat terv ("ne hasson webes űrlapnak") | FR-36 | ✅ **kész** (T-702, 2026-11-13) – `docs/DESIGN_NOTES.md` |
 | 9.2b | `core/ui`: a terv (9.2) kódba ültetése – `Typography`/`Shapes` | FR-36, CR-08 | 🔴 **nyitott** – T-712 (új, a T-702 nyomán felvett) |
-| 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | 🔴 **nyitott** – T-703 |
+| 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | ✅ **kész** (T-703, 2026-11-14) – új `feature/home` modul |
 | 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | 🔴 **nyitott** – T-704 |
 | 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | 🔴 **nyitott** – T-705 |
 | 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | 🔴 **nyitott** – T-706 |
@@ -194,8 +194,8 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 ## Következő lépés
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
-igénysor: a soron következő, `/dev`-del indítható feladat a **T-703** (nincs
-függősége – a T-701 és T-702 2026-11-13-án elkészült). A T-709…T-711 szándékosan **nem**
+igénysor: a soron következő, `/dev`-del indítható feladat a **T-704** (nincs
+függősége – a T-701, T-702 és T-703 elkészültek). A T-709…T-711 szándékosan **nem**
 indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
 
 <details>
@@ -1618,3 +1618,52 @@ kész függőségű feladat.
   task, nincs Kotlin/Compose-kód változás, build/teszt nem futott (nem is volt
   tárgya). A kódba ültetést egy új task viszi: **T-712** (`core/ui: Typography`/
   `Shapes` bevezetése, Függ: T-702). Soron következő: **T-703**.
+
+### 2026-11-13 – Külön felhasználói kérés: filmes indítóanimáció
+
+Elkészült a 14 mp-es, offline, átugorható intro és a fotót részletesebben követő
+kanji-vektor. A felhasználó pontosítása szerint az ököl jobbról balra üt, a repedés
+és a kék energia vízszintes, majd az energia függőlegesbe fordul és kitisztul.
+Részletek és generálás: `docs/CINEMATIC_INTRO.md`. Kimenetek:
+`output/Kyokushin-Intro.html`, `output/Kyokushin-Intro.webm`,
+`output/Kyokushin-Trainer.apk`. A meglévő T-703 és további arculati backlog
+állapota ettől nem változik; a közben megjelent kezdőoldali módosítások megőrizve.
+
+Ellenőrzés: unit/build/app lint/ktlint exit 0, 648 összesített unit teszteredmény,
+0 hiba; `IntroFlowTest` emulátoron 2/2 sikeres, exit 0. A részletes futásnapló a
+`docs/TEST_REPORT.md` végén található.
+
+**2026-11-14 – az intro felhasználói pontosítása:** végig fehér háttér; az
+`asserts/fist.jpg` alapján generált, részletes kék ökölrajz és évgyűrűs fametszet.
+A repedés és a tűz kizárólag a jobb oldali ütés helyétől balra terjed. A kanji
+kitöltéséből számolt középvonalak helyi vastagság szerint szélesednek; a kontúrok
+körberajzolása megszűnt. A vízszintes–függőleges fordulás és az eredeti részletes
+végső kanji megmaradt. Grafikai források/promptok: `docs/INTRO_ART_PROMPTS.md`.
+
+**2026-11-14 – további kis pontosítás:** a fametszetet rajzolt deszka váltotta.
+A vízszintes kanji 180°-kal megfordult; a felállás +90° → 0°, az előzővel
+ellentétes irányú. Oldalirányú repedés, fehér háttér és végső álló kanji megmaradt.
+Videó, HTML és APK frissítve; grafikai ellenőrzés és Gradle build/test/lint exit 0.
+- 2026-11-14 – **T-703 kész (Fázis 9.3, E7): Kezdőoldal + Főoldal gomb.** Új
+  `feature/home` modul (nincs ViewModel/Hilt – nincs megfigyelendő állapot):
+  `HomeRoute`/`HomeScreen` csak a márka-kandzsit mutatja, körülötte semmi mást.
+  `KyokushinScreen.HOME` (`"home"`) lett az induló útvonal a Tudástár listája
+  helyett; `BottomNavDestination.HOME` a sor bal szélén (Főoldal, Tudástár,
+  Tanulás, Kvíz, Haladás – a Tudástár jobbra tolása T-704 tárgya marad).
+  `NavigationGraphTest` bővítve az új induló útvonalra és az öt fülre.
+
+  **Menet közben szükségessé vált refaktor:** a T-701 splash-logója az `app` modul
+  drawable-je volt, de egy `feature/*` modul nem függhet `app`-ra (ADR-001, L5) – a
+  drawable és a leírás átkerült a `core/ui`-ba egy új, megosztott `KyoKanjiMark`
+  komponensbe, amit a splash (`app`) és a Kezdőoldal (`feature/home`) is hív. A
+  `tools/trace_kanji.py` kimeneti útvonala is frissült erre.
+
+  **Egyeztetés a párhuzamos intró-munkával:** a fenti, felhasználói kérésre készült
+  filmes intro (2026-11-13/14) ezt a taskot nyitva, változatlanul hagyta – nincs
+  ütközés: az intro a `KyokushinApp`-ban a splash elé került, a Kezdőoldal útvonala,
+  a bottom nav sorrendje és a `KyoKanjiMark` a T-703 commitjával együtt áll össze.
+
+  `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**, 648
+  teszt, 0 hiba (`:feature:home:assembleDebug` is lefutott). `.\gradlew.bat
+  ktlintCheck lint --console=plain` **exit 0**, `feature/home` és `navigation`
+  lint-jelentése üres. Soron következő: **T-704**.

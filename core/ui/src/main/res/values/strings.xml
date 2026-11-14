@@ -6,6 +6,13 @@
 <resources>
 
     <!--
+        A márka-kandzsi (T-701/T-703): a splash (app) és a Kezdőoldal (feature/home) is
+        ugyanazt a képet és leírást mutatja, ezért a `KyoKanjiMark` komponenssel együtt
+        ide került (FR-36, FR-37).
+    -->
+    <string name="kyo_kanji_content_description">Kyokushin Karate Trainer embléma</string>
+
+    <!--
         Illusztráció akadálymentes leírásai (FUNCTIONAL_SPEC 2.3, NFR-04).
 
         A `illustration_a11y_quiz_option` szándékosan NEM tartalmaz technikanév-helyet:

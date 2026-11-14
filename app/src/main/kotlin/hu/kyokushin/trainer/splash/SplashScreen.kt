@@ -1,7 +1,6 @@
 package hu.kyokushin.trainer.splash
 
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,13 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import hu.kyokushin.trainer.R
+import hu.kyokushin.trainer.core.ui.brand.KyoKanjiMark
 import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
 
 /**
@@ -28,6 +23,9 @@ import hu.kyokushin.trainer.core.ui.theme.KyokushinTrainerTheme
  * token – ez egy dokumentált kivétel a `docs/CONVENTIONS.md` 4. szakaszának "ne hardcode-olj
  * színt" szabálya alól: a splash célja egy márkajelzés, aminek a megjelenése a feladat
  * (T-701) szerint sötét rendszertémában sem változhat.
+ *
+ * A logó maga a [KyoKanjiMark] (`core/ui`, T-703 óta) – ugyanaz a komponens, amit a
+ * Kezdőoldal (`feature/home`) is használ, hogy a drawable és a leírás egy helyen éljen.
  */
 @Composable
 fun SplashScreen(modifier: Modifier = Modifier) {
@@ -38,13 +36,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
                 .padding(48.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_kyo_kanji),
-                contentDescription = stringResource(id = R.string.splash_content_description),
-                modifier = Modifier
-                    .width(160.dp)
-                    .semantics { heading() },
-            )
+            KyoKanjiMark(modifier = Modifier.width(160.dp))
         }
     }
 }

@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:quiz"))
     implementation(project(":core:ui"))
+    implementation(project(":feature:home"))
     implementation(project(":feature:library"))
     implementation(project(":feature:learn"))
     implementation(project(":feature:quiz"))

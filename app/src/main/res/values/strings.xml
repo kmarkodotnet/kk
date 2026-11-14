@@ -2,12 +2,13 @@
 <!-- Minden felhasználói szöveg magyar és ebben a fájlban él (NFR-02, FUNCTIONAL_SPEC 8.). -->
 <resources>
     <string name="app_name">Kyokushin Trainer</string>
+    <string name="intro_skip">Animáció átugrása</string>
 
     <!--
-        Indítóképernyő (T-701, FR-36): rövid, a kék kandzsi logót mutató képernyő, mielőtt
-        a tényleges navigáció betöltődik.
+        A splash (T-701) logójának leírása a `:core:ui` modulban él (T-703 óta, lásd
+        `KyoKanjiMark`), mert a Kezdőoldal (`feature/home`) ugyanazt a komponenst és
+        ugyanazt a szöveget használja – egy szövegkulcs egy modulhoz tartozik.
     -->
-    <string name="splash_content_description">Kyokushin Karate Trainer embléma</string>
 
     <!--
         A navigáció feliratai (`nav_library`, `nav_learn`, `nav_quiz`, `nav_progress`) a
