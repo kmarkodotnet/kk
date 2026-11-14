@@ -37,10 +37,11 @@ funkcióvisszajelzése alapján **új, önálló taskok** kerültek fel – ezek
 | ~~T-712~~ | — | **kész, 2026-11-14** (`docs/done/`) – `core/ui` `Typography`/`Shapes`, a T-702 tervét ülteti kódba – ezzel az E7 epik lezárult |
 | ~~T-707~~ | — | **kész, 2026-11-14** (`docs/done/`) – illusztráció-befogadási munkafolyamat dokumentálva a `KNOWLEDGE_BASE.md` 6a. pontjában |
 | T-708 | igen | tartalom-munkafolyamat (`BACKLOG.md` E8) |
-| T-709…T-711 | **nem** | hangos kiejtés, kiejtés-alapú kvíztípus, többnyelvűsítés – a „Függ" mezőjük szándékosan egy nyitott kérdésre (`OQ-05`/`OQ-06`/`OQ-07`) mutat, nem egy elvégezhető taskra, mert a mesterprompt 9/10. pontja MOST kizárja őket (`BACKLOG.md` E9) |
+| ~~T-711~~ | — | **kész, 2026-11-14** (`docs/done/`) – többnyelvűsítés (tetszőleges számú nyelv, valódi EN/DE tartalommal), OQ-07 feloldva – lásd `ADR-013`, `BACKLOG.md` E10 |
+| T-709…T-710 | **nem** | hangos kiejtés, kiejtés-alapú kvíztípus – a „Függ" mezőjük szándékosan egy nyitott kérdésre (`OQ-05`/`OQ-06`) mutat, nem egy elvégezhető taskra, mert a mesterprompt 9/10. pontja MOST kizárja őket (`BACKLOG.md` E9) |
 
 A `/dev`/`/devall` a megszokott, növekvő azonosító szerinti, függőségellenőrzött
-szabályt követi – a T-709…T-711 ennek megfelelően **megáll és blokkoltként jelzi
+szabályt követi – a T-709…T-710 ennek megfelelően **megáll és blokkoltként jelzi
 magát**, nem próbálja implementálni a kizárt funkciót.
 
 A tartalmi lektorálás és az ismert, külön fejlesztési ügyek az

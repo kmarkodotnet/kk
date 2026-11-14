@@ -146,3 +146,17 @@ ezt a `knowledgebase_transfer/manifest.json`-ban **kézzel kell korrigálni**, �
 A kép eredetének pontosítása **nem** hitelesítés – a `review_status` ettől függetlenül
 `"human_review_required"` marad. Részletek, a pontos mezőtáblázat és a javasolt követő
 task: [`docs/KNOWLEDGE_BASE.md` 6a. pont](../../../docs/KNOWLEDGE_BASE.md#6a-illusztráció-utólagos-hozzáadása-egy-meglévő-technikához).
+
+## 9. Többnyelvűsítés (T-711, FR-43)
+
+A `techniques.json`/`entries.json` rekord és a `manifest.json` kategória két **nyitott
+kulcsú** fordítás-mapet kap: `name_translations`, `description_translations` (csak a
+technikán) – tetszőleges ISO 639-1 nyelvkóddal, **nem** fix mezőnév nyelvenként. A `hu`
+kulcs sosem szerepel benne – a meglévő `hungarian_name`/`description_hu`/`name_hu` az
+alapnyelv, és hiányzó fordításra a domain modell (`Technique.localizedName`/
+`localizedDescription`, `Category.localizedName`) mindig erre esik vissza, soha nem
+üresre. Új nyelv felvétele a szerkesztési CSV egy új oszlopával és a `convert.py`
+map-építő logikájának egy új sorával jár – a séma, a validátor és a UI kódja nem
+változik. A kvízmotor nyelve (kérdés/válasz szöveg) szándékosan kimarad – lásd
+[`docs/KNOWLEDGE_BASE.md` 10a. pont](../../../docs/KNOWLEDGE_BASE.md#10a-többnyelvűsítés-fr-43-adr-013-t-711)
+és [ADR-013](../../../docs/adr/ADR-013-multi-language-content.md).

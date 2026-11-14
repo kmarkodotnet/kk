@@ -26,6 +26,7 @@ Terminológiai előellenőrzés: [T-708 – teljes forrásösszevetés és probl
 8. [Illusztrációk és licencelés](#8-illusztrációk-és-licencelés)
 9. [Migráció: tartalomkiadás, séma, átnevezés, visszavonás](#9-migráció-tartalomkiadás-séma-átnevezés-visszavonás)
 10. [Jelenlegi tartalmi állapot](#10-jelenlegi-tartalmi-állapot)
+10a. [Többnyelvűsítés](#10a-többnyelvűsítés-fr-43-adr-013-t-711)
 
 ---
 
@@ -112,7 +113,7 @@ párhuzamos „belső" formátum.
 | `dataset_version` | A tartalomkiadás verziója. Ez dönti el a betöltés idempotenciáját (FR-30): ha a csomagolt érték megegyezik a már tárolttal, az importáló `ImportResult.UpToDate`-et ad, és se validáció, se adatbázisírás nem fut. |
 | `editorial_status` | A tudástár **szerkesztői állapota egészben** (nem rekordonként). Ebből származtatja a validátor a [`DatasetTrust`](../core/model/src/main/kotlin/hu/kyokushin/trainer/core/model/DatasetTrust.kt) értéket: kizárólag a `"reviewed"` vagy `"production"` szó ad `REVIEWED`-et, minden más (beleértve a hiányzót és az elgépeltet is) a szigorúbb `PRACTICE_ON_UNREVIEWED`-et (ADR-010, CR-02 – bizalmi szintet kód soha nem emel). |
 | `dataset_trust` | **Jelenleg nem olvassa be a validátor** (`ManifestInput`-nak nincs ilyen mezője) – dokumentációs/olvasói célt szolgál a manifestben, a tényleges kapu bemenete az `editorial_status`. Ha ez a mező a jövőben programatikusan is szerepet kapna, azt ADR-kiegészítésben kell rögzíteni. |
-| `categories[]` | **Az egyetlen hiteles kategórialista.** `id` (stabil azonosító), `name_hu` (magyar megnevezés – nem a kódban/`strings.xml`-ben), `sort_order` (UI-sorrend; hiányában a tömbbeli sorrend). |
+| `categories[]` | **Az egyetlen hiteles kategórialista.** `id` (stabil azonosító), `name_hu` (magyar megnevezés – nem a kódban/`strings.xml`-ben), `sort_order` (UI-sorrend; hiányában a tömbbeli sorrend), `name_translations` (opcionális, nyitott kulcsú fordítás-map – lásd 10a. pont). |
 | `illustrations[]` | A kép-licencnyilvántartás (lásd a 8. pontot). Minden `entries[].illustration_ref` érték itt szereplő `ref`-re hivatkozik, vagy `null`. |
 
 ## 3. `entries.json` rekordséma
@@ -130,6 +131,8 @@ párhuzamos „belső" formátum.
       "japanese_script": null,
       "hungarian_name": "Tiszteletteljes köszönés és válasz",
       "description_hu": "A Kyokushinban gyakran használt köszönés, megerősítés és a kitartás kifejezése.",
+      "name_translations": { "en": "Respectful greeting and acknowledgement", "de": "Respektvolle Begrüßung und Bestätigung" },
+      "description_translations": { "en": "A greeting and acknowledgement commonly used in Kyokushin, also expressing perseverance.", "de": "Eine im Kyokushin häufig verwendete Begrüßung und Bestätigung, die auch Ausdauer ausdrückt." },
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -153,6 +156,7 @@ párhuzamos „belső" formátum.
 | `japanese_script` | nem | Az eredeti japán írásmód, ha ismert. A jelenlegi tartalomban mindenhol `null`. |
 | `hungarian_name` | igen | A magyar jelentés. |
 | `description_hu` | nem | Rövid magyar leírás. |
+| `name_translations`, `description_translations` | nem (alapértelmezés üres map) | A `hungarian_name`/`description_hu` nyitott kulcsú fordítás-térképei (FR-43, ADR-013) – lásd 10a. pont. |
 | `aliases` | nem, de **mindig lista** (sosem `null`) | További elfogadott elnevezések. A V009 szabály tisztítja (üres/önütköző/duplikált elem eldobva). |
 | `tags` | nem | A jelenlegi tartalomban mindenhol üres. Egyetlen validációs szabály sem használja (lásd `KnowledgeInputMapper` – szándékosan nem kerül át a validátor bemenetébe). |
 | `illustration_ref` | nem | A manifest `illustrations[].ref` egyikére hivatkozik, vagy `null`, ha a rekordnak nincs képe. **Nem útvonal** – lásd 8. pont, miért. |
@@ -558,7 +562,7 @@ tartalommal futva tovább (FR-31) – ez a dokumentált, biztonságos alapállá
 | Rekord | **161** (hiányos: 0) |
 | Kategória | **9** (`etiquette`, `commands`, `stances`, `blocks`, `punches`, `kicks`, `body_parts`, `numbers`, `kata`) |
 | Illusztráció | **10**, mind a `stances` kategóriában (KY-0044…KY-0053) |
-| `dataset_version` | `0.1.0` |
+| `dataset_version` | `0.2.0` (T-711: angol/német fordítás-mezőkkel bővült, FR-43/ADR-013) |
 | `editorial_status` | `draft_review_required` → `DatasetTrust.PRACTICE_ON_UNREVIEWED` – **minden rekord szakmai lektorálásra vár**, a „Lektorálatlan gyakorlóanyag" szalag mindenhol látható (ADR-010) |
 | Kvízben használható kép | **7** a 10-ből (3 kiesik a beégetett felirat miatt – lásd 8. pont) |
 | Szöveges kvíz ((A)/(B)) | mind a 9 kategóriában indítható (mindegyikben ≥ 4 kvízképes jelölt van) |
@@ -570,6 +574,57 @@ Részletes, generált bontás kategóriánként: `knowledgebase_transfer/VALIDAT
 tényleges, szakmai lektorálásra váró tartalom, amelyen a kvíz **futhat**, feltűnő
 jelöléssel (ADR-010 felülírta a korábbi, szigorúbb szabályt, amely mellett a 161 rekordból
 nulla lett volna kvízképes).
+
+## 10a. Többnyelvűsítés (FR-43, ADR-013, T-711)
+
+> A 2026-11-14-i felhasználói döntés feloldotta a korábbi, kizárólag magyar vasszabályt
+> (OQ-07, `docs/REQUIREMENTS.md` 10. szakasz). A teljes architekturális indoklás:
+> [ADR-013](adr/ADR-013-multi-language-content.md).
+
+**Mind a 161 rekord és mind a 9 kategória** kapott valódi angol/német fordítást
+(`docs/CONTENT_TRANSLATIONS.md`), szaknyelvi forrásokra hivatkozva,
+`translation_review_status: draft_review_required` jelöléssel a szerkesztési forrásban –
+ez a mező **nem** kerül át a kanonikus `entries.json`-ba (lásd lent, miért).
+
+### Hogyan kerül be egy fordítás
+
+1. A szerkesztési `knowledgebase/kyokushin_knowledge_hu.csv`-ben az `english_name`/
+   `german_name`/`description_en`/`description_de` oszlopok (kategóriánál a forrás JSON
+   `categories[].name_en`/`name_de` mezői).
+2. A `knowledgebase_transfer/tools/convert.py` ezekből építi fel a kanonikus
+   `name_translations`/`description_translations` map-eket (2–3. pont) – csak a nem üres
+   nyelveket veszi fel, a `hu` kulcsot sosem.
+3. A szokásos 6. pont szerinti menet: konverter futtatása, átmásolás az app-assetekbe,
+   `dataset_version` léptetése.
+
+**Új nyelv (pl. francia) felvétele**: egy új CSV-oszlop (`french_name`, …) + a
+`convert.py` map-építő logikájának egy új sora – a kanonikus séma, a domain modell, a
+Room séma és a UI kódja **nem** változik, mert a map nyitott kulcsú, nem fix mezőkészlet.
+
+### Visszaesés magyarra, sosem üres
+
+A domain modellben [`Technique.localizedName`/`localizedDescription`](../core/model/src/main/kotlin/hu/kyokushin/trainer/core/model/Technique.kt)
+és [`Category.localizedName`](../core/model/src/main/kotlin/hu/kyokushin/trainer/core/model/Category.kt)
+old fel: ha a kért nyelvre nincs fordítás, a visszaesés mindig a magyar mező –
+**soha nem üres, soha nem más nyelvű alapértelmezés** (CLAUDE.md tartalmi integritás).
+
+### Mi marad Hungarian-only
+
+A `core/quiz` motor (kérdésszöveg, disztraktor-kizárás) és a `feature/quiz` képernyők
+(`QuizRunScreen`/`ViewModel`, `QuizResultViewModel`) **szándékosan** nem lokalizáltak –
+ez önálló, mélyebb pedagógiai döntés (milyen nyelven kérdezzen a kvíz, hogyan viselkedjen
+a szinonima-kizárás többnyelvű névkészleten), nem T-711 tárgya (ADR-013 6. pont). A
+`strings.xml` azon kulcsai, amelyek ezt a mechanizmust nevezik meg (pl. a kvíz
+kérdéstípus-feliratai, vagy a keresési súgó, amely csak romaji/magyar név szerint
+keres), minden nyelven **szó szerint** „Hungarian"/„ungarisch" marad – ez írja le a
+tényleges viselkedést, nem a UI nyelvét (lásd `docs/CONVENTIONS.md` 10. szakasz).
+
+### A `translation_review_status` nem jelenik meg a UI-ban (ebben a körben)
+
+A mező átmegy a konverteren és a `core/data` DTO-ján (jövőbeli felhasználásra), de a
+domain modellbe és a UI-ba **nem** kerül át – egy „nem lektorált fordítás" vizuális
+jelölés a meglévő `VerificationBadge`/`UnreviewedBanner` (`core/ui/status/`) mintáját
+követő, önálló, kis követő feladat (fel nem vett backlog-tétel).
 
 ---
 

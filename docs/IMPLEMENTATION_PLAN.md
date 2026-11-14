@@ -174,7 +174,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 9.8 | Fordítások ellenőrzése hiteles forrásokból | FR-42 | 🔴 **nyitott** – T-708 |
 | 9.9 | Japán kiejtés lejátszása | — | ⛔ **jövőbeli, nem indítható** – T-709 (OQ-05) |
 | 9.10 | Kiejtés-alapú kvízkérdés-típus | — | ⛔ **jövőbeli, nem indítható** – T-710 (OQ-05, OQ-06) |
-| 9.11 | Többnyelvűsítés (EN/DE) | — | ⛔ **jövőbeli, nem indítható** – T-711 (OQ-07) |
+| 9.11 | Többnyelvűsítés (tetszőleges számú nyelv, valódi EN/DE tartalommal) | FR-43 | ✅ **kész** (T-711, 2026-11-14, OQ-07 feloldva – lásd ADR-013) |
 
 ---
 
@@ -1830,4 +1830,58 @@ T-711 teljes UI-nyelvváltása továbbra is külön feladat.
 `python -X utf8 tools/validate_content_translations.py` exit 0: teljes fedettség,
 CSV/JSON-egyezés, eredeti mezők megőrzése és változatlan magyar konverterkimenet,
 0 blokkoló hiba. Android build nem futott, a változás szerkesztési forrásadat.
+
+## 2026-11-14 – T-711: többnyelvűsítés (tetszőleges számú nyelv, OQ-07 feloldva)
+
+**Fázis 9.11 kész (FR-43).** A felhasználó explicit felülírta a `CLAUDE.md`
+korábbi, kizárólag magyar vasszabályát és a mesterprompt 9. pontjának erre
+vonatkozó korlátozását, azzal a feltétellel, hogy **tetszőleges számú nyelv**
+támogatható legyen, ne csak a task leírásában szereplő EN/DE. A döntést
+[ADR-013](adr/ADR-013-multi-language-content.md) rögzíti; `docs/REQUIREMENTS.md`
+OQ-07 lezárva, új FR-43; `docs/BACKLOG.md` T-711 áthelyezve az E9 „nem indítható"
+epikból az új, indítható E10/US-29-be.
+
+**UI-kezelőszövegek:** mind a 7 modul `strings.xml`-je mellé `values-en/` és
+`values-de/` (ugyanazokkal a kulcsokkal) – új nyelv felvétele ezen a rétegen
+ezután csak egy új `values-<lang>/strings.xml`, nulla kódmódosítás.
+
+**Technikatartalom:** a terv közben kiderült, hogy egy párhuzamos munka a
+felhasználó kérésére már elkészítette a 161 technika és 9 kategória valódi
+angol/német fordítását a szerkesztési forrásban (`docs/CONTENT_TRANSLATIONS.md`),
+de tudatosan megállt a szerkesztési rétegnél. A T-711 ezt vezette át: a
+`convert.py` most nyitott kulcsú `name_translations`/`description_translations`
+map-eket épít (ADR-013 – nem fix mezőnév nyelvenként, mint a szerkesztési CSV-ben),
+a `dataset_version` `0.1.0` → `0.2.0`. `core/model` (`Technique`/`Category`
+`nameTranslations`/`descriptionTranslations` + `localizedName`/
+`localizedDescription`, magyar visszaesés, a `hu` kulcs tiltva a mapben),
+`core/data` (DTO-k, Room séma `2 → 3`: `MIGRATION_2_3`, JSON-string oszlop
+`@TypeConverter`-rel, nem relációs tábla – a fordítás sosem SQL-szűrési cél),
+a `feature/learn`/`feature/library`/`feature/progress`/`feature/quiz` (csak a
+kategória-szűrő) ViewModel-jei most `localizedName()`-et hívnak a korábbi
+`.hungarian`/`.nameHu` helyett. A `core/ui` `currentLanguageTag()` a
+`Locale.getDefault().language`-re épül (nincs saját `Resources`/`LocaleList`
+kezelés, nincs in-app nyelvválasztó – a felhasználó a rendszerbeállítás-követést
+kérte). A `feature/quiz` kérdés/válasz-képernyői (`QuizRunScreen`/`ViewModel`,
+`QuizResultViewModel`) és a `core/quiz` motor **szándékosan** Hungarian-only
+marad (ADR-013 6. pont) – önálló, mélyebb pedagógiai döntés.
+
+**Két mellékhatás-javítás ugyanebben a körben:**
+1. A `convert.py` első futtatása mellékhatásként felvett 10, a `knowledgebase/
+   pics/`-ben már létező, de a `pics/manifest.json`-ban nem regisztrált
+   illusztrációt (KY-0054…KY-0063, állások/védések), amitől a `blocks` kategória
+   is kvízképes-képessé vált, és megbuktatta a `core/quiz` valós-tartalmú
+   teszteket. A konverter újrafutott ezekkel a fájlokkal ideiglenesen félretéve,
+   hogy a kiadott tartalom a jelenleg szándékosan regisztrált 10 illusztrációt
+   tükrözze – a fájlok megmaradtak a `knowledgebase/pics/`-ben egy önálló,
+   T-707 6a. pontja szerinti követő feladatra (`docs/CONVENTIONS.md` 8. szakasz).
+2. Az új `values-en/` erőforrások mellékhatásként megbuktattak több, exact
+   magyar szöveget állító Robolectric tesztet, mert nem pinnelték a
+   locale-t – ezek `@Config(qualifiers = "hu")`-t kaptak.
+
+`.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**, 667
+teszt, 0 hiba. `.\gradlew.bat ktlintCheck lint --console=plain` **exit 0**,
+minden modul lint-jelentése üres. Eszközös, tényleges nyelvváltásos UI-ellenőrzés
+**nem futott** (nincs egyszerű módja emulátoron ebben a körben). Soron következő:
+a `docs/backlog/`-ban nincs több `/dev`-del indítható feladat (T-709/T-710
+szándékosan blokkolt, OQ-05/OQ-06).
 

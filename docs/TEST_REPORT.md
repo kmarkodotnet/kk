@@ -3858,3 +3858,39 @@ már gracefully kezeli a hiányzó/lógó illusztráció-hivatkozást – lásd 
 nincs mit lefuttatni. Érintett fájlok kizárólag dokumentáció:
 `docs/KNOWLEDGE_BASE.md` (új 6a. pont), `docs/CONVENTIONS.md` (8. szakasz új sora),
 `.claude/skills/kyo-knowledge-base/SKILL.md` (új 8. szakasz).
+
+## 2026-11-14 – T-711 (többnyelvűsítés, tetszőleges számú nyelv, Fázis 9.11 bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `python knowledgebase_transfer/tools/convert.py` | 0 | `Rekord: 161 (hiányos: 0)`, `Kategória: 9`, `Illusztráció: 10 átmásolva`, `kvízben használható: 7`, `0 BLOKKOLÓ, 3 figyelmeztetés` – a 161 rekord és 9 kategória mindegyike kapott `name_translations`/`description_translations` map-et. |
+| `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL`; **667 teszt összesen** (659 → +8: `core/model` lokalizáció-visszaesés, `core/data` `MIGRATION_2_3` + séma-szerződés + valós-tartalom fordítás-ellenőrzés), 0 hiba. |
+| `.\gradlew.bat ktlintCheck lint --console=plain` | 0 | `BUILD SUCCESSFUL`; minden modul (`app`, `core/ui`, `core/data`, `core/model`, `core/quiz`, `feature/learn`, `feature/library`, `feature/progress`, `feature/quiz`, `navigation`, `di`, `feature/home`) lint-jelentése 0 találat. |
+
+**Két, útközben feltárt és javított mellékhatás, mindkettő dokumentálva (lásd
+`docs/IMPLEMENTATION_PLAN.md` 2026-11-14 T-711 bejegyzése):**
+- A `convert.py` első futtatása 10, a `knowledgebase/pics/`-ben már meglévő, de
+  `pics/manifest.json`-ban nem regisztrált illusztrációt (`KY-0054`…`KY-0063`) vett fel
+  mellékhatásként, és ezzel megbuktatott 7, a `core/quiz`/`core/data` valós-tartalmú
+  tesztjét (`RealContentCandidateFilterTest`, `RealContentQuizGenerationTest`,
+  `RealKnowledgeBaseValidationTest`, `RealKnowledgeContentReaderTest`) – ezeket a
+  fájlokat ideiglenesen félretéve futtattam újra a konvertert, hogy a kiadott tartalom
+  a szándékosan regisztrált 10 illusztrációt tükrözze; a fájlok megmaradtak a
+  `knowledgebase/pics/`-ben egy önálló követő feladatra.
+- Az új `values-en/strings.xml` erőforrások miatt 13, exact magyar `strings.xml`
+  szöveget állító Robolectric teszt a JVM alapértelmezett locale-ján (nem a
+  magyaron) futott volna – ezek `@Config(qualifiers = "hu")`-t kaptak.
+
+Érintett modulok: `core/model` (`Technique`/`Category` fordítás-map + `localizedName`/
+`localizedDescription`), `core/data` (DTO-k, `ContentEntityMappers`, Room séma
+`2 → 3`, `KyokushinTypeConverters`), `core/quiz` (`KnowledgeInput`,
+`DefaultKnowledgeValidator`), `core/ui` (`currentLanguageTag`, új
+`values-en`/`values-de`), `feature/learn`, `feature/library`, `feature/progress`,
+`feature/quiz` (csak a kategória-szűrő ViewModel-je), `navigation` (új
+`values-en`/`values-de`), `app` (új `values-en`/`values-de`,
+`knowledgebase/`/`knowledgebase_transfer/` forrás és a csomagolt app-assetek).
+
+**NEM FUTOTT:** eszközös/vizuális, tényleges nyelvváltásos ellenőrzés (nincs saját
+in-app nyelvválasztó a teszteléshez, és nincs egyszerű módja emulátoron
+rendszernyelv-váltásnak ebben a körben) – a bizonyíték a fenti unit tesztek és a
+valós, csomagolt tartalmon futó `RealKnowledgeContentReaderTest` új esete.
