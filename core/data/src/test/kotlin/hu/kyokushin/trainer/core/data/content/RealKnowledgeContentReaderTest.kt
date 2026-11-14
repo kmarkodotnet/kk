@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import hu.kyokushin.trainer.core.model.DatasetTrust
 import hu.kyokushin.trainer.core.model.IllustrationRef
 import hu.kyokushin.trainer.core.model.VerificationStatus
+import hu.kyokushin.trainer.core.model.localizedName
 import hu.kyokushin.trainer.core.quiz.validation.DefaultKnowledgeValidator
 import hu.kyokushin.trainer.core.quiz.validation.IssueCode
 import hu.kyokushin.trainer.core.quiz.validation.KnowledgeInput
@@ -97,6 +98,21 @@ class RealKnowledgeContentReaderTest {
         // leképezése dönti el, nem a `review_status`.
         assertThat(assets.filterNot { it.quizUsable }.map { it.ref })
             .containsExactly("KY-0045", "KY-0050", "KY-0052")
+    }
+
+    @Test
+    fun read_realKnowledgeBase_carriesTheRealTranslationsThroughToTheDomainModel_FR43() {
+        val report = validator.validate(readRealContent())
+
+        // KY-0001 ("Osu") valódi angol/német fordítása (T-711,
+        // `docs/CONTENT_TRANSLATIONS.md`) – ez bizonyítja, hogy a teljes útvonal
+        // (DTO → *Input → DefaultKnowledgeValidator → Technique) a valódi, csomagolt
+        // tartalmon is veszteségmentes, nem csak a szintetikus fixtúrákon.
+        val osu = report.accepted.single { it.id.value == "KY-0001" }
+        assertThat(osu.localizedName("en")).isEqualTo("Respectful greeting and acknowledgement")
+        assertThat(osu.localizedName("de")).isEqualTo("Respektvolle Begrüßung und Bestätigung")
+        // Hiányzó nyelvre a magyar a visszaesés, soha nem üres.
+        assertThat(osu.localizedName("fr")).isEqualTo(osu.hungarian)
     }
 
     @Test
