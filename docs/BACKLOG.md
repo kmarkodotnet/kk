@@ -84,9 +84,10 @@ Egy task akkor kész, ha **mind** teljesül:
 | **E6** | Minőség, akadálymentesség, átadás | US-20…US-21 | T-601…T-610 | 8 |
 | **E7** | Vizuális arculat és navigáció (2026-11-13 bővítés) | US-22…US-26 | T-701…T-706, T-712 | — |
 | **E8** | Tartalom-munkafolyamat (2026-11-13 bővítés) | US-27…US-28 | T-707…T-708 | — |
-| **E9** | Kiejtés, hangalapú kvíz, többnyelvűség – **jövőbeli, jelenleg NEM indítható** | — | T-709…T-711 | — |
+| **E9** | Kiejtés, hangalapú kvíz – **jövőbeli, jelenleg NEM indítható** | — | T-709…T-710 | — |
+| **E10** | Többnyelvű UI és technikatartalom (2026-11-14 bővítés, OQ-07 feloldva) | US-29 | T-711 | — |
 
-> **E7/E8/E9 az eredeti M1…M7 szállítás lezárása (2026-11-13) után felvett igények.**
+> **E7/E8/E9/E10 az eredeti M1…M7 szállítás lezárása (2026-11-13) után felvett igények.**
 > Nem tartoznak egyik eredeti mérföldkőhöz sem; lásd a „Bővítési backlog" szakaszt lent.
 
 ---
@@ -704,17 +705,41 @@ rögzítve; a kitalált vagy nem ellenőrizhető forrásból származó javítá
 
 ---
 
-# E9 · Kiejtés, hangalapú kvíz, többnyelvűsítés — jövőbeli, jelenleg NEM indítható
+# E9 · Kiejtés, hangalapú kvíz — jövőbeli, jelenleg NEM indítható
 
-> A mesterprompt **10. pontja** explicit kizárja MOST-ra a „hangos japán kiejtés"-t és a
-> „többnyelvűség"-et. Az alábbi tételek a felhasználó igényét **rögzítik**, de
-> szándékosan **nem indíthatók** `/dev`/`/devall`-lal: a „Függ" mező egy nyitott
-> kérdésre (`OQ-05`/`OQ-06`/`OQ-07`) mutat, nem egy elvégezhető taskra, így a függőség
-> sosem teljesül automatikusan. Az indításukhoz a mesterprompt 10. pontjának explicit,
-> felhasználói felülvizsgálata szükséges (lásd `REQUIREMENTS.md` 10. szakasz).
+> A mesterprompt **10. pontja** explicit kizárja MOST-ra a „hangos japán kiejtés"-t. Az
+> alábbi tételek a felhasználó igényét **rögzítik**, de szándékosan **nem indíthatók**
+> `/dev`/`/devall`-lal: a „Függ" mező egy nyitott kérdésre (`OQ-05`/`OQ-06`) mutat, nem egy
+> elvégezhető taskra, így a függőség sosem teljesül automatikusan. Az indításukhoz a
+> mesterprompt 10. pontjának explicit, felhasználói felülvizsgálata szükséges (lásd
+> `REQUIREMENTS.md` 10. szakasz).
+>
+> **A többnyelvűség (korábban ugyanitt, T-711) 2026-11-14-én kikerült ebből a listából** –
+> a felhasználó explicit felülírta a mesterprompt 9/10. pontjának erre vonatkozó
+> korlátozását (`OQ-07` lezárva, `ADR-013`, `REQUIREMENTS.md` FR-43). Lásd lent, E10.
 
 | Task | Cím | Modul | Méret | Függ |
 |---|---|---|---|---|
 | **T-709** | Japán kiejtés lejátszása a tanulókártyán/részletezőn egy hangikonnal (gépi TTS vagy a felhasználó által biztosított hangfájlok) | feature/learn, core/ui | L | **OQ-05 (nyitott döntés)** |
 | **T-710** | Új kvízkérdés-típus: lejátszott kiejtés alapján a helyes magyar nevet kell kiválasztani | core/quiz, feature/quiz | L | **OQ-05, OQ-06 (nyitott döntés)**, T-709 |
-| **T-711** | Többnyelvűsítés: angol és német felhasználói szövegek a magyar mellett, nyelvválasztás a beállításokban | összes feature, core/model | L | **OQ-07 (nyitott döntés)** |
+
+---
+
+## US-29 · Többnyelvű UI és technikatartalom
+
+> **Felhasználóként** azt akarom, hogy az alkalmazás kezelőfelülete és a
+> technikatartalom (név, leírás, kategórianév) tetszőleges számú nyelven elérhető
+> legyen, a rendszerbeállítás szerinti nyelvet követve, **hogy** a magyaron kívüli
+> nyelvet beszélő tanulók is használhassák – a magyar marad az alapnyelv és a hiteles
+> forrás, hiányzó fordításra mindig erre esik vissza az app.
+
+**Elfogadási kritériumok:** minden UI-kezelőszöveg és minden technikarekord/kategória
+neve-leírása megjelenik a támogatott nyelveken, ha van hozzá fordítás; ha nincs, a
+magyar jelenik meg (soha nem üres, soha nem angol alapértelmezés); új nyelv
+UI-kezelőszöveg-szinten egyetlen új `values-<lang>/strings.xml` felvételével
+támogatható, kódmódosítás nélkül; a kvízmotor nyelve ebből a körből kimarad (önálló
+követő feladat). **Követelmények:** FR-43 (új, 2026-11-14), ADR-013.
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| **T-711** | Többnyelvűsítés: UI-kezelőszövegek és technikatartalom lokalizálása tetszőleges számú nyelvre, rendszernyelv-követéssel, magyar visszaeséssel | összes feature, core/model, core/data, core/ui | XL | — |

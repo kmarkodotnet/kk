@@ -20,8 +20,16 @@ Ha bármi ütközik, a mesterprompt győz. A terveket a `docs/` könyvtár tarta
 10. `docs/adr/` – architekturális döntések (ADR-NNN).
 
 ## Vasszabályok
-- **Nyelv:** minden felhasználói szöveg és dokumentáció magyar. A kód, azonosítók, commit
-  üzenetek angolok. Technikaneveknél a romaji az eredeti forma, mellette magyar jelentés.
+- **Nyelv:** a dokumentáció magyar. A UI-kezelőszövegek és a technikatartalom (név,
+  leírás, kategórianév) **lokalizálhatók tetszőleges számú nyelvre** (FR-43, ADR-013,
+  2026-11-14, felhasználói döntés – ez feloldja a korábbi, kizárólag magyar
+  vasszabályt és OQ-07-et). Az alapnyelv és a hiteles tartalomforrás továbbra is
+  **magyar**: minden technikarekord `hungarian_name`/`description_hu` mezője és minden
+  `strings.xml` alapértelmezett (qualifier nélküli) bejegyzése kötelezően magyar marad,
+  és ha egy adott nyelvre nincs fordítás, az app **mindig** a magyar szövegre esik
+  vissza – soha nem marad üres, és soha nem jelenik meg más nyelvű (pl. angol)
+  alapértelmezésként. A kód, azonosítók, commit üzenetek angolok. Technikaneveknél a
+  romaji az eredeti, nyelvfüggetlen forma, mellette a lokalizált jelentés.
 - **Tartalmi integritás:** SOHA ne gyárts kitalált japán terminológiát, kitalált övfokot vagy
   nem ellenőrzött karate-illusztrációt hiteles tananyagként. Minden nem hitelesített rekord
   `verified = false`, `quizEligible = false`, és a UI-ban „Demó / ellenőrzésre vár" jelzést kap.

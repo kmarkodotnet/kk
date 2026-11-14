@@ -155,14 +155,24 @@ Prioritás: **M** (Must, MVP), **S** (Should, MVP-ben ha belefér), **W** (Won't
 | FR-41 | Dokumentált munkafolyamat áll rendelkezésre további, a felhasználó által utólag biztosított illusztrációk tudástárba való befogadására (fájlelhelyezés, manifest-bejegyzés, `contentVersion` léptetés, validáció). | S |
 | FR-42 | A tudástár romaji/magyar fordításai és terminológiája dokumentáltan összevetésre kerül hiteles Kyokushin-forrásokkal; az eltérések, a forrás és a hitelesítési döntés a dokumentációban rögzül. | S |
 
+### 3.7 Többnyelvűsítés (2026-11-14 kiegészítés, OQ-07 feloldása után)
+
+> A felhasználó 2026-11-14-én explicit felülírta a mesterprompt 9. pontjának a
+> többnyelvűségre vonatkozó korlátozását (lásd OQ-07, 10. szakasz). A döntés
+> architektúráját [ADR-013](adr/ADR-013-multi-language-content.md) rögzíti.
+
+| # | Követelmény | Pri |
+|---|---|---|
+| FR-43 | Az alkalmazás UI-kezelőszövegei és a technikatartalom (technika- és kategórianév, leírás) lokalizálhatók **tetszőleges számú** nyelvre. A nyelvválasztás a rendszerbeállítást követi (nincs saját in-app választó). Hiányzó fordításra az app mindig a magyar szövegre esik vissza (soha nem üres, soha nem más nyelvű alapértelmezés). A kvízmotor kérdés- és válaszszövegeinek nyelve ebből a követelményből kimarad – az külön döntés tárgya. | M |
+
 ---
 
 ## 4. Adatkövetelmények
 
 | # | Követelmény |
 |---|---|
-| DR-01 | **Technikarekord mezői:** stabil `id`, `categoryId`, `romaji`, `hungarian` (kötelező); `japaneseScript`, `aliases[]`, `illustration`, `descriptionHu`, `difficulty`, `beltRank`, `source`, `verified`, `quizEligible` (opcionális/származtatott). |
-| DR-02 | **Kategória:** `id`, `nameHu`, `sortOrder`. A magyar kategórianevek a tartalomban élnek, nem a kódban. |
+| DR-01 | **Technikarekord mezői:** stabil `id`, `categoryId`, `romaji`, `hungarian` (kötelező); `japaneseScript`, `aliases[]`, `illustration`, `descriptionHu`, `difficulty`, `beltRank`, `source`, `verified`, `quizEligible` (opcionális/származtatott); `nameTranslations`/`descriptionTranslations` (opcionális, tetszőleges nyelvi kulcsú map, FR-43). |
+| DR-02 | **Kategória:** `id`, `nameHu`, `sortOrder`; `nameTranslations` (opcionális, tetszőleges nyelvi kulcsú map, FR-43). A magyar kategórianevek a tartalomban élnek, nem a kódban. |
 | DR-03 | **Fogalom és névváltozat szétválasztása:** egy technika = egy fogalom, több elfogadható névváltozattal (`aliases`). A helyes válasz összehasonlítása **technikaazonosítóval** történik, soha nem szabad szöveges egyezéssel. |
 | DR-04 | **Felhasználói adat:** `QuizAttempt(id, techniqueId, questionType, selectedTechniqueId, correct, answeredAt, sessionId)`, `StudyReview(id, techniqueId, selfRating, reviewedAt)`, `QuizSession(id, startedAt, finishedAt?, requestedCount, answeredCount)`. Tárolás Room-ban, **nem** a csomagolt JSON-ban. |
 | DR-05 | **Validáció:** kötelező mezők jelenléte; egyedi stabil ID; létező képhivatkozás; létező kategóriaazonosító; duplikált vagy azonos jelentésű kifejezések felderítése; üres szöveg; nem támogatott `schemaVersion`. Részletes szabálytáblázat: `.claude/skills/kyo-knowledge-base/SKILL.md`, 4. pont. |
@@ -250,8 +260,10 @@ jelentés tartalmazza.** Jelenlegi állapot: nincs JDK és nincs Android SDK a g
 
 Többképkockás mozdulatábra, animáció, videó, hangos japán kiejtés; kyu/dan tanterv és
 övvizsgatesztek; több dojo/szövetség szerinti tananyag; spaced repetition (SM-2/FSRS),
-tanulási tervek, értesítések; központi tudástár-szerkesztő, felhős tartalomszinkron,
-többnyelvűség; felhasználói profilok, felhős backup, oktatói adminfelület.
+tanulási tervek, értesítések; központi tudástár-szerkesztő, felhős tartalomszinkron;
+felhasználói profilok, felhős backup, oktatói adminfelület.
+
+A **többnyelvűség** 2026-11-14-én kikerült ebből a listából – lásd FR-43 és OQ-07.
 
 Az architektúra ezekre **előkészít** (séma bővíthetőség, modulhatárok), de kódot nem ír.
 
@@ -267,4 +279,4 @@ Az architektúra ezekre **előkészít** (séma bővíthetőség, modulhatárok)
 | OQ-04 | Legyen-e felhasználói adat exportálása az MVP-ben? | Adatvédelem, felhasználói kontroll. | „Előrehaladás törlése" igen (FR-35, S); export a Fázis 8 után, igény szerint. |
 | OQ-05 | Vezessünk-e be gépi vagy hangfájl alapú japán kiejtés-lejátszást a tanuláshoz? | A mesterprompt **9. pontja** („hangos japán kiejtés") explicit kizárja a MOST fázisból. | **NYITOTT.** A 9. pont felülvizsgálata (felhasználói jóváhagyással) nélkül nem indítható. A `docs/backlog/T-709` rögzíti az igényt, de függősége (ez az OQ) szándékosan nincs feloldva. |
 | OQ-06 | Legyen-e kvízkérdés-típus, amely lejátszott kiejtés alapján kér magyar nevet? | Az OQ-05 megoldása nélkül nem építhető (a kiejtéslejátszás az előfeltétele). | **NYITOTT**, OQ-05-től függ. A `docs/backlog/T-710` rögzíti az igényt. |
-| OQ-07 | Vezessünk-e be többnyelvűséget (angol, német) a magyar mellett? | A mesterprompt **9. pontja** („többnyelvűség") ezt is explicit kizárja a MOST fázisból. | **NYITOTT.** A `docs/backlog/T-711` rögzíti az igényt, de a 9. pont felülvizsgálata nélkül nem indítható. |
+| OQ-07 | Vezessünk-e be többnyelvűséget (angol, német, és tetszőleges további nyelv) a magyar mellett? | A mesterprompt **9. pontja** („többnyelvűség") ezt is explicit kizárta a MOST fázisból. | **ELDÖNTVE (2026-11-14, felhasználói döntés): igen.** A felhasználó explicit felülírta a mesterprompt 9. pontjának erre vonatkozó korlátozását – lásd [ADR-013](adr/ADR-013-multi-language-content.md) és FR-43. A kvízmotor (kérdés/válasz szövegek) nyelve továbbra is csak magyar, ez külön, későbbi döntés. A `docs/backlog/T-711` ennek alapján indítható. |
