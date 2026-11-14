@@ -278,3 +278,9 @@ hogy a mesterprompt felülvizsgálata a felhasználó döntése.
   WebSocket-válaszban megszakíthatja a kapcsolatot. A `preview_intro.mjs` a
   böngészőben tárolja a kész adatot, majd 256 KiB-os szövegdarabokban olvassa ki.
   Ez nem a videó generálásának hibája; az adatátvitel méretét is ellenőrizni kell.
+- AAPT túl hosszú `VectorDrawable.pathData` esetén kiírhatja a
+  `string too large to encode using UTF-8` hibát úgy is, hogy a build exit 0.
+  A csomagba ekkor `STRING_TOO_LARGE` kerülhet az útvonal helyére. A generátor
+  ellenőrizze a 32767 bájtos határt; szükség esetén csak az Android vezérlőpontjait
+  kvantálja, a nagy felbontású SVG-t ne rontsa le. Ellenőrizd a kész APK-ban is,
+  hogy az érvényes `pathData` benne van, a helyettesítő hibaszöveg pedig nincs.

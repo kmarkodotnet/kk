@@ -2,7 +2,10 @@ package hu.kyokushin.trainer.core.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -10,9 +13,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 
 /**
- * Az alkalmazás Material 3 témája.
+ * Az alkalmazás Material 3 témája – szín, forma ([KyokushinShapes], T-712) és típusskála
+ * ([KyokushinTypography], T-712).
  *
  * **Miért a `core/ui`-ban él, és nem az `app`-ban?** A témát a megosztott komponensek
  * `@Preview`-jai és a funkciómodulok (`feature`) képernyői is használják, a
@@ -32,9 +38,12 @@ import androidx.compose.ui.platform.LocalContext
  * tesztmásolaton.
  */
 internal val LightScheme = lightColorScheme(
-    primary = Color(0xFF1C3D5A),
+    // A splash-logó (T-701, `core/ui/.../brand/KyoKanjiMark.kt`) kék színe – a márka
+    // egyetlen, következetes kék tónusa, a logó az igazságforrás (T-712,
+    // `docs/DESIGN_NOTES.md` 3. szakasza), nem fordítva.
+    primary = Color(0xFF17317A),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFD3E4F5),
+    primaryContainer = Color(0xFFD9E2F7),
     onPrimaryContainer = Color(0xFF0B1F30),
     secondary = Color(0xFF4F616E),
     onSecondary = Color(0xFFFFFFFF),
@@ -63,6 +72,36 @@ internal val DarkScheme = darkColorScheme(
     outline = Color(0xFF8C9199),
 )
 
+/**
+ * Egyetlen, megnevezett forma-készlet (T-712, `docs/DESIGN_NOTES.md` 5. szakasza) –
+ * nyolc fájl korábban egymástól függetlenül írta ki ugyanazt a `RoundedCornerShape(12.dp)`
+ * literált (lásd `docs/CONVENTIONS.md` 4. szakasza). A `medium` értéke szándékosan
+ * **nem** változott (a meglévő `12.dp` csak egyetlen helyre költözött); a `large` a
+ * tanulókártya korábbi `CARD_CORNER_RADIUS`-ának felel meg, a legnagyobb, leghangsúlyosabb
+ * felületnek valamivel lágyabb sarkot adva. A Material 3 `extraSmall`/`extraLarge`
+ * alapértelmezése változatlan marad, mert egyik hívó sem igényelt rá eltérést.
+ */
+private val KyokushinShapes = Shapes(
+    small = RoundedCornerShape(4.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+)
+
+/**
+ * Egyetlen, megnevezett típusskála (T-712, `docs/DESIGN_NOTES.md` 4. szakasza): a
+ * romaji/japán fogalom címszerepei (`titleLarge`, `headlineSmall`) **félkövérek**, a
+ * Material 3 alapértelmezett `Medium` súlya helyett – ez adja a tipográfiai
+ * megkülönböztetést a romaji (főszereplő) és a magyar jelentés (alárendelt, változatlan
+ * súlyú `bodyLarge`/`bodyMedium`) között. **Nincs** új betűtípus-erőforrás (a terv
+ * kifejezetten elvetette, lásd `docs/DESIGN_NOTES.md` 4. szakasza "elvetett ötlet" sora)
+ * – a Roboto (Material 3 alapértelmezett) marad, csak a súlykiosztás explicit.
+ */
+private val baseTypography = Typography()
+private val KyokushinTypography = baseTypography.copy(
+    titleLarge = baseTypography.titleLarge.copy(fontWeight = FontWeight.Bold),
+    headlineSmall = baseTypography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+)
+
 @Composable
 fun KyokushinTrainerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -81,6 +120,8 @@ fun KyokushinTrainerTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = KyokushinTypography,
+        shapes = KyokushinShapes,
         content = content,
     )
 }

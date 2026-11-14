@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -492,7 +491,7 @@ private fun QuizImageOptionCard(
     val stateDescriptionText = quizOptionStateDescriptionRes(feedback)?.let { stringResource(it) }
 
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         color = quizOptionContainerColor(feedback),
         contentColor = quizOptionContentColor(feedback),
         modifier = modifier
@@ -568,7 +567,7 @@ private fun QuizOptionRow(
     val stateDescriptionText = quizOptionStateDescriptionRes(feedback)?.let { stringResource(it) }
 
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         color = quizOptionContainerColor(feedback),
         contentColor = quizOptionContentColor(feedback),
         modifier = modifier
@@ -682,7 +681,7 @@ private fun QuizExplanationCard(
 ) {
     Surface(
         onClick = { onOpenTechnique(option.techniqueId) },
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         modifier = modifier

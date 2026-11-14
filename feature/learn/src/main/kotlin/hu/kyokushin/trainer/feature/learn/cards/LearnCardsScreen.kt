@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -390,7 +389,7 @@ private fun LearnCardSurface(
     val revealPrompt = stringResource(R.string.learn_cards_reveal_prompt)
 
     Surface(
-        shape = RoundedCornerShape(CARD_CORNER_RADIUS),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceVariant,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
@@ -482,7 +481,7 @@ private fun HiddenCaptionedImageNotice(modifier: Modifier = Modifier) {
     val title = stringResource(R.string.learn_cards_image_hidden_title)
 
     Surface(
-        shape = RoundedCornerShape(CARD_CORNER_RADIUS),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
@@ -550,9 +549,6 @@ private fun LearnCardsFinishedContent(
 
 /** A kártya és a gombok minimális érintési célpontja (FUNCTIONAL_SPEC 9., NFR-04). */
 private val MIN_TOUCH_TARGET: Dp = 48.dp
-
-/** A kártya és a feliratos-kép-helyőrző sarokkerekítése. */
-private val CARD_CORNER_RADIUS: Dp = 16.dp
 
 // ---------------------------------------------------------------------------------------
 // Előnézetek – világos és sötét témában, a négy állapotra (T-304, T-305, T-307).

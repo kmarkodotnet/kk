@@ -3730,6 +3730,28 @@ suite, release build. A letölthető APK debug build.
 - Unit/connected tesztek ebben a grafikai körben **NEM FUTOTTAK újra**;
   a változás a csomagolt rajzolást és annak ellenőrző eszközét érinti.
 
+### 2026-11-14 – Bézier-simítás, nagy felbontású összehasonlítás, gyors ütés
+
+- `python tools/trace_kanji.py` → exit 0: 16 zárt kontúr, 933 köbös görbe;
+  összehasonlító PNG 2400×2901, 4× mintavételezés/Lanczos élsimítás.
+- `python tools/build_intro_centerlines.py` → exit 0: 105 középvonalág,
+  1563 vastagságminta a görbék tényleges mintavételezéséből, nem vezérlőpont-poligonból.
+- `python tools/build_intro.py` → exit 0.
+- `node tools/preview_intro.mjs --video` → exit 0: 105 repedéság, képszélig érő
+  deszka, külön repedési szakasz, balra terjedő tűz és forgás PASS. Új pixelteszt:
+  0/0,5/1,8/2,8/3/5,4 mp időpontokban az ökölréteg üres, 3,25 mp-nél megjelenik,
+  4,5 mp-nél még látható visszahúzódás közben. Kilenc képkocka és új WebM készült.
+- Vizuálisan ellenőrizve a nagy felbontású összehasonlítás és a 13,8 mp-es végső
+  embléma: a korábbi fogazott poligonélek helyett sima görbék.
+- `.\gradlew.bat assembleDebug --console=plain` → exit 0,
+  végső javított build `BUILD SUCCESSFUL in 2s`.
+- Az első build exit 0 mellett AAPT `STRING_TOO_LARGE` figyelmeztetést adott a
+  42464 bájtos vektorra. A javított Android-adat 25579 bájt; közvetlenül a végső
+  APK-ból ellenőrizve, hogy az érvényes görbeszöveg jelen van, a hibajelölő nincs.
+  A csomagolt intro HTML bájtra egyezik a végleges forrással. Az SVG teljes
+  pontosságú maradt, csak az Android viewport-koordinátái kerekítettek.
+- Unit/connected tesztek ebben a grafikai körben **NEM FUTOTTAK újra**.
+
 ---
 
 ## 2026-11-14 – T-703 (Kezdőoldal + Főoldal gomb, Fázis 9.3 bővítési backlog)
@@ -3800,3 +3822,28 @@ következmény).
 
 **NEM FUTOTT:** emulátoros vizuális ellenőrzés – nem volt futó emulátor, és a task
 saját `Teszt` mezője sem kérte; a `@Preview`-k adják a vizuális bizonyítékot.
+
+---
+
+## 2026-11-14 – T-712 (`core/ui` Typography/Shapes bevezetése, Fázis 9.2b bővítési backlog)
+
+| Parancs | Exit | Kimenet |
+|---|---|---|
+| `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` | 0 | `BUILD SUCCESSFUL`; 659 teszt, 0 hiba; `ThemeContrastTest` mindkét új színpárra lefutott. |
+| `.\gradlew.bat ktlintCheck lint --console=plain` | 1 → 0 | Első futás: `feature/learn:ktlintMainSourceSetCheck` **FAILED** (`Needless blank line(s)`, `LearnCardsScreen.kt:553`, a `CARD_CORNER_RADIUS` konstans törlése után maradt dupla üres sor). Javítás után `BUILD SUCCESSFUL`; `core/ui`, `feature/learn`, `feature/quiz`, `feature/progress`, `navigation`, `app` lint-jelentése is 0 találat. |
+
+Számolt kontrasztarányok (W3C képlet, a `wcagContrastRatio`-val azonos): `onPrimary`
+(`#FFFFFF`) / `primary` (`#17317A`) ≈ **11,95:1**; `onPrimaryContainer` (`#0B1F30`) /
+`primaryContainer` (`#D9E2F7`) ≈ **12,91:1** – mindkettő jóval a WCAG AA 4,5:1 küszöb
+fölött.
+
+Érintett modulok: `core/ui` (`Theme.kt`: `KyokushinShapes`/`KyokushinTypography` +
+`LightScheme` színváltás), `feature/quiz` (`QuizResultScreen`, `QuizRunScreen`),
+`feature/progress` (`ProgressTechniqueScreen`, `ProgressDiagnosticsScreen`,
+`ProgressOverviewScreen`, `ProgressSettingsScreen`), `feature/learn`
+(`LearnCardsScreen`) – mind a `RoundedCornerShape(12.dp)`/`CARD_CORNER_RADIUS`
+lecserélve `MaterialTheme.shapes.medium`/`.large`-ra.
+
+**NEM FUTOTT:** emulátoros/vizuális ellenőrzés a tényleges renderelt képernyőkön – a
+`@Preview`-k (nem módosultak, a téma automatikusan érvényesül bennük) és a
+`ThemeContrastTest` adják a bizonyítékot, nem kézi/eszközös vizuális átnézés.

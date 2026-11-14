@@ -165,7 +165,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 |---|---|---|---|
 | 9.1 | Indítóképernyő – kék kandzsi logó fehér háttéren (`asserts/kyo.png` vektorizálva: `asserts/kyo_kanji.svg`, `asserts/ic_kyo_kanji.xml`) | FR-36 | ✅ **kész** (T-701, 2026-11-13) |
 | 9.2 | Vizuális arculat terv ("ne hasson webes űrlapnak") | FR-36 | ✅ **kész** (T-702, 2026-11-13) – `docs/DESIGN_NOTES.md` |
-| 9.2b | `core/ui`: a terv (9.2) kódba ültetése – `Typography`/`Shapes` | FR-36, CR-08 | 🔴 **nyitott** – T-712 (új, a T-702 nyomán felvett) |
+| 9.2b | `core/ui`: a terv (9.2) kódba ültetése – `Typography`/`Shapes` | FR-36, CR-08 | ✅ **kész** (T-712, 2026-11-14) |
 | 9.3 | Kezdőoldal (Főoldal) a logóval + navigáció | FR-37 | ✅ **kész** (T-703, 2026-11-14) – új `feature/home` modul |
 | 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | ✅ **kész** (T-704, 2026-11-14) |
 | 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | ✅ **kész** (T-705, 2026-11-14) |
@@ -195,9 +195,9 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
 igénysor: a soron következő, `/dev`-del indítható feladat a **T-707** (nincs
-függősége – a T-701…T-706 elkészültek; a T-708 és a T-712 is függetlenül indítható,
-de a `/dev` a legkisebb azonosítót választja). A T-709…T-711 szándékosan **nem**
-indítható (lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
+függősége – a T-701…T-706 és a T-712 is elkészültek, ezzel az E7 epik lezárult). A
+T-708 is függetlenül indítható (E8). A T-709…T-711 szándékosan **nem** indítható
+(lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
 
 <details>
 <summary>Korábbi (M1…M7-höz tartozó) "Következő lépés" bejegyzés – archív</summary>
@@ -1655,6 +1655,12 @@ méretre növekszik a fordulás közben. A +90° → 0° forgásirány megmaradt
 felső, alsó és bal képszélen. A kanji nagyobb kezdőmérettel jelenik meg; az összes
 alapvonala 3,8 mp-re sötét repedés, a kék energia 5,4 mp-től indul. A grafikai
 ellenőrzés mind a 168 ágat igazolja. Videó/HTML/APK frissítve, build exit 0.
+
+**2026-11-14 – sima vektorszélek és határozott ütés:** a fotó kontúrjai immár
+933 Bézier-szakaszt alkotnak, 16 zárt kontúrral; a PNG-összehasonlítás 2400×2901
+pixel, élsimított. A belső törésvonalak újragenerálva (105 ág). Az ököl az ütésig
+teljesen rejtett, 0,24 mp alatt csapódik be, majd 1,8 mp alatt húzódik vissza.
+A képkockás ellenőrzés a korai kézszél hiányát is igazolja; friss videó és APK.
 - 2026-11-14 – **T-703 kész (Fázis 9.3, E7): Kezdőoldal + Főoldal gomb.** Új
   `feature/home` modul (nincs ViewModel/Hilt – nincs megfigyelendő állapot):
   `HomeRoute`/`HomeScreen` csak a márka-kandzsit mutatja, körülötte semmi mást.
@@ -1740,3 +1746,28 @@ ellenőrzés mind a 168 ágat igazolja. Videó/HTML/APK frissítve, build exit 0
   még a régi "Mit rejtsünk el?" választót írja le (`docs/CONVENTIONS.md` 8.
   szakasz új sora). Soron következő: **T-707** (T-708 és T-712 is függetlenül
   indítható).
+- 2026-11-14 – **T-712 kész (Fázis 9.2b, E7): `core/ui` `Typography`/`Shapes`
+  bevezetése – a T-702 terve kódba ültetve, az E7 epik ezzel lezárult.**
+  `LightScheme.primary` → `#17317A` (a T-701 splash-logó színe, a logó az
+  igazságforrás), `primaryContainer` → `#D9E2F7`; a `ThemeContrastTest` mindkét
+  új párra lefutott (`onPrimary`/`primary` ≈ 11,95:1, `onPrimaryContainer`/
+  `primaryContainer` ≈ 12,91:1, mindkettő jóval 4,5:1 fölött). Új, megnevezett
+  `Shapes` (`small/medium/large` = 4/12/16 dp) – a ténylegesen **10** (nem a
+  becsült 8) kézzel kiírt `RoundedCornerShape(12.dp)` hívási hely
+  (`QuizResultScreen`, `QuizRunScreen` ×3, `ProgressTechniqueScreen`,
+  `ProgressDiagnosticsScreen`, `ProgressOverviewScreen` ×2,
+  `ProgressSettingsScreen` ×2) és a `LearnCardsScreen.CARD_CORNER_RADIUS` mind
+  `MaterialTheme.shapes.medium`/`.large`-ra cserélve. Új, megnevezett
+  `Typography`: `titleLarge`/`headlineSmall` félkövér a Material 3
+  alapértelmezett `Medium` helyett, nincs új betűtípus-fájl. A `@Preview`
+  Teendő nem igényelt kódszerkesztést – a megosztott `KyokushinTrainerTheme`-en
+  át minden meglévő előnézetben automatikusan érvényesül.
+
+  Az első `ktlintCheck lint` futás `feature/learn:ktlintMainSourceSetCheck`
+  hibával bukott (`Needless blank line(s)` a `CARD_CORNER_RADIUS` törlése után
+  maradt dupla üres sor miatt) – a sor törlése után `BUILD SUCCESSFUL`.
+  `.\gradlew.bat testDebugUnitTest assembleDebug --console=plain` **exit 0**,
+  659 teszt, 0 hiba. `.\gradlew.bat ktlintCheck lint --console=plain` **exit 0**,
+  minden érintett modul (`core/ui`, `feature/learn`, `feature/quiz`,
+  `feature/progress`) lint-jelentése üres. Soron következő: **T-707** (a T-708
+  is függetlenül indítható).
