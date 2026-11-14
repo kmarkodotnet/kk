@@ -20,7 +20,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 // A projekt Robolectric-konvenciója: a telepített SDK-k közül a 34-es képe van
 // letöltve (ugyanaz, mint a `core/data` és az `app` tesztjeiben).
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class IllustrationContentDescriptionTest {
     private lateinit var resources: Resources
 

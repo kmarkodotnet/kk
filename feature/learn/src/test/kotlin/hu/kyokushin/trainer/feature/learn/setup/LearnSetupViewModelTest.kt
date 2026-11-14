@@ -37,12 +37,12 @@ import hu.kyokushin.trainer.feature.learn.R as LearnR
  * A tanulás-beállító ViewModel viselkedése – emulátor nélkül (T-302, FR-06, FR-07).
  *
  * Robolectric kell hozzá, mert a [SavedStateHandle] Android `Bundle` fölött validálja a
- * tárolt értékeket (CONVENTIONS 3.). `@Config(sdk = [34])` – a `compileSdk = 37`-hez nincs
+ * tárolt értékeket (CONVENTIONS 3.). `@Config(sdk = [34], qualifiers = "hu")` – a `compileSdk = 37`-hez nincs
  * `android-all` csomag.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class LearnSetupViewModelTest {
     @Before
     fun setUp() {

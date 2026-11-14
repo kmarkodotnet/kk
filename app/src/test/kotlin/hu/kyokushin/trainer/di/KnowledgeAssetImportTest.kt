@@ -32,7 +32,7 @@ import javax.inject.Inject
  * Hilt-gráf, `isIncludeAndroidResources = true` az assetekhez). A valódi eszközön történő
  * indítást a TR-06 instrumentált tesztek fedik (T-606).
  *
- * A várt számok (`knowledgebase_transfer/README.md`): 161 rekord, `dataset_version` 0.1.0,
+ * A várt számok (`knowledgebase_transfer/README.md`): 161 rekord, `dataset_version` 0.2.0,
  * 0 elvetett rekord – ugyanaz a garancia, amit a `core/data`
  * `RealKnowledgeContentReaderTest` és `RealKnowledgeBaseValidationTest` (core/quiz) a
  * `knowledgebase_transfer/` forráson közvetlenül, fájlrendszeri eléréssel már igazol. Ez a
@@ -80,8 +80,11 @@ class KnowledgeAssetImportTest {
     }
 
     private companion object {
-        /** `knowledgebase_transfer/README.md`: 161 rekord, `dataset_version` 0.1.0. */
+        /**
+         * 161 rekord; `dataset_version` 0.2.0 – T-711 után (EN/DE fordítás-mezőkkel
+         * bővült a tartalom, FR-43, ADR-013).
+         */
         const val EXPECTED_ENTRY_COUNT = 161
-        const val EXPECTED_DATASET_VERSION = "0.1.0"
+        const val EXPECTED_DATASET_VERSION = "0.2.0"
     }
 }

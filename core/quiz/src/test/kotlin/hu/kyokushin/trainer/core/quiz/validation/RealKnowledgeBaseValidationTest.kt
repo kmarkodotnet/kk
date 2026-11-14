@@ -53,7 +53,8 @@ class RealKnowledgeBaseValidationTest {
         assertThat(input.entries).hasSize(EXPECTED_ENTRY_COUNT)
         assertThat(report.accepted).hasSize(EXPECTED_ENTRY_COUNT)
         assertThat(report.schemaVersion).isEqualTo("1.0.0")
-        assertThat(report.datasetVersion).isEqualTo("0.1.0")
+        // 0.2.0 – T-711: a tartalom EN/DE fordítás-mezőkkel bővült (FR-43, ADR-013).
+        assertThat(report.datasetVersion).isEqualTo("0.2.0")
         // `editorial_status = draft_review_required` → a szigorúbb olvasat (CR-02, ADR-010).
         assertThat(report.datasetTrust).isEqualTo(DatasetTrust.PRACTICE_ON_UNREVIEWED)
         // Egyetlen rekord sincs `review_status = reviewed`-en, tehát egyik sem hiteles.

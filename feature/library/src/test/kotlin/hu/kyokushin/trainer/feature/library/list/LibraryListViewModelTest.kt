@@ -34,12 +34,12 @@ import org.robolectric.annotation.Config
  *
  * Robolectric kell hozzá, mert a [SavedStateHandle] Android `Bundle` fölött validálja a
  * tárolt értékeket, és az üres állapot üzenetét a tényleges `strings.xml`-ből oldjuk fel.
- * `@Config(sdk = [34])` – a `compileSdk = 37`-hez nincs `android-all` csomag
+ * `@Config(sdk = [34], qualifiers = "hu")` – a `compileSdk = 37`-hez nincs `android-all` csomag
  * (CONVENTIONS 3.).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class LibraryListViewModelTest {
     private val resources get() =
         ApplicationProvider.getApplicationContext<Context>().resources

@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
  * vagy a VERIFIED ágra is jelölőt tesz, az itt bukik ki.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class VerificationBadgeTextTest {
     private lateinit var resources: Resources
 

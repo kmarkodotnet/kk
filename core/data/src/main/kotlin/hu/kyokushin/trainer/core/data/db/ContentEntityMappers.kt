@@ -45,6 +45,8 @@ internal fun Technique.toEntity(): TechniqueEntity = TechniqueEntity(
     hungarian = hungarian,
     japaneseScript = japaneseScript,
     descriptionHu = descriptionHu,
+    nameTranslations = nameTranslations,
+    descriptionTranslations = descriptionTranslations,
     status = status,
     quizExcluded = quizExcluded,
     retired = retired,
@@ -77,6 +79,8 @@ internal fun TechniqueEntity.toTechnique(aliases: List<String> = emptyList()): T
     japaneseScript = japaneseScript,
     aliases = aliases,
     descriptionHu = descriptionHu,
+    nameTranslations = nameTranslations,
+    descriptionTranslations = descriptionTranslations,
     illustration = toIllustrationRef(),
     status = status,
     quizExcluded = quizExcluded,
@@ -165,6 +169,7 @@ internal fun CategoryEntity.toCategory(): Category = Category(
     id = id,
     nameHu = nameHu,
     sortOrder = sortOrder,
+    nameTranslations = nameTranslations,
 )
 
 /** Domain → entitás a kategórián. */
@@ -172,6 +177,7 @@ internal fun Category.toEntity(): CategoryEntity = CategoryEntity(
     id = id,
     nameHu = nameHu,
     sortOrder = sortOrder,
+    nameTranslations = nameTranslations,
 )
 
 /**
@@ -199,8 +205,21 @@ internal fun List<CategoryInput>.toCategoryEntities(): List<CategoryEntity> =
             id = CategoryId.of(id),
             nameHu = category.nameHu?.trim()?.takeIf { it.isNotEmpty() } ?: id,
             sortOrder = category.sortOrder ?: index,
+            nameTranslations = category.nameTranslations.toCleanTranslations(),
         )
     }
+
+/**
+ * A nyers fordítás-térkép megtisztítása (FR-43, ADR-013): `null`/blank érték és a
+ * `"hu"` kulcs kiszűrve – ugyanaz a szabály, mint a `core/quiz` validátor technika-oldali
+ * megfelelőjénél, itt külön definiálva, mert a kategória nem megy át a
+ * [hu.kyokushin.trainer.core.quiz.validation.DefaultKnowledgeValidator]-on.
+ */
+private fun Map<String, String?>.toCleanTranslations(): Map<String, String> =
+    mapNotNull { (lang, value) ->
+        val trimmed = value?.trim()
+        if (lang.isBlank() || lang == "hu" || trimmed.isNullOrEmpty()) null else lang to trimmed
+    }.toMap()
 
 /**
  * A validátor szinonimacsoportjai `synonym_group` sorokká (V006, CR-07).

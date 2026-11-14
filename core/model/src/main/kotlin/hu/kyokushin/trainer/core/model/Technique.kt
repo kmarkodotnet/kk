@@ -31,6 +31,13 @@ package hu.kyokushin.trainer.core.model
  *   Üres lista, soha nem `null`. A distraktorválasztás ezeket is nézi, hogy két
  *   egymás szinonimája ne kerüljön egyszerre ugyanabba a kérdésbe (V006).
  * @property descriptionHu rövid magyar leírás, ha van.
+ * @property nameTranslations a [hungarian] további nyelvű fordításai, ISO 639-1
+ *   nyelvkóddal kulcsolva (pl. `"en"`, `"de"`) – **tetszőleges** számú nyelv, nem fix
+ *   mezőkészlet (FR-43, ADR-013). A `"hu"` kulcs sosem szerepel benne: a [hungarian] már
+ *   az alapnyelv. Hiányzó fordításra a [localizedName] mindig ide esik vissza.
+ * @property descriptionTranslations a [descriptionHu] további nyelvű fordításai,
+ *   ugyanazzal a kulcsolással és visszaesési szabállyal, mint [nameTranslations] –
+ *   lásd [localizedDescription].
  * @property illustration a képhivatkozás három állapota (ADR-003); `null`, ha a rekord
  *   nem hivatkozik illusztrációra.
  * @property status háromállapotú hitelesítési státusz (ADR-002) – **nem** boolean, mert
@@ -55,6 +62,8 @@ data class Technique(
     val japaneseScript: String? = null,
     val aliases: List<String> = emptyList(),
     val descriptionHu: String? = null,
+    val nameTranslations: Map<String, String> = emptyMap(),
+    val descriptionTranslations: Map<String, String> = emptyMap(),
     val illustration: IllustrationRef? = null,
     val status: VerificationStatus = VerificationStatus.AWAITING_REVIEW,
     val quizExcluded: Boolean = false,
@@ -67,5 +76,28 @@ data class Technique(
         require(hungarian.isNotBlank()) { "Technique.hungarian kötelező mező (DR-01)." }
         require(datasetVersion.isNotBlank()) { "Technique.datasetVersion kötelező mező." }
         require(aliases.none { it.isBlank() }) { "Technique.aliases nem tartalmazhat üres elemet (V009)." }
+        require(!nameTranslations.containsKey("hu")) {
+            "Technique.nameTranslations nem tartalmazhat 'hu' kulcsot – a hungarian mező az alapnyelv (ADR-013)."
+        }
+        require(!descriptionTranslations.containsKey("hu")) {
+            "Technique.descriptionTranslations nem tartalmazhat 'hu' kulcsot – a descriptionHu mező az alapnyelv (ADR-013)."
+        }
     }
 }
+
+/**
+ * A [Technique.hungarian] megjelenítendő alakja egy adott nyelven (FR-43, ADR-013).
+ *
+ * Ha [languageTag]-re nincs fordítás a [Technique.nameTranslations]-ben (beleértve
+ * magát a `"hu"` esetet is, mert az sosem szerepel a mapben), a visszaesés mindig a
+ * magyar [Technique.hungarian] – **soha nem üres, soha nem más nyelvű alapértelmezés**
+ * (CLAUDE.md tartalmi integritás). A kvízmotor és a `feature/quiz` képernyők
+ * szándékosan nem hívják ezt: a kvíz kérdés/válasz nyelve ebből a körből kimarad
+ * (ADR-013 6. pont).
+ */
+fun Technique.localizedName(languageTag: String): String =
+    nameTranslations[languageTag] ?: hungarian
+
+/** Lásd [localizedName] – ugyanaz a visszaesési szabály a leírásra. */
+fun Technique.localizedDescription(languageTag: String): String? =
+    descriptionTranslations[languageTag] ?: descriptionHu

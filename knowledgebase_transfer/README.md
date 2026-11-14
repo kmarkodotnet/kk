@@ -31,7 +31,7 @@ knowledgebase_transfer/
 | Rekord | **161** (hiányos: 0) |
 | Kategória | **9** |
 | Illusztráció | **10** (mind az `stances` kategóriában, KY-0044…KY-0053) |
-| `dataset_version` | 0.1.0 |
+| `dataset_version` | 0.2.0 (T-711: EN/DE fordítás-mezőkkel bővült, FR-43/ADR-013) |
 | `editorial_status` | `draft_review_required` – **minden rekord szakmai lektorálásra vár** |
 | BLOKKOLÓ hiba | 0 |
 
@@ -46,6 +46,8 @@ knowledgebase_transfer/
 | `japanese_script` | `japanese_script` (ma `null`) | `Technique.japaneseScript` |
 | `hungarian_name` | `hungarian_name` | `Technique.hungarian` |
 | `description_hu` | `description_hu` | `Technique.descriptionHu` |
+| `english_name`, `german_name` | **`name_translations`** (nyitott kulcsú map, FR-43) | `Technique.nameTranslations` |
+| `description_en`, `description_de` | **`description_translations`** (nyitott kulcsú map) | `Technique.descriptionTranslations` |
 | `image_path` (üres volt) | **`illustration_ref`** → `manifest.illustrations[].ref` | `IllustrationRef.Asset` / `null` |
 | `review_status` | `review_status` | `VerificationStatus` (lásd lent) |
 | `aliases`, `tags` | `aliases`, `tags` (ma üresek) | `Technique.aliases` |

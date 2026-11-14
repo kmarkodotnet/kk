@@ -239,6 +239,24 @@ class RoomSchemaContractTest {
         assertThat(columns).containsAtLeast("search_romaji", "search_hungarian")
     }
 
+    @Test
+    fun technique_andCategory_haveTheTranslationColumns_FR43() {
+        // A fordítás-map (ADR-013) a `technique`-en két oszlop, a `category`-n egy –
+        // mindkettő NOT NULL, mert a Room-mapper üres map-pel ('{}') tölti ki hiányzó
+        // fordítás esetén, nem `NULL`-lal.
+        val techniqueColumns = entities.getValue("technique").fields()
+        listOf("nameTranslations", "descriptionTranslations").forEach { column ->
+            val field = techniqueColumns.single { it["columnName"]!!.jsonPrimitive.content == column }
+            assertThat(field["affinity"]!!.jsonPrimitive.content).isEqualTo("TEXT")
+            assertThat(field["notNull"]!!.jsonPrimitive.boolean()).isTrue()
+        }
+
+        val categoryField = entities.getValue("category").fields()
+            .single { it["columnName"]!!.jsonPrimitive.content == "nameTranslations" }
+        assertThat(categoryField["affinity"]!!.jsonPrimitive.content).isEqualTo("TEXT")
+        assertThat(categoryField["notNull"]!!.jsonPrimitive.boolean()).isTrue()
+    }
+
     // --- DR-08: destruktív migráció tilalma, nincs főszálú lekérdezés -------------
 
     @Test

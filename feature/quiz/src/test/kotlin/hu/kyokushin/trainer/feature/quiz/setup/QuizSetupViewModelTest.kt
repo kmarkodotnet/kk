@@ -54,7 +54,7 @@ import hu.kyokushin.trainer.core.ui.R as CoreUiR
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class QuizSetupViewModelTest {
     @Before
     fun setUp() {

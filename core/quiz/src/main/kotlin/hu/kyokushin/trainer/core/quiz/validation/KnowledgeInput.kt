@@ -66,6 +66,12 @@ data class CategoryInput(
     val id: String? = null,
     val nameHu: String? = null,
     val sortOrder: Int? = null,
+    /**
+     * A [nameHu] nyitott kulcsú fordítás-térképe (FR-43, ADR-013), nyers alakban – a
+     * `null`/blank értékek és a `"hu"` kulcs szűrése a leképezés felelőssége, nem ennek
+     * a bemeneti típusnak, ugyanazon elv szerint, mint a többi nyers mező.
+     */
+    val nameTranslations: Map<String, String?> = emptyMap(),
 )
 
 /**
@@ -141,4 +147,8 @@ data class TechniqueInput(
     val quizExcluded: Boolean? = null,
     val retired: Boolean? = null,
     val source: String? = null,
+    /** A [hungarian] fordítás-térképe, nyers alakban – lásd [CategoryInput.nameTranslations]. */
+    val nameTranslations: Map<String, String?> = emptyMap(),
+    /** A [descriptionHu] fordítás-térképe, nyers alakban – lásd [nameTranslations]. */
+    val descriptionTranslations: Map<String, String?> = emptyMap(),
 )

@@ -18,7 +18,7 @@ import org.robolectric.annotation.Config
  * ha valaki egyetlen közös szövegre egyszerűsítené őket, ez a teszt bukik.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class EmptyStateReasonTest {
     private lateinit var resources: Resources
 

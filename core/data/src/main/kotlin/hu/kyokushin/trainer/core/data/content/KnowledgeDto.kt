@@ -67,12 +67,16 @@ internal data class ManifestDto(
  * @property nameHu a magyar megjelenítendő név. **A tartalomból jön, nem a
  *   `strings.xml`-ből** (ADR-011): új kategória felvétele nem igényel kódmódosítást.
  * @property sortOrder a megjelenítési sorrend (DR-02); hiányában a tömbsorrend érvényes.
+ * @property nameTranslations a [nameHu] nyitott kulcsú fordítás-térképe (FR-43,
+ *   ADR-013) – tetszőleges ISO 639-1 nyelvkód, nem fix mezőkészlet. Hiányában üres map;
+ *   a visszafelé kompatibilitás miatt egy régebbi `manifest.json` is betölthető marad.
  */
 @Serializable
 internal data class CategoryDto(
     @SerialName("id") val id: String? = null,
     @SerialName("name_hu") val nameHu: String? = null,
     @SerialName("sort_order") val sortOrder: Int? = null,
+    @SerialName("name_translations") val nameTranslations: Map<String, String?> = emptyMap(),
 )
 
 /**
@@ -154,6 +158,10 @@ internal data class EntriesFileDto(
  * @property searchHungarian előre normalizált keresési alak a magyar névre (FR-03).
  * @property incomplete a konverter megállapítása a hiányosságról. **Az app validátora
  *   újraszámolja** (ADR-011), ezért ez az érték nem kerül át a validátor bemenetébe.
+ * @property nameTranslations a [hungarianName] nyitott kulcsú fordítás-térképe (FR-43,
+ *   ADR-013) – tetszőleges ISO 639-1 nyelvkód, nem fix mezőkészlet. Hiányában üres map.
+ * @property descriptionTranslations a [descriptionHu] fordítás-térképe – lásd
+ *   [nameTranslations].
  */
 @Serializable
 internal data class EntryDto(
@@ -164,6 +172,8 @@ internal data class EntryDto(
     @SerialName("japanese_script") val japaneseScript: String? = null,
     @SerialName("hungarian_name") val hungarianName: String? = null,
     @SerialName("description_hu") val descriptionHu: String? = null,
+    @SerialName("name_translations") val nameTranslations: Map<String, String?> = emptyMap(),
+    @SerialName("description_translations") val descriptionTranslations: Map<String, String?> = emptyMap(),
     @SerialName("aliases") val aliases: List<String?> = emptyList(),
     @SerialName("tags") val tags: List<String?> = emptyList(),
     @SerialName("illustration_ref") val illustrationRef: String? = null,

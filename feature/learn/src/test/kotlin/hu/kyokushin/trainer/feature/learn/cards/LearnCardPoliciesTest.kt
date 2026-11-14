@@ -16,12 +16,12 @@ import org.robolectric.annotation.Config
  * A tanulókártya tiszta döntési szabályai – emulátor/Compose-renderelés nélkül
  * (T-304, T-305, FR-07, FR-08, NFR-04).
  *
- * `@Config(sdk = [34])`: a [LearnCardStateDescription] a **tényleges** `strings.xml`
+ * `@Config(sdk = [34], qualifiers = "hu")`: a [LearnCardStateDescription] a **tényleges** `strings.xml`
  * fölött tesztelt (Robolectric), ugyanazzal a mintával, mint a
  * `VerificationBadgeText`/`IllustrationContentDescription` a `core/ui`-ban.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class LearnCardPoliciesTest {
     // --------------------------------------------------------------------- T-305
 

@@ -47,7 +47,7 @@ class DatabaseModuleTest {
         // Friss adatbázison a sor még nincs meg – ez az első indítás rendes állapota.
         assertThat(built.contentStateDao().get()).isNull()
         assertThat(built.openHelper.readableDatabase.version).isEqualTo(KyokushinDatabase.VERSION)
-        assertThat(KyokushinDatabase.VERSION).isEqualTo(2)
+        assertThat(KyokushinDatabase.VERSION).isEqualTo(3)
     }
 
     /**

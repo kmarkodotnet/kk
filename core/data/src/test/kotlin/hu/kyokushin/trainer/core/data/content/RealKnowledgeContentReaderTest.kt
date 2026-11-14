@@ -32,7 +32,8 @@ class RealKnowledgeContentReaderTest {
         val input = readRealContent()
 
         assertThat(input.manifest.schemaVersion).isEqualTo("1.0.0")
-        assertThat(input.manifest.contentVersion).isEqualTo("0.1.0")
+        // 0.2.0 – T-711: a tartalom EN/DE fordítás-mezőkkel bővült (FR-43, ADR-013).
+        assertThat(input.manifest.contentVersion).isEqualTo("0.2.0")
         assertThat(input.manifest.datasetKind).isEqualTo("draft_review_required")
         assertThat(input.manifest.categories).hasSize(EXPECTED_CATEGORY_COUNT)
         assertThat(input.manifest.categories.mapNotNull { it.sortOrder })
@@ -77,7 +78,7 @@ class RealKnowledgeContentReaderTest {
         assertThat(report.rejected).isEmpty()
         assertThat(report.accepted).hasSize(EXPECTED_ENTRY_COUNT)
         assertThat(report.schemaVersion).isEqualTo("1.0.0")
-        assertThat(report.datasetVersion).isEqualTo("0.1.0")
+        assertThat(report.datasetVersion).isEqualTo("0.2.0")
         assertThat(report.datasetTrust).isEqualTo(DatasetTrust.PRACTICE_ON_UNREVIEWED)
         assertThat(report.accepted.map { it.status }.toSet())
             .containsExactly(VerificationStatus.AWAITING_REVIEW)

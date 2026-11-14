@@ -27,12 +27,18 @@ import java.time.Instant
  * `technique` sorok nem törlődnek.
  */
 
-/** Egy technikakategória (DR-02). A `nameHu` tartalmi adat, nem `strings.xml` (ADR-011). */
+/**
+ * Egy technikakategória (DR-02). A `nameHu` tartalmi adat, nem `strings.xml` (ADR-011).
+ *
+ * A [nameTranslations] a [nameHu] nyitott kulcsú fordítás-térképe (FR-43, ADR-013),
+ * JSON stringként tárolva (lásd [KyokushinTypeConverters.fromTranslationMap]).
+ */
 @Entity(tableName = "category")
 internal data class CategoryEntity(
     @PrimaryKey val id: CategoryId,
     val nameHu: String,
     val sortOrder: Int,
+    val nameTranslations: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -49,6 +55,12 @@ internal data class CategoryEntity(
  * oszlop hordozza, [illustrationKind] vezérléssel. Sealed hierarchiát nem lehet egyetlen
  * oszlopba tenni; a visszaalakítás a mapper felelőssége, és a `kind` megléte dönti el,
  * melyik ágra kell mennie.
+ *
+ * A [nameTranslations]/[descriptionTranslations] (FR-43, ADR-013) szándékosan **nem**
+ * külön tábla (szemben a [TechniqueAliasEntity] mintájával): a fordítás sosem
+ * SQL-szűrési/keresési cél, csak megjelenítési adat egy már ismert technikához, ezért a
+ * legkisebb beavatkozású megoldás egy JSON-string oszloppár, amely minden meglévő
+ * lekérdezésen (lista, keresés, `getById`) "ingyen" utazik.
  */
 @Entity(
     tableName = "technique",
@@ -111,6 +123,14 @@ internal data class TechniqueEntity(
     @ColumnInfo(name = "illustrationQuizUsable") val illustrationQuizUsable: Boolean? = null,
     @ColumnInfo(name = "illustrationHideableOnStudyCard")
     val illustrationHideableOnStudyCard: Boolean? = null,
+    /**
+     * A [hungarian] nyitott kulcsú fordítás-térképe (FR-43, ADR-013), JSON stringként
+     * tárolva (lásd [KyokushinTypeConverters.fromTranslationMap]) – nem relációs tábla,
+     * mert a fordítás sosem SQL-szűrési cél, csak megjelenítési adat.
+     */
+    val nameTranslations: Map<String, String> = emptyMap(),
+    /** A [descriptionHu] fordítás-térképe – lásd [nameTranslations]. */
+    val descriptionTranslations: Map<String, String> = emptyMap(),
 )
 
 /**

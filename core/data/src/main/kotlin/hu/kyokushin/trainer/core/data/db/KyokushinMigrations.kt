@@ -64,6 +64,31 @@ internal object KyokushinMigrations {
         }
     }
 
+    /**
+     * 2 → 3: fordítás-map a technikán és a kategórián (FR-43, ADR-013, T-711).
+     *
+     * A `technique` és a `category` tábla egy-egy (technikánál kettő) új oszlopot kap,
+     * JSON stringként tárolt `Map<String, String>` – a nyelvkód → fordítás párokat
+     * ([KyokushinTypeConverters.fromTranslationMap]). Üres map alapértéke `'{}'`, ami
+     * azonnal érvényes minden meglévő sorra: szemben az [MIGRATION_1_2]-vel, itt
+     * **nincs** szükség a `content_state.contentVersion` nullázására, mert a tényleges
+     * fordítást a következő, `dataset_version`-léptetett import hozza be upserttel –
+     * nem egy futásidőben SQL-ből előállítható áthidaló érték, mint a keresőoszlopoknál.
+     */
+    val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `technique` ADD COLUMN `nameTranslations` TEXT NOT NULL DEFAULT '{}'",
+            )
+            db.execSQL(
+                "ALTER TABLE `technique` ADD COLUMN `descriptionTranslations` TEXT NOT NULL DEFAULT '{}'",
+            )
+            db.execSQL(
+                "ALTER TABLE `category` ADD COLUMN `nameTranslations` TEXT NOT NULL DEFAULT '{}'",
+            )
+        }
+    }
+
     /** A kötésnek átadandó migrációk, verzió szerint növekvő sorrendben (T-203). */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2)
+    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }

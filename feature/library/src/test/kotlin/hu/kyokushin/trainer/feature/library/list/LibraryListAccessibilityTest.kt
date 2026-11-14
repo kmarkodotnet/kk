@@ -22,7 +22,7 @@ import org.robolectric.annotation.Config
  * `VerificationBadgeText` és az `IllustrationContentDescription` tesztjei a `core/ui`-ban.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class LibraryListAccessibilityTest {
     private lateinit var resources: Resources
 

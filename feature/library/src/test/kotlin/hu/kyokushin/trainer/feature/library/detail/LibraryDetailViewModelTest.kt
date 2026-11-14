@@ -38,11 +38,11 @@ import org.robolectric.annotation.Config
  * US-07, US-08).
  *
  * Robolectric kell hozzá, mert a [SavedStateHandle] Android `Bundle` fölött validálja a
- * tárolt értékeket (CONVENTIONS 3.: `@Config(sdk = [34])`).
+ * tárolt értékeket (CONVENTIONS 3.: `@Config(sdk = [34], qualifiers = "hu")`).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class LibraryDetailViewModelTest {
     @Before
     fun setUp() {

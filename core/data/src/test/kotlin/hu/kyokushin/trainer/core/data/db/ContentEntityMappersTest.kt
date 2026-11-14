@@ -57,6 +57,24 @@ class ContentEntityMappersTest {
     }
 
     @Test
+    fun technique_translationsRoundTripThroughTheJsonColumn_FR43() {
+        val technique = technique().copy(
+            nameTranslations = mapOf("en" to "Front stance", "de" to "Vorwärtsstellung"),
+            descriptionTranslations = mapOf("en" to "A long, front-weighted stance."),
+        )
+
+        val entity = technique.toEntity()
+        // A tárolt oszlop JSON-string, nem a map maga (ADR-013) – a teszt ezt a
+        // köztes alakot is bizonyítja, nem csak a végső visszaalakítást.
+        assertThat(entity.nameTranslations).containsEntry("en", "Front stance")
+        assertThat(entity.descriptionTranslations).containsEntry("en", "A long, front-weighted stance.")
+
+        val restored = entity.toTechnique()
+        assertThat(restored.nameTranslations).isEqualTo(technique.nameTranslations)
+        assertThat(restored.descriptionTranslations).isEqualTo(technique.descriptionTranslations)
+    }
+
+    @Test
     fun techniqueAlias_normalizedFormIsDerivedOnImport_FR03() {
         val entities = technique(aliases = listOf("Zenkutsu  DACHI", "Maé-geri")).toAliasEntities()
 
@@ -87,6 +105,25 @@ class ContentEntityMappersTest {
         assertThat(entities.map { it.id.value }).containsExactly("stances", "tsuki", "kata").inOrder()
         assertThat(entities.map { it.sortOrder }).containsExactly(7, 1, 3).inOrder()
         assertThat(entities.last().nameHu).isEqualTo("kata")
+    }
+
+    @Test
+    fun categoryInput_translationsAreCleanedOfBlankAndHungarianKey_FR43() {
+        val entities = listOf(
+            CategoryInput(
+                id = "stances",
+                nameHu = "Állások",
+                sortOrder = 0,
+                nameTranslations = mapOf(
+                    "en" to "Stances",
+                    "de" to "  ",
+                    // A "hu" kulcs sosem kerülhet a map-be – a nameHu az alapnyelv (ADR-013).
+                    "hu" to "Állások",
+                ),
+            ),
+        ).toCategoryEntities()
+
+        assertThat(entities.single().nameTranslations).containsExactly("en", "Stances")
     }
 
     @Test

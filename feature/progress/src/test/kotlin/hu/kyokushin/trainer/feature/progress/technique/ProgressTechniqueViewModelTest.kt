@@ -40,12 +40,12 @@ import hu.kyokushin.trainer.core.ui.R as CoreUiR
  * DR-07, US-18).
  *
  * Robolectric kell hozzá, mert a [SavedStateHandle] Android `Bundle` fölött validálja a
- * tárolt értékeket (CONVENTIONS 3.: `@Config(sdk = [34])`), ugyanaz a minta, mint a
+ * tárolt értékeket (CONVENTIONS 3.: `@Config(sdk = [34], qualifiers = "hu")`), ugyanaz a minta, mint a
  * `feature/library` `LibraryDetailViewModelTest`-jénél.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class ProgressTechniqueViewModelTest {
     private val activeTechnique = Technique(
         id = TechniqueId.of("KY-0002"),

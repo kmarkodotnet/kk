@@ -22,14 +22,15 @@ import androidx.room.TypeConverters
  *
  * ## Migráció (DR-08)
  *
- * `version = 2`. A séma JSON a `core/data/schemas/` alá exportálódik
+ * `version = 3`. A séma JSON a `core/data/schemas/` alá exportálódik
  * (`room.schemaLocation`, lásd `core/data/build.gradle.kts`), és **verziókövetett**: az
- * `1.json` az összehasonlítás alapja a `2.json`-hoz.
+ * `1.json`/`2.json` az összehasonlítás alapja a `3.json`-hoz.
  *
  * | Verzió | Változás | Migráció | ADR |
  * |---|---|---|---|
  * | 1 | az első séma | — | — |
  * | 2 | `technique.search_romaji`, `technique.search_hungarian` (SQL-oldali keresés, FR-03) | [KyokushinMigrations.MIGRATION_1_2] | ADR-012 |
+ * | 3 | `technique.nameTranslations`/`descriptionTranslations`, `category.nameTranslations` (többnyelvűsítés, FR-43) | [KyokushinMigrations.MIGRATION_2_3] | ADR-013 |
  *
  * **`fallbackToDestructiveMigration()` használata tilos.** Nem azért, mert kényelmetlen,
  * hanem mert pontosan azt a felhasználói adatot törölné, amit a DR-07 és az ADR-004
@@ -84,8 +85,11 @@ internal abstract class KyokushinDatabase : RoomDatabase() {
          *
          * 2 – a `technique` két keresőoszlopa (`search_romaji`, `search_hungarian`),
          * [KyokushinMigrations.MIGRATION_1_2], ADR-012.
+         *
+         * 3 – fordítás-map a `technique`-en és a `category`-n (FR-43),
+         * [KyokushinMigrations.MIGRATION_2_3], ADR-013.
          */
-        const val VERSION: Int = 2
+        const val VERSION: Int = 3
 
         /** Az adatbázisfájl neve. Egy fájl, egy adatbázis az app teljes élettartamára. */
         const val FILE_NAME: String = "kyokushin.db"

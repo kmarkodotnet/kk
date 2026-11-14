@@ -16,18 +16,18 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * A séma 1 → 2 migrációja (DR-08, ADR-012, FR-03, FR-33).
+ * A séma 1 → 2 és 2 → 3 migrációi (DR-08, ADR-012, ADR-013, FR-03, FR-33, FR-43).
  *
- * Két dolgot bizonyít, és mindkettő a `fallbackToDestructiveMigration()` tilalmának a
- * lényege:
+ * Két dolgot bizonyít minden migrációra, és mindkettő a `fallbackToDestructiveMigration()`
+ * tilalmának a lényege:
  *
  * 1. **A migráció érvényes sémát hoz létre.** A
- *    [MigrationTestHelper.runMigrationsAndValidate] a `2.json` exporthoz hasonlítja a
- *    migrált adatbázist; egy elfelejtett `ADD COLUMN` itt bukik el, nem a felhasználó
- *    készülékén.
+ *    [MigrationTestHelper.runMigrationsAndValidate] a megfelelő exporthoz (`2.json`,
+ *    `3.json`) hasonlítja a migrált adatbázist; egy elfelejtett `ADD COLUMN` itt bukik
+ *    el, nem a felhasználó készülékén.
  * 2. **A felhasználói adat megmarad** (DR-07, FR-33). A `quiz_session`, `quiz_attempt` és
- *    `study_review` sorok a migráció után is ott vannak – a `search_*` oszlopok
- *    felvétele nem nyúl hozzájuk.
+ *    `study_review` sorok a migráció után is ott vannak – a `search_*` és a fordítás-
+ *    oszlopok felvétele nem nyúl hozzájuk.
  *
  * A [MigrationTestHelper] a séma JSON-okat az **assets**-ből olvassa, ezért a
  * `core/data/schemas/` könyvtár a `test` source set assetjeiként van bekötve (lásd
@@ -136,6 +136,50 @@ class KyokushinMigrationTest {
             assertThat(db.count("SELECT COUNT(*) FROM quiz_attempt")).isEqualTo(1)
             assertThat(db.count("SELECT COUNT(*) FROM study_review")).isEqualTo(1)
             assertThat(db.text("SELECT techniqueId FROM study_review")).isEqualTo("KY-0001")
+        }
+    }
+
+    @Test
+    fun migration2To3_addsTranslationColumnsAndKeepsUserProgress_FR43() {
+        helper.createDatabase(2).use { db ->
+            db.execSQL(
+                "INSERT INTO category (id, nameHu, sortOrder) VALUES ('dachi', 'Állások', 0)",
+            )
+            db.execSQL(
+                """
+                INSERT INTO technique (
+                    id, categoryId, romaji, romajiAscii, hungarian, japaneseScript,
+                    descriptionHu, status, quizExcluded, retired, datasetVersion,
+                    search_romaji, search_hungarian
+                ) VALUES (
+                    'KY-0001', 'dachi', 'Heisoku Dachi', 'Heisoku Dachi', 'Zárt lábú állás',
+                    NULL, NULL, 'AWAITING_REVIEW', 0, 0, '0.1.0',
+                    'heisoku dachi', 'zart labu allas'
+                )
+                """.trimIndent(),
+            )
+            // Felhasználói adat a migráció előtt – ugyanaz a védelmi háló, mint az 1→2
+            // migrációnál (DR-07, FR-33): ez az, amit egy destruktív tartalék eltüntetne.
+            db.execSQL(
+                "INSERT INTO quiz_session (id, startedAt, finishedAt, requestedCount, " +
+                    "answeredCount, seed) VALUES ('S-1', 1762000000000, NULL, 10, 1, 42)",
+            )
+        }
+
+        // A migráció lefut, és a Room a `3.json` exporthoz validálja az eredményt.
+        helper.runMigrationsAndValidate(3, listOf(KyokushinMigrations.MIGRATION_2_3)).use { db ->
+            // 1. A három új oszlop létezik, és az üres map alapértéke azonnal érvényes –
+            // szemben az 1→2 migrációval, itt nincs szükség áthidaló visszatöltésre vagy a
+            // `content_state.contentVersion` nullázására (lásd MIGRATION_2_3 KDoc-ja).
+            assertThat(db.text("SELECT nameTranslations FROM technique WHERE id = 'KY-0001'"))
+                .isEqualTo("{}")
+            assertThat(db.text("SELECT descriptionTranslations FROM technique WHERE id = 'KY-0001'"))
+                .isEqualTo("{}")
+            assertThat(db.text("SELECT nameTranslations FROM category WHERE id = 'dachi'"))
+                .isEqualTo("{}")
+
+            // 2. A felhasználói sor érintetlen (FR-33).
+            assertThat(db.count("SELECT COUNT(*) FROM quiz_session")).isEqualTo(1)
         }
     }
 

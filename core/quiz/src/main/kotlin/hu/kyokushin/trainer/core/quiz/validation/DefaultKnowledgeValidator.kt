@@ -187,6 +187,8 @@ class DefaultKnowledgeValidator : KnowledgeValidator {
                     japaneseScript = entry.japaneseScript?.trim()?.takeIf { it.isNotEmpty() },
                     aliases = keptAliases.toList(),
                     descriptionHu = entry.descriptionHu?.trim()?.takeIf { it.isNotEmpty() },
+                    nameTranslations = entry.nameTranslations.toCleanTranslations(),
+                    descriptionTranslations = entry.descriptionTranslations.toCleanTranslations(),
                     illustration = resolution.ref,
                     status = status,
                     quizExcluded = entry.quizExcluded == true,
@@ -289,6 +291,19 @@ class DefaultKnowledgeValidator : KnowledgeValidator {
     /** A `schemaVersion` semver string major része, vagy `null`, ha nem olvasható (V001). */
     private fun majorVersionOf(schemaVersion: String?): Int? =
         schemaVersion?.substringBefore('.')?.trim()?.toIntOrNull()
+
+    /**
+     * A nyers fordítás-térkép megtisztítása a [Technique] domain modell bemenetére
+     * (FR-43, ADR-013): `null`/blank érték és a `"hu"` kulcs kiszűrve – az utóbbi sosem
+     * jelenhet meg itt (a magyar mező a külön, kötelező [TechniqueInput.hungarian]), de a
+     * [Technique] konstruktora amúgy is `require()`-rel elutasítaná, ezért a szigorúbb
+     * olvasat itt, csendben szűri ki, nem hagyja a `runCatching`-re.
+     */
+    private fun Map<String, String?>.toCleanTranslations(): Map<String, String> =
+        mapNotNull { (lang, value) ->
+            val trimmed = value?.trim()
+            if (lang.isBlank() || lang == "hu" || trimmed.isNullOrEmpty()) null else lang to trimmed
+        }.toMap()
 
     /**
      * A V005 szabály kimenete egy rekordra.

@@ -25,7 +25,7 @@ private const val LAST_PRACTICED_TEXT = "Utolsó gyakorlás: 2026.11.01."
  * `LibraryListAccessibilityTest`-je.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class ProgressNeedsPracticeAccessibilityTest {
     private lateinit var resources: Resources
 

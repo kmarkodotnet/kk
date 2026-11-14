@@ -49,6 +49,7 @@ internal fun CategoryDto.toCategoryInput(): CategoryInput = CategoryInput(
     id = id,
     nameHu = nameHu,
     sortOrder = sortOrder,
+    nameTranslations = nameTranslations,
 )
 
 /**
@@ -100,6 +101,8 @@ internal fun EntryDto.toTechniqueInput(): TechniqueInput = TechniqueInput(
     aliases = aliases,
     illustration = illustrationRef,
     descriptionHu = descriptionHu,
+    nameTranslations = nameTranslations,
+    descriptionTranslations = descriptionTranslations,
     verified = reviewStatus == REVIEW_STATUS_REVIEWED,
     quizEligible = null,
     quizExcluded = quizExcluded,

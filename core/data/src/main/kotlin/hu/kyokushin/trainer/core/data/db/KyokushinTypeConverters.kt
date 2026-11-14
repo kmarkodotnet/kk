@@ -9,6 +9,9 @@ import hu.kyokushin.trainer.core.model.SelfRating
 import hu.kyokushin.trainer.core.model.SessionId
 import hu.kyokushin.trainer.core.model.TechniqueId
 import hu.kyokushin.trainer.core.model.VerificationStatus
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 import java.time.Instant
 
 /**
@@ -113,7 +116,27 @@ internal class KyokushinTypeConverters {
 
     @TypeConverter
     fun toQuestionId(value: String): QuestionId = QuestionId.of(value)
+
+    // --- Fordítás-map (FR-43, ADR-013) --------------------------------------------
+    //
+    // A `technique`/`category` fordítás-oszlopai (`nameTranslations`,
+    // `descriptionTranslations`) JSON stringként élnek, nem relációs táblaként: a
+    // fordítás sosem SQL-szűrési cél, csak megjelenítési adat egy már ismert
+    // technikához (lásd ADR-013 4. pontja a `technique_alias` mintájától eltérő
+    // döntésről). A kulcsok nyitottak (tetszőleges ISO 639-1 kód), ezért
+    // `MapSerializer<String, String>`, nem egy fix, `@Serializable` DTO.
+
+    @TypeConverter
+    fun fromTranslationMap(value: Map<String, String>): String =
+        TranslationMapJson.encodeToString(TranslationMapSerializer, value)
+
+    @TypeConverter
+    fun toTranslationMap(value: String): Map<String, String> =
+        TranslationMapJson.decodeFromString(TranslationMapSerializer, value)
 }
+
+private val TranslationMapSerializer = MapSerializer(String.serializer(), String.serializer())
+private val TranslationMapJson: Json = Json { ignoreUnknownKeys = true }
 
 /**
  * Enum visszaolvasás a konstans **neve** alapján, beszédes hibával.

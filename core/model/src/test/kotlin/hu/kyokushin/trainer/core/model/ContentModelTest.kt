@@ -166,6 +166,59 @@ class ContentModelTest {
     }
 
     @Test
+    fun technique_localizedName_fallsBackToHungarianWhenTranslationMissing_FR43() {
+        val t = technique().copy(nameTranslations = mapOf("en" to "lower sweeping block"))
+
+        assertThat(t.localizedName("en")).isEqualTo("lower sweeping block")
+        // Nincs német fordítás -> magyar visszaesés, nem üres és nem angol.
+        assertThat(t.localizedName("de")).isEqualTo(t.hungarian)
+        // A "hu" explicit lekérdezése is a magyar mezőre esik, hiszen a map sosem
+        // tartalmazza a "hu" kulcsot.
+        assertThat(t.localizedName("hu")).isEqualTo(t.hungarian)
+    }
+
+    @Test
+    fun technique_localizedDescription_fallsBackToHungarianDescription_FR43() {
+        val t = technique().copy(
+            descriptionHu = "leírás magyarul",
+            descriptionTranslations = mapOf("en" to "description in English"),
+        )
+
+        assertThat(t.localizedDescription("en")).isEqualTo("description in English")
+        assertThat(t.localizedDescription("de")).isEqualTo("leírás magyarul")
+
+        // Hiányzó magyar leírás esetén a visszaesés is null, nem üres string.
+        val withoutDescription = technique().copy(descriptionHu = null)
+        assertThat(withoutDescription.localizedDescription("de")).isNull()
+    }
+
+    @Test
+    fun technique_rejectsHungarianKeyInTranslationMaps_ADR013() {
+        assertThrows(IllegalArgumentException::class.java) {
+            technique().copy(nameTranslations = mapOf("hu" to "duplikált magyar"))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            technique().copy(descriptionTranslations = mapOf("hu" to "duplikált magyar leírás"))
+        }
+    }
+
+    @Test
+    fun category_localizedName_fallsBackToHungarianWhenTranslationMissing_FR43() {
+        val category = Category(
+            id = CategoryId.of("uke"),
+            nameHu = "Védések",
+            sortOrder = 3,
+            nameTranslations = mapOf("en" to "Blocks"),
+        )
+
+        assertThat(category.localizedName("en")).isEqualTo("Blocks")
+        assertThat(category.localizedName("de")).isEqualTo("Védések")
+        assertThrows(IllegalArgumentException::class.java) {
+            category.copy(nameTranslations = mapOf("hu" to "Védések"))
+        }
+    }
+
+    @Test
     fun contentModel_isImmutable_DR01() {
         // Minden konstruktorparaméter `val`: a modell példányai nem mutálhatók, a
         // tartalomfrissítés új példányt állít elő (ADR-004).

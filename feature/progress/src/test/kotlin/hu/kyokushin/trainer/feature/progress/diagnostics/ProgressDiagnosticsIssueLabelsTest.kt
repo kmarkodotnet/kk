@@ -21,7 +21,7 @@ import org.robolectric.annotation.Config
  * `ProgressNeedsPracticeAccessibilityTest`.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "hu")
 class ProgressDiagnosticsIssueLabelsTest {
     private lateinit var resources: Resources
 

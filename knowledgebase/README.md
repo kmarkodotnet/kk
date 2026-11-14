@@ -1,6 +1,6 @@
 # Kyokushin Karate – magyar tudástár (MVP)
 
-**Verzió:** 0.1.0 | **Rekordok:** 161 | **Állapot:** szakmai lektorálásra váró első kiadás.
+**Verzió:** 0.2.0 | **Rekordok:** 161 | **Állapot:** szakmai lektorálásra váró első kiadás.
 
 ## Fájlok
 - `kyokushin_knowledge_hu.json`: Android importálásra alkalmas, verziózott JSON.
@@ -17,6 +17,9 @@
 - `image_path`: jelenleg null, később pl. `images/KY-0001.webp`.
 - `aliases`, `tags`: későbbi bővítésre.
 - `review_status`: minden rekord lektorálást igényel.
+- `english_name`, `german_name`, `description_en`, `description_de` (T-711, FR-43): a
+  magyar mezők angol/német fordítása, `translation_review_status` jelöléssel – részletek:
+  `docs/CONTENT_TRANSLATIONS.md`.
 
 ## Integráció
 1. A JSON-t tedd az Android projekt `assets` mappájába.
