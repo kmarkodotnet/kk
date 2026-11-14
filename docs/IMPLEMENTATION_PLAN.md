@@ -1817,3 +1817,17 @@ nem volt a DoD része és nem futott – a task fejlécének `Teszt` mezője is 
 feltételesen ("ha készül ellenőrző szkript") írta elő. Soron következő: a
 `docs/backlog/`-ban nincs több `/dev`-del indítható feladat (T-709…T-711 szándékosan
 blokkolt).
+
+
+## 2026-11-14 – EN/DE tartalmi fordítások előkészítése
+
+Kifejezett felhasználói kérésre a szerkesztési CSV/JSON magyar szövegei mellé
+elkészült 161 angol és német név és leírás, valamint 9 kategória neve (662 szöveg).
+Mindegyik fordítás lektorálandó; a T-708 jelzései külön mezőben megmaradnak.
+Részletek: `docs/CONTENT_TRANSLATIONS.md`. A magyar mezők, azonosítók és
+hitelesítési státuszok nem változtak. Az app nyelve és adatai nem módosultak;
+T-711 teljes UI-nyelvváltása továbbra is külön feladat.
+`python -X utf8 tools/validate_content_translations.py` exit 0: teljes fedettség,
+CSV/JSON-egyezés, eredeti mezők megőrzése és változatlan magyar konverterkimenet,
+0 blokkoló hiba. Android build nem futott, a változás szerkesztési forrásadat.
+

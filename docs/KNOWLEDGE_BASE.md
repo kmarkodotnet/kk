@@ -9,6 +9,9 @@
 
 ## Tartalomjegyzék
 
+Angol/német tartalmi fordítások: [tárolás, mezők és lektorálási állapot](CONTENT_TRANSLATIONS.md).
+Mind a 161 név és leírás a szerkesztési CSV/JSON magyar mezői mellett elérhető.
+
 Terminológiai előellenőrzés: [T-708 – teljes forrásösszevetés és problémalisták](CONTENT_VERIFICATION.md),
 [161 rekordos táblázat](CONTENT_VERIFICATION.csv). Ez nem változtat szakmai hitelesítési státuszt.
 
