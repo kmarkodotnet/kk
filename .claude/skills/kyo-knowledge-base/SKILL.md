@@ -135,3 +135,14 @@ Ez az MVP egyik legfontosabb garanciája (mesterprompt 9. pont, teszt TR-05).
    `quizEligible: true`-ra).
 
 Ez a folyamat **nem igényel UI- vagy kvízmotor-kódmódosítást** – ez elfogadási kritérium.
+
+## 8. Illusztráció utólagos hozzáadása egy meglévő technikához (T-707)
+
+Ha egy már felvett technikarekordhoz utólag – pl. a felhasználótól kapott képből – kerül
+illusztráció, a fenti 7. pont menete érvényes, **egyetlen fontos kiegészítéssel**: a
+`convert.py` `ILLUSTRATION_PROVENANCE` konstansa **globális**, minden képre ugyanazt az
+`origin: "ai_generated"` eredetet írja rá – ha a kép valójában felhasználó-adta fénykép,
+ezt a `knowledgebase_transfer/manifest.json`-ban **kézzel kell korrigálni**, átmásolás előtt.
+A kép eredetének pontosítása **nem** hitelesítés – a `review_status` ettől függetlenül
+`"human_review_required"` marad. Részletek, a pontos mezőtáblázat és a javasolt követő
+task: [`docs/KNOWLEDGE_BASE.md` 6a. pont](../../../docs/KNOWLEDGE_BASE.md#6a-illusztráció-utólagos-hozzáadása-egy-meglévő-technikához).

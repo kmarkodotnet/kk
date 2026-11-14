@@ -3847,3 +3847,14 @@ lecserélve `MaterialTheme.shapes.medium`/`.large`-ra.
 **NEM FUTOTT:** emulátoros/vizuális ellenőrzés a tényleges renderelt képernyőkön – a
 `@Preview`-k (nem módosultak, a téma automatikusan érvényesül bennük) és a
 `ThemeContrastTest` adják a bizonyítékot, nem kézi/eszközös vizuális átnézés.
+
+## 2026-11-14 – T-707 (illusztráció-befogadási munkafolyamat, Fázis 9.7 bővítési backlog)
+
+**NEM FUTOTT build/teszt – tisztán dokumentációs task, nincs kódváltozás.** A task
+fejlécének `Teszt` mezője is feltételes volt ("ha készül ellenőrző szkript/
+Gradle-feladat"); mivel a Teendők áttekintése után **nem** készült új szkript vagy
+Gradle-feladat (a meglévő `core/quiz` `DefaultKnowledgeValidator` V004/V005 szabálya
+már gracefully kezeli a hiányzó/lógó illusztráció-hivatkozást – lásd `ValidationIssue.kt`),
+nincs mit lefuttatni. Érintett fájlok kizárólag dokumentáció:
+`docs/KNOWLEDGE_BASE.md` (új 6a. pont), `docs/CONVENTIONS.md` (8. szakasz új sora),
+`.claude/skills/kyo-knowledge-base/SKILL.md` (új 8. szakasz).

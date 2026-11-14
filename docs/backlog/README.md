@@ -35,7 +35,8 @@ funkcióvisszajelzése alapján **új, önálló taskok** kerültek fel – ezek
 | ~~T-705~~ | — | **kész, 2026-11-14** (`docs/done/`) – kategória-ikonok és technikalista drill-down a Tanulásban |
 | ~~T-706~~ | — | **kész, 2026-11-14** (`docs/done/`) – felső fülváltó "Japán nevek"/"Magyar nevek" a tanulókártyán |
 | ~~T-712~~ | — | **kész, 2026-11-14** (`docs/done/`) – `core/ui` `Typography`/`Shapes`, a T-702 tervét ülteti kódba – ezzel az E7 epik lezárult |
-| T-707…T-708 | igen | tartalom-munkafolyamat (`BACKLOG.md` E8) |
+| ~~T-707~~ | — | **kész, 2026-11-14** (`docs/done/`) – illusztráció-befogadási munkafolyamat dokumentálva a `KNOWLEDGE_BASE.md` 6a. pontjában |
+| T-708 | igen | tartalom-munkafolyamat (`BACKLOG.md` E8) |
 | T-709…T-711 | **nem** | hangos kiejtés, kiejtés-alapú kvíztípus, többnyelvűsítés – a „Függ" mezőjük szándékosan egy nyitott kérdésre (`OQ-05`/`OQ-06`/`OQ-07`) mutat, nem egy elvégezhető taskra, mert a mesterprompt 9/10. pontja MOST kizárja őket (`BACKLOG.md` E9) |
 
 A `/dev`/`/devall` a megszokott, növekvő azonosító szerinti, függőségellenőrzött

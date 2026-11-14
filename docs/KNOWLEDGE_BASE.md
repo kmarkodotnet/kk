@@ -9,12 +9,16 @@
 
 ## Tartalomjegyzék
 
+Terminológiai előellenőrzés: [T-708 – teljes forrásösszevetés és problémalisták](CONTENT_VERIFICATION.md),
+[161 rekordos táblázat](CONTENT_VERIFICATION.csv). Ez nem változtat szakmai hitelesítési státuszt.
+
 1. [Fájlszerkezet](#1-fájlszerkezet)
 2. [`manifest.json` séma](#2-manifestjson-séma)
 3. [`entries.json` rekordséma](#3-entriesjson-rekordséma)
 4. [Leképezés a validátor bemenetére és a domain modellre](#4-leképezés-a-validátor-bemenetére-és-a-domain-modellre)
 5. [Validációs szabályok (V001…V010)](#5-validációs-szabályok-v001v010)
 6. [Új technika és új kép hozzáadása](#6-új-technika-és-új-kép-hozzáadása)
+6a. [Illusztráció utólagos hozzáadása egy meglévő technikához](#6a-illusztráció-utólagos-hozzáadása-egy-meglévő-technikához)
 7. [Hitelesítési folyamat](#7-hitelesítési-folyamat)
 8. [Illusztrációk és licencelés](#8-illusztrációk-és-licencelés)
 9. [Migráció: tartalomkiadás, séma, átnevezés, visszavonás](#9-migráció-tartalomkiadás-séma-átnevezés-visszavonás)
@@ -299,6 +303,87 @@ A 2–6. lépés **kódmódosítás nélkül** megy végig: a `techniques.json`/
 mezői, a validátor szabályai és a `ContentImporter` upsert-logikája eleve ezt a forgatókönyvet
 szolgálják ki. Kódmódosítást **csak** egy valódi sémaváltozás (új kötelező mező, új
 `schema_version` major) igényelne – ez a 9. pont tárgya, és nem ez a rendes bővítési út.
+
+## 6a. Illusztráció utólagos hozzáadása egy meglévő technikához
+
+Ez a szakasz a 6. pont egy **szűkebb, gyakoribb esete** (T-707, FR-41): amikor egy már
+meglévő, `illustration_ref: null` technikarekordhoz utólag – például a felhasználótól
+kapott képből – kerül illusztráció, nem egy teljesen új technikasor felvétele.
+
+**A fájlrendszeri út és a pipeline azonos a 6. ponttal, nincs "kézi" rövidítés.** A kép
+soha nem kerül kézzel az `app/src/main/assets/knowledge/illustrations/` alá – az mindig a
+`convert.py` kimenete. A teendő:
+
+1. A képfájl bemásolása a `knowledgebase/pics/` alá, **a technika `id`-jával megegyező
+   fájlnévvel** (pl. `KY-0120` technikához `knowledgebase/pics/KY-0120.jpg`; `.jpg`/
+   `.jpeg`/`.png`/`.webp` mind felismert).
+2. A technikarekord `illustration_ref` mezőjének kitöltése a CSV-ben (ha még üres),
+   ugyanarra az `id`-ra.
+3. Lásd 6. pont 2., 3., 4., 6. lépése változatlanul (konverter futtatása, felirat-ellenőrzés,
+   átmásolás az app csomagjába, build/teszt ellenőrzés), és az 5. lépés (`dataset_version`
+   léptetése).
+
+### A valódi különbség: a kép eredetének (`origin`/`license`/`source`/`author`) pontossága
+
+**Kódból feltárt, dokumentált hiányosság (T-707 vizsgálata, nincs hozzá külön backlog-tétel
+még):** a `convert.py` jelenleg **egyetlen, globális** `ILLUSTRATION_PROVENANCE`
+konstansból tölti ki MINDEN illusztráció `origin`/`license`/`source`/`author` mezőjét
+(`"ai_generated"` / `"project-internal"` / …) – függetlenül attól, hogy a kép tényleg honnan
+származik. A `knowledgebase/pics/manifest.json` per-kép forrásfájl csak a `review_status`-t
+tárolja per-kép szinten, az eredetet nem – így a jelenlegi pipeline-nak **nincs** olyan
+bemenete, amiből egy felhasználó-adta (nem AI-generált) kép helyes eredetét automatikusan
+levezetné.
+
+**Ha a felhasználó saját, nem AI-generált fényképet ad egy technikához, a jelenlegi
+pipeline tévesen `"ai_generated"`/`"project-internal"` eredetet írna rá.** Ezért utólagos,
+felhasználó által adott kép esetén **kötelező egy kézi lépés**: a `convert.py` futtatása
+után, az app csomagjába átmásolás **előtt**, nyisd meg a
+`knowledgebase_transfer/manifest.json`-t, és az érintett `illustrations[]` bejegyzésen írd
+át kézzel:
+
+| Mező | Felhasználó-adta kép esetén |
+|---|---|
+| `origin` | A tényleges eredet (pl. `"user_provided"` vagy `"photograph"`) – **ne** hagyd `"ai_generated"`-en, ha nem az. |
+| `license` | A felhasználó által megadott/jóváhagyott licenc – **ne** találj ki egyet (CLAUDE.md tartalmi integritás). |
+| `source` | A kép tényleges forrása (pl. "a felhasználó saját fotója, dátum"). |
+| `author` | Ha a felhasználó megnevezi magát/a fotóst; egyébként marad `null`. |
+| `review_status` | Változatlanul `"human_review_required"` marad – **az eredet pontosítása nem hitelesítés** (lásd alább). |
+
+Ezt a kézi javítást **minden** `dataset_version`-léptetéskor meg kell ismételni, amíg a
+`convert.py`/`pics/manifest.json` nem kap per-kép eredet-felülírást – a konverter
+újrafuttatásakor a globális konstans felülírná a kézi javítást.
+
+**Javasolt, fel nem vett követő task:** `convert.py` bővítése, hogy a
+`knowledgebase/pics/manifest.json` (vagy egy új mező benne) per-kép `origin`/`license`/
+`source`/`author` adatot olvasson be, és csak hiányzó adat esetén essen vissza a globális
+`ILLUSTRATION_PROVENANCE`-ra. Ez jelen task hatókörén (`docs`, `core/data`) kívül esik,
+mert a `knowledgebase_transfer` Python-eszköztárát módosítaná.
+
+### A hitelesítési státusz nem emelkedik automatikusan
+
+A kép megléte – akár AI-generált, akár felhasználó-adta – **soha nem** állítja a
+technikarekord `review_status`-át `"reviewed"`-re, és a kép saját `review_status`-a is
+`"human_review_required"` marad, amíg a 7. pont szerinti szakmai ellenőrzés meg nem történik
+(CLAUDE.md tartalmi integritás, CR-02, ADR-002). A kép eredetének pontosítása (fent) és a
+szakmai hitelesítés **két külön lépés**; az első sosem helyettesíti a másodikat.
+
+### Formátum/méret előzetes ellenőrzése – nincs ilyen automatizmus, ez szándékos döntés
+
+A `DefaultKnowledgeValidator` (V005, lásd 5. pont) **csak** azt ellenőrzi, hogy a hivatkozott
+fájl a csomagban megvan-e, és hogy a hivatkozás nem lóg-e a semmibe (BLOKKOLÓ, ha a `ref`
+nincs regisztrálva; FIGYELMEZTETÉS, ha regisztrált, de a fájl hiányzik – státuszlefokozás
+nélkül). A kép **formátumát** (dekódolható-e Androidon) vagy **méretét** (fájlméret,
+felbontás) import előtt **senki nem vizsgálja** – `KnowledgeAssetSource`/`KnowledgeDto`/
+`KnowledgeInputMapper` csak fájlnév-egyezést néz.
+
+Ebben a körben **szándékosan nem készült** hozzá ellenőrző szkript vagy Gradle-feladat: a
+hiányosság valós, de a pótlása önálló döntést igényelne (melyik képfeldolgozó függőséget
+kapja a `knowledgebase_transfer` Python-eszköztára, milyen méretkorlátot szabjon) – ez
+túlmutat egy dokumentációs taskon, és a task Teendője is csak feltételesen kérte ("csak ha
+ez tényleg hiányzik... és akkor is csak ha ez nem túl nagy falat"). **Gyakorlati
+védőháló helyette:** a `./gradlew testDebugUnitTest` (`KnowledgeAssetImportTest`, T-601)
+mindig a **valódi**, csomagolt asseteket tölti be a valódi `ContentImporter`-rel – egy
+teljesen hibás (nem kép) fájl itt hasalna el, mielőtt kiadásra kerülne.
 
 ## 7. Hitelesítési folyamat
 

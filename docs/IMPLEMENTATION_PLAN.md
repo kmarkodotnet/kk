@@ -170,7 +170,7 @@ vannak. Itt a *sorrend és az állapot*, ott a *tartalom*.
 | 9.4 | Alsó navigáció sorrendje – Tudástár legjobboldalra | FR-38 | ✅ **kész** (T-704, 2026-11-14) |
 | 9.5 | Tanulás – kategória-ikonok, technikalista drill-down | FR-39 | ✅ **kész** (T-705, 2026-11-14) |
 | 9.6 | Tanulás – felső tab "Japán nevek"/"Magyar nevek" | FR-40 | ✅ **kész** (T-706, 2026-11-14) |
-| 9.7 | Illusztráció-befogadási munkafolyamat | FR-41 | 🔴 **nyitott** – T-707 |
+| 9.7 | Illusztráció-befogadási munkafolyamat | FR-41 | ✅ **kész** (T-707, 2026-11-14) – `docs/KNOWLEDGE_BASE.md` 6a. pontja |
 | 9.8 | Fordítások ellenőrzése hiteles forrásokból | FR-42 | 🔴 **nyitott** – T-708 |
 | 9.9 | Japán kiejtés lejátszása | — | ⛔ **jövőbeli, nem indítható** – T-709 (OQ-05) |
 | 9.10 | Kiejtés-alapú kvízkérdés-típus | — | ⛔ **jövőbeli, nem indítható** – T-710 (OQ-05, OQ-06) |
@@ -194,10 +194,10 @@ tartalma megírható; csak az Android-fordítás és az UI tesztek várnak az SD
 ## Következő lépés
 
 **Az eredeti M1…M7 szállítás (T-101…T-611) lezárult.** A Fázis 9 (fent) egy új
-igénysor: a soron következő, `/dev`-del indítható feladat a **T-707** (nincs
-függősége – a T-701…T-706 és a T-712 is elkészültek, ezzel az E7 epik lezárult). A
-T-708 is függetlenül indítható (E8). A T-709…T-711 szándékosan **nem** indítható
-(lásd a Fázis 9 táblázatát és `docs/backlog/README.md`).
+igénysor: a T-701…T-708 és a T-712 mind elkészült, ezzel az E7 és E8 epik is
+lezárult. A `docs/backlog/`-ban **nincs** `/dev`-del indítható feladat – a
+T-709…T-711 szándékosan **nem** indítható (lásd a Fázis 9 táblázatát és
+`docs/backlog/README.md`).
 
 <details>
 <summary>Korábbi (M1…M7-höz tartozó) "Következő lépés" bejegyzés – archív</summary>
@@ -1771,3 +1771,49 @@ A képkockás ellenőrzés a korai kézszél hiányát is igazolja; friss videó
   minden érintett modul (`core/ui`, `feature/learn`, `feature/quiz`,
   `feature/progress`) lint-jelentése üres. Soron következő: **T-707** (a T-708
   is függetlenül indítható).
+
+
+## 2026-11-14 – T-708: terminológiai forrásösszevetés
+
+A teljes 161 rekord romaji/magyar/kategória-mezőinek dokumentált áttekintése
+elkészült: `docs/CONTENT_VERIFICATION.md` és `.csv`. 112 megfeleltethető,
+5 javításjavaslat, 14 pontosítás, 5 forrásfüggő, 7 nyitott és 18 kategóriajelzés.
+IFK szervezeti anyag, magyar dojo-szótár és külön Kyokushin-kan címhasználat
+összevetve; az átvett források függősége külön dokumentált.
+Tananyag, dataset_version és review-státusz nem változott. A CSV és a csomagolt
+adat vizsgált mezői egyeznek. `python -X utf8 tools/review_t708.py` exit 0.
+Build/unit nem futott (dokumentációs task); párhuzamos Claude-munka megőrizve.
+
+## 2026-11-14 – T-707: illusztráció-befogadási munkafolyamat
+
+**Fázis 9.7 kész (FR-41).** `docs/KNOWLEDGE_BASE.md`-be felvéve a **6a. pont**
+("Illusztráció utólagos hozzáadása egy meglévő technikához") a 6. és 7. pont közé
+(lettered sub-section, hogy a meglévő "lásd 6./7./8. pont" kereszthivatkozások ne
+boruljanak fel) – fájlrendszeri hely, elnevezési konvenció, `illustration_ref`
+bekötés egy meglévő rekordra, `dataset_version` léptetés szabálya, és explicit
+megerősítés, hogy a `review_status`/`editorial_status` a kép megléte miatt
+**soha** nem emelkedik automatikusan.
+
+**Kódból feltárt, új ismert ügy (dokumentálva, nem javítva ebben a körben):**
+`knowledgebase_transfer/tools/convert.py` `ILLUSTRATION_PROVENANCE` konstansa
+**globális**, minden illusztrációra ugyanazt az `"ai_generated"`/
+`"project-internal"` eredetet írja – egy felhasználó-adta (nem AI-generált) kép
+esetén ez téves eredetet eredményezne, amíg kézzel nem korrigálják a generált
+`manifest.json`-t átmásolás előtt. Lásd `docs/CONVENTIONS.md` 8. szakasz új sora és
+`docs/KNOWLEDGE_BASE.md` 6a. pont – javasolt, fel nem vett követő task a
+`convert.py` per-kép eredet-beolvasására.
+
+A Teendők harmadik pontját ("kell-e egy pre-import formátum/méret ellenőrző
+szkript") megvizsgálva: a meglévő `DefaultKnowledgeValidator` V004/V005 szabálya
+már gracefully kezeli a hiányzó/lógó illusztráció-hivatkozást (lásd `core/quiz`
+`ValidationIssue.kt`), formátum/méret-ellenőrzés viszont valóban nincs sehol –
+ezt dokumentáltuk, de **nem** készült hozzá új szkript/Gradle-feladat (a Teendő
+feltételes megfogalmazása és a task modulhatára – `docs`, `core/data` – szerint ez
+egy önálló eszközfejlesztési döntés lenne). A `.claude/skills/kyo-knowledge-base/
+SKILL.md` új 8. szakasza hivatkozza a `KNOWLEDGE_BASE.md` 6a. pontját.
+
+Kódváltozás nem történt (tisztán dokumentációs task), ezért `./gradlew` futtatás
+nem volt a DoD része és nem futott – a task fejlécének `Teszt` mezője is csak
+feltételesen ("ha készül ellenőrző szkript") írta elő. Soron következő: a
+`docs/backlog/`-ban nincs több `/dev`-del indítható feladat (T-709…T-711 szándékosan
+blokkolt).
