@@ -192,12 +192,28 @@ def read_pics_manifest():
 # --------------------------------------------------------------------------
 
 
+def build_category_translations(cat_json):
+    """Nyitott kulcsú fordítás-map egy kategóriához (ADR-013) – jelenleg `en`/`de`
+    a forrás JSON `name_en`/`name_de` mezőiből, de bármely további `name_<lang>`
+    mező is felvételre kerülne, ha a forrás egyszer kapna ilyet."""
+    translations = {}
+    for key, value in cat_json.items():
+        if key.startswith("name_") and key != "name_hu":
+            lang = key[len("name_"):]
+            value = (value or "").strip() if isinstance(value, str) else ""
+            if value:
+                translations[lang] = value
+    return translations
+
+
 def build_categories(rows, source_json, report):
     """A kategórialista a forrás JSON sorrendjét követi; a CSV-ben megjelenő,
     de a JSON-ban hiányzó kategória a végére kerül és jelzést kap."""
     json_cats = OrderedDict()
+    json_cats_raw = {}
     for c in source_json.get("categories", []):
         json_cats[c["id"]] = c.get("name_hu", c["id"])
+        json_cats_raw[c["id"]] = c
 
     csv_cats = OrderedDict()
     for r in rows:
@@ -213,7 +229,14 @@ def build_categories(rows, source_json, report):
                 "C002", "FIGYELM.", None, "category_hu",
                 f"'{cid}': a CSV neve ('{csv_name}') eltér a JSON nevétől ('{name}'). A JSON neve lett használva.",
             )
-        ordered.append({"id": cid, "name_hu": name, "sort_order": i})
+        # Nyitott kulcsú fordítás-map (ADR-013) – a `name_translations` csak a
+        # nem üres nyelveket tartalmazza, a `hu` kulcs sosem kerül bele (a
+        # `name_hu` már az alapnyelv).
+        name_translations = build_category_translations(json_cats_raw.get(cid, {}))
+        entry = {"id": cid, "name_hu": name, "sort_order": i}
+        if name_translations:
+            entry["name_translations"] = name_translations
+        ordered.append(entry)
 
     extra = [cid for cid in csv_cats if cid not in json_cats]
     for j, cid in enumerate(extra, start=len(ordered) + 1):
@@ -323,6 +346,24 @@ def build_entries(rows, categories, illustrations, report):
         description = (row.get("description_hu") or "").strip()
         review_status = (row.get("review_status") or "").strip() or "editorial_review_required"
 
+        # Nyitott kulcsú fordítás-map (ADR-013, T-711) – csak a nem üres nyelvek
+        # kerülnek bele, a `hu` kulcs sosem (a `hungarian_name`/`description_hu`
+        # már az alapnyelv). Jelenleg `en`/`de` a CSV `english_name`/`german_name`/
+        # `description_en`/`description_de` oszlopaiból; egy jövőbeli új nyelvi
+        # oszlop (pl. `french_name`) ide egy új sort igényelne, nem új mezőt a
+        # teljes sémában végig.
+        name_translations = {}
+        for lang, col in (("en", "english_name"), ("de", "german_name")):
+            value = (row.get(col) or "").strip()
+            if value:
+                name_translations[lang] = value
+        description_translations = {}
+        for lang, col in (("en", "description_en"), ("de", "description_de")):
+            value = (row.get(col) or "").strip()
+            if value:
+                description_translations[lang] = value
+        translation_review_status = (row.get("translation_review_status") or "").strip() or None
+
         incomplete_fields = []
         if not cid:
             incomplete_fields.append("category_id")
@@ -354,6 +395,9 @@ def build_entries(rows, categories, illustrations, report):
             "japanese_script": None,
             "hungarian_name": hungarian,
             "description_hu": description or None,
+            "name_translations": name_translations,
+            "description_translations": description_translations,
+            "translation_review_status": translation_review_status,
             "aliases": [],
             "tags": [],
             "illustration_ref": illustration_ref,
@@ -412,6 +456,12 @@ def cross_check_json(rows, source_json, report):
             ("hungarian_name", "hungarian_name"),
             ("category_id", "category_id"),
             ("description_hu", "description_hu"),
+            # T-711/ADR-013: a fordítás-mezők is a CSV↔JSON egyezés-ellenőrzés
+            # alá esnek, ugyanúgy, mint a magyar mezők.
+            ("english_name", "english_name"),
+            ("german_name", "german_name"),
+            ("description_en", "description_en"),
+            ("description_de", "description_de"),
         ):
             a = (r.get(csv_key) or "").strip()
             b = (j.get(json_key) or "") or ""

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "dataset_version": "0.1.0",
-  "generated_at": "2026-11-11",
+  "dataset_version": "0.2.0",
+  "generated_at": "2026-11-14",
   "language": "hu-HU",
   "martial_art": "Kyokushin karate",
   "editorial_status": "draft_review_required",
@@ -26,47 +26,83 @@
     {
       "id": "etiquette",
       "name_hu": "Etikett és köszönések",
-      "sort_order": 1
+      "sort_order": 1,
+      "name_translations": {
+        "en": "Etiquette and greetings",
+        "de": "Etikette und Begrüßungen"
+      }
     },
     {
       "id": "commands",
       "name_hu": "Vezényszavak és alapfogalmak",
-      "sort_order": 2
+      "sort_order": 2,
+      "name_translations": {
+        "en": "Commands and basic concepts",
+        "de": "Kommandos und Grundbegriffe"
+      }
     },
     {
       "id": "stances",
       "name_hu": "Állások",
-      "sort_order": 3
+      "sort_order": 3,
+      "name_translations": {
+        "en": "Stances",
+        "de": "Stellungen"
+      }
     },
     {
       "id": "blocks",
       "name_hu": "Védések",
-      "sort_order": 4
+      "sort_order": 4,
+      "name_translations": {
+        "en": "Blocks",
+        "de": "Abwehrtechniken"
+      }
     },
     {
       "id": "punches",
       "name_hu": "Kéz- és könyöktechnikák",
-      "sort_order": 5
+      "sort_order": 5,
+      "name_translations": {
+        "en": "Hand and elbow techniques",
+        "de": "Hand- und Ellenbogentechniken"
+      }
     },
     {
       "id": "kicks",
       "name_hu": "Rúgások és térdtechnikák",
-      "sort_order": 6
+      "sort_order": 6,
+      "name_translations": {
+        "en": "Kicks and knee techniques",
+        "de": "Fuß- und Knietechniken"
+      }
     },
     {
       "id": "body_parts",
       "name_hu": "Ütőfelületek és testrészek",
-      "sort_order": 7
+      "sort_order": 7,
+      "name_translations": {
+        "en": "Striking surfaces and body parts",
+        "de": "Trefferflächen und Körperteile"
+      }
     },
     {
       "id": "numbers",
       "name_hu": "Japán számok",
-      "sort_order": 8
+      "sort_order": 8,
+      "name_translations": {
+        "en": "Japanese numbers",
+        "de": "Japanische Zahlen"
+      }
     },
     {
       "id": "kata",
       "name_hu": "Katák",
-      "sort_order": 9
+      "sort_order": 9,
+      "name_translations": {
+        "en": "Kata",
+        "de": "Kata"
+      }
     }
   ],
   "illustrations": [
@@ -221,6 +257,166 @@
       "width": 1122,
       "height": 1402,
       "sha256": "867bd7486b36546a35e47be89a5a481d39a86e50f96dc97740b30307226a75c7",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0054",
+      "file": "illustrations/KY-0054.jpg",
+      "content_type": "image/jpeg",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "a61571237b86096be4e3d66daa053b1ef11796aa08d9fb2f660b9ee67b7a8b0a",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0055",
+      "file": "illustrations/KY-0055.jpg",
+      "content_type": "image/jpeg",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "24863a7d8a0490b3fd7584749099b7bf9e3c7bb37ad3256339f45c150de316fb",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0056",
+      "file": "illustrations/KY-0056.jpg",
+      "content_type": "image/jpeg",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "533c9df558ba78f01f376a68b0b59b1026eff575babe3076372a03c63cc12351",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0057",
+      "file": "illustrations/KY-0057.jpg",
+      "content_type": "image/jpeg",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "5d2c100e346cf83fccc206ae86918bfb4f0f38089b0148696f1d52c3128b8db4",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0058",
+      "file": "illustrations/KY-0058.jpg",
+      "content_type": "image/jpeg",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "e3d3b9253a24f55465427c03a8a72f330ec4e72e9003bc953be48ac1d35cc08c",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0059",
+      "file": "illustrations/KY-0059.jpg",
+      "content_type": "image/jpeg",
+      "width": 1536,
+      "height": 1042,
+      "sha256": "d2e6d3731244027f2bac794d56b9c66735a1f8da2e3ff98d216704c5a85a7d79",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0060",
+      "file": "illustrations/KY-0060.jpg",
+      "content_type": "image/jpeg",
+      "width": 1536,
+      "height": 1042,
+      "sha256": "f7b31db5d1acff004a8309b50e5ffffe5654ae3f823a74f7edc3cce150af07a4",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0061",
+      "file": "illustrations/KY-0061.jpg",
+      "content_type": "image/jpeg",
+      "width": 1536,
+      "height": 1042,
+      "sha256": "dd8146307f1a7d1d89eabbfafa056e74668e6fec5423eab3ea635a4468a8b1dc",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0062",
+      "file": "illustrations/KY-0062.jpg",
+      "content_type": "image/jpeg",
+      "width": 1448,
+      "height": 1104,
+      "sha256": "9f4f1f2013a1a3c4be5517418a78c100aab8ec54ab10b6b2a69697159824b5c6",
+      "origin": "ai_generated",
+      "license": "project-internal",
+      "source": "knowledgebase/pics (a projekt saját, generált készlete)",
+      "author": null,
+      "review_status": "human_review_required",
+      "has_embedded_label": false,
+      "quiz_usable": true,
+      "hideable_on_study_card": true
+    },
+    {
+      "ref": "KY-0063",
+      "file": "illustrations/KY-0063.jpg",
+      "content_type": "image/jpeg",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "1e846ec4cddaa5686be8f8987089568c4098b691ac156463c4f8e0c3e26b3b37",
       "origin": "ai_generated",
       "license": "project-internal",
       "source": "knowledgebase/pics (a projekt saját, generált készlete)",

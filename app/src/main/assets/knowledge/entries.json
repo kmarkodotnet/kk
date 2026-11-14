@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "dataset_version": "0.1.0",
+  "dataset_version": "0.2.0",
   "entries": [
     {
       "id": "KY-0001",
@@ -10,6 +10,15 @@
       "japanese_script": null,
       "hungarian_name": "Tiszteletteljes köszönés és válasz",
       "description_hu": "A Kyokushinban gyakran használt köszönés, megerősítés és a kitartás kifejezése.",
+      "name_translations": {
+        "en": "Respectful greeting and acknowledgement",
+        "de": "Respektvolle Begrüßung und Bestätigung"
+      },
+      "description_translations": {
+        "en": "A greeting and acknowledgement commonly used in Kyokushin, also expressing perseverance.",
+        "de": "Eine im Kyokushin häufig verwendete Begrüßung und Bestätigung, die auch Ausdauer ausdrückt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -28,6 +37,15 @@
       "japanese_script": null,
       "hungarian_name": "Meghajlás",
       "description_hu": "Tiszteletadás meghajlással.",
+      "name_translations": {
+        "en": "Bow",
+        "de": "Verbeugung"
+      },
+      "description_translations": {
+        "en": "Showing respect by bowing.",
+        "de": "Respekt durch eine Verbeugung zeigen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -46,6 +64,15 @@
       "japanese_script": null,
       "hungarian_name": "Meghajlás az edzőterem fő iránya felé",
       "description_hu": "Az edzés elején vagy végén alkalmazott tiszteletadás.",
+      "name_translations": {
+        "en": "Bow towards the front of the dojo",
+        "de": "Verbeugung zur Vorderseite des Dojo"
+      },
+      "description_translations": {
+        "en": "A gesture of respect used at the beginning or end of training.",
+        "de": "Eine Respektsbezeugung zu Beginn oder am Ende des Trainings."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -64,6 +91,15 @@
       "japanese_script": null,
       "hungarian_name": "Meghajlás a mester felé",
       "description_hu": "Tiszteletadás az oktatónak.",
+      "name_translations": {
+        "en": "Bow to the teacher",
+        "de": "Verbeugung zum Lehrer"
+      },
+      "description_translations": {
+        "en": "Showing respect to the instructor.",
+        "de": "Respektsbezeugung gegenüber dem Lehrer."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -82,6 +118,15 @@
       "japanese_script": null,
       "hungarian_name": "Meghajlás a rangidős tanítvány felé",
       "description_hu": "Tiszteletadás a magasabb rangú tanítványnak.",
+      "name_translations": {
+        "en": "Bow to the senior student",
+        "de": "Verbeugung zum rangälteren Schüler"
+      },
+      "description_translations": {
+        "en": "Showing respect to the higher-ranking student.",
+        "de": "Respektsbezeugung gegenüber dem höherrangigen Schüler."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -100,6 +145,15 @@
       "japanese_script": null,
       "hungarian_name": "Meditáció, összpontosítás",
       "description_hu": "Rövid elcsendesedés az edzés elején vagy végén.",
+      "name_translations": {
+        "en": "Meditation and concentration",
+        "de": "Meditation und Konzentration"
+      },
+      "description_translations": {
+        "en": "A brief period of quiet focus at the beginning or end of training.",
+        "de": "Eine kurze Phase der Sammlung zu Beginn oder am Ende des Trainings."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -118,6 +172,15 @@
       "japanese_script": null,
       "hungarian_name": "Meditáció vége",
       "description_hu": "Utasítás az elcsendesedés befejezésére.",
+      "name_translations": {
+        "en": "End meditation",
+        "de": "Meditation beenden"
+      },
+      "description_translations": {
+        "en": "An instruction to end the period of quiet focus.",
+        "de": "Anweisung, die stille Sammlung zu beenden."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -136,6 +199,15 @@
       "japanese_script": null,
       "hungarian_name": "Kérem, tanítson / kérem az együttműködést",
       "description_hu": "Udvarias kifejezés gyakorlás kezdetén.",
+      "name_translations": {
+        "en": "Please teach me / please practise with me",
+        "de": "Bitte unterrichten Sie mich / bitte üben Sie mit mir"
+      },
+      "description_translations": {
+        "en": "A polite expression used at the start of practice.",
+        "de": "Eine höfliche Wendung zu Beginn des gemeinsamen Übens."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -154,6 +226,15 @@
       "japanese_script": null,
       "hungarian_name": "Köszönöm szépen (a megtörténtért)",
       "description_hu": "Udvarias köszönet a gyakorlás végén.",
+      "name_translations": {
+        "en": "Thank you very much (for what has been done)",
+        "de": "Vielen Dank (für das Geleistete)"
+      },
+      "description_translations": {
+        "en": "A polite expression of thanks at the end of practice.",
+        "de": "Ein höflicher Dank am Ende des Übens."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -172,6 +253,15 @@
       "japanese_script": null,
       "hungarian_name": "Készülj!",
       "description_hu": "Felkészülés a gyakorlatra.",
+      "name_translations": {
+        "en": "Ready!",
+        "de": "Bereitmachen!"
+      },
+      "description_translations": {
+        "en": "Preparing for the exercise.",
+        "de": "Vorbereitung auf die Übung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -190,6 +280,15 @@
       "japanese_script": null,
       "hungarian_name": "Kezdd!",
       "description_hu": "A gyakorlat vagy küzdelem indítása.",
+      "name_translations": {
+        "en": "Begin!",
+        "de": "Beginnen!"
+      },
+      "description_translations": {
+        "en": "Starting an exercise or bout.",
+        "de": "Beginn einer Übung oder eines Kampfes."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -208,6 +307,15 @@
       "japanese_script": null,
       "hungarian_name": "Állj!",
       "description_hu": "A mozgás vagy küzdelem megszakítása.",
+      "name_translations": {
+        "en": "Stop!",
+        "de": "Stopp!"
+      },
+      "description_translations": {
+        "en": "Interrupting a movement or bout.",
+        "de": "Unterbrechung einer Bewegung oder eines Kampfes."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -226,6 +334,15 @@
       "japanese_script": null,
       "hungarian_name": "Vissza alaphelyzetbe!",
       "description_hu": "Visszatérés a kiinduló testhelyzetbe.",
+      "name_translations": {
+        "en": "Return to the starting position!",
+        "de": "Zurück in die Ausgangsstellung!"
+      },
+      "description_translations": {
+        "en": "Returning to the initial body position.",
+        "de": "Rückkehr in die ursprüngliche Körperhaltung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -244,6 +361,15 @@
       "japanese_script": null,
       "hungarian_name": "Fordulj meg!",
       "description_hu": "Fordulásra felszólító vezényszó.",
+      "name_translations": {
+        "en": "Turn around!",
+        "de": "Umdrehen!"
+      },
+      "description_translations": {
+        "en": "A command to turn.",
+        "de": "Kommando zum Umdrehen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -262,6 +388,15 @@
       "japanese_script": null,
       "hungarian_name": "Pihenj!",
       "description_hu": "Pihenő vagy lazítás vezényszava.",
+      "name_translations": {
+        "en": "At ease!",
+        "de": "Locker lassen!"
+      },
+      "description_translations": {
+        "en": "A command to rest or relax.",
+        "de": "Kommando zum Ausruhen oder Entspannen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -280,6 +415,15 @@
       "japanese_script": null,
       "hungarian_name": "Vedd fel a tartást!",
       "description_hu": "A megadott harci vagy gyakorló tartás felvétele.",
+      "name_translations": {
+        "en": "Take your stance!",
+        "de": "Kampfstellung einnehmen!"
+      },
+      "description_translations": {
+        "en": "Adopting the specified fighting or practice stance.",
+        "de": "Einnehmen der vorgegebenen Kampf- oder Übungshaltung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -298,6 +442,15 @@
       "japanese_script": null,
       "hungarian_name": "Harci kiáltás",
       "description_hu": "Erőteljes kilégzéssel kísért hangadás.",
+      "name_translations": {
+        "en": "Fighting shout",
+        "de": "Kampfschrei"
+      },
+      "description_translations": {
+        "en": "A vocal sound accompanied by forceful exhalation.",
+        "de": "Lautäußerung mit kräftigem Ausatmen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -316,6 +469,15 @@
       "japanese_script": null,
       "hungarian_name": "Térdelő ülés",
       "description_hu": "Hagyományos japán térdelő ülés.",
+      "name_translations": {
+        "en": "Formal kneeling position",
+        "de": "Traditioneller Fersensitz"
+      },
+      "description_translations": {
+        "en": "A traditional Japanese kneeling posture.",
+        "de": "Traditionelle japanische Sitzhaltung auf den Fersen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -334,6 +496,15 @@
       "japanese_script": null,
       "hungarian_name": "Állj fel!",
       "description_hu": "Felállásra felszólító utasítás.",
+      "name_translations": {
+        "en": "Stand up!",
+        "de": "Aufstehen!"
+      },
+      "description_translations": {
+        "en": "An instruction to stand up.",
+        "de": "Anweisung zum Aufstehen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -352,6 +523,15 @@
       "japanese_script": null,
       "hungarian_name": "Vigyázz!",
       "description_hu": "Figyelemre és rendezett testtartásra felszólítás.",
+      "name_translations": {
+        "en": "Attention!",
+        "de": "Achtung!"
+      },
+      "description_translations": {
+        "en": "An instruction to pay attention and adopt an orderly posture.",
+        "de": "Aufforderung zu Aufmerksamkeit und geordneter Körperhaltung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -370,6 +550,15 @@
       "japanese_script": null,
       "hungarian_name": "Jobb",
       "description_hu": "Jobb oldal vagy irány.",
+      "name_translations": {
+        "en": "Right",
+        "de": "Rechts"
+      },
+      "description_translations": {
+        "en": "The right side or direction.",
+        "de": "Die rechte Seite oder Richtung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -388,6 +577,15 @@
       "japanese_script": null,
       "hungarian_name": "Bal",
       "description_hu": "Bal oldal vagy irány.",
+      "name_translations": {
+        "en": "Left",
+        "de": "Links"
+      },
+      "description_translations": {
+        "en": "The left side or direction.",
+        "de": "Die linke Seite oder Richtung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -406,6 +604,15 @@
       "japanese_script": null,
       "hungarian_name": "Előre, elöl",
       "description_hu": "Elülső irány.",
+      "name_translations": {
+        "en": "Forward, front",
+        "de": "Vorwärts, vorn"
+      },
+      "description_translations": {
+        "en": "The forward direction.",
+        "de": "Die Richtung nach vorn."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -424,6 +631,15 @@
       "japanese_script": null,
       "hungarian_name": "Hátra, hátul",
       "description_hu": "Hátsó irány.",
+      "name_translations": {
+        "en": "Backward, rear",
+        "de": "Rückwärts, hinten"
+      },
+      "description_translations": {
+        "en": "The backward direction.",
+        "de": "Die Richtung nach hinten."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -442,6 +658,15 @@
       "japanese_script": null,
       "hungarian_name": "Oldalra",
       "description_hu": "Oldalsó irány.",
+      "name_translations": {
+        "en": "Sideways",
+        "de": "Seitwärts"
+      },
+      "description_translations": {
+        "en": "The lateral direction.",
+        "de": "Die seitliche Richtung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -460,6 +685,15 @@
       "japanese_script": null,
       "hungarian_name": "Köríves",
       "description_hu": "Köríven végrehajtott mozdulatra utal.",
+      "name_translations": {
+        "en": "Circular",
+        "de": "Kreisförmig"
+      },
+      "description_translations": {
+        "en": "Refers to a movement performed along a circular path.",
+        "de": "Bezeichnet eine Bewegung auf einer Kreisbahn."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -478,6 +712,15 @@
       "japanese_script": null,
       "hungarian_name": "Felső szint",
       "description_hu": "Fej vagy felső célterület.",
+      "name_translations": {
+        "en": "Upper level",
+        "de": "Obere Stufe"
+      },
+      "description_translations": {
+        "en": "The head or upper target area.",
+        "de": "Der Kopf oder der obere Zielbereich."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -496,6 +739,15 @@
       "japanese_script": null,
       "hungarian_name": "Középső szint",
       "description_hu": "Törzs magassága.",
+      "name_translations": {
+        "en": "Middle level",
+        "de": "Mittlere Stufe"
+      },
+      "description_translations": {
+        "en": "Torso height.",
+        "de": "Höhe des Rumpfes."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -514,6 +766,15 @@
       "japanese_script": null,
       "hungarian_name": "Alsó szint",
       "description_hu": "Alsó célterület, például láb.",
+      "name_translations": {
+        "en": "Lower level",
+        "de": "Untere Stufe"
+      },
+      "description_translations": {
+        "en": "A lower target area, such as the leg.",
+        "de": "Ein unterer Zielbereich, beispielsweise das Bein."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -532,6 +793,15 @@
       "japanese_script": null,
       "hungarian_name": "Alaptechnikák",
       "description_hu": "Alapmozdulatok gyakorlása.",
+      "name_translations": {
+        "en": "Basic techniques",
+        "de": "Grundtechniken"
+      },
+      "description_translations": {
+        "en": "Practising fundamental movements.",
+        "de": "Üben grundlegender Bewegungen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -550,6 +820,15 @@
       "japanese_script": null,
       "hungarian_name": "Mozgásos alaptechnikai gyakorlás",
       "description_hu": "Alaptechnikák gyakorlása helyváltoztatással.",
+      "name_translations": {
+        "en": "Moving basic-technique practice",
+        "de": "Grundtechniktraining in Bewegung"
+      },
+      "description_translations": {
+        "en": "Practising basic techniques while changing position.",
+        "de": "Üben von Grundtechniken mit Fortbewegung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -568,6 +847,15 @@
       "japanese_script": null,
       "hungarian_name": "Formagyakorlat",
       "description_hu": "Előre meghatározott mozdulatsor.",
+      "name_translations": {
+        "en": "Form",
+        "de": "Formübung"
+      },
+      "description_translations": {
+        "en": "A predetermined sequence of movements.",
+        "de": "Eine festgelegte Bewegungsfolge."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -586,6 +874,15 @@
       "japanese_script": null,
       "hungarian_name": "Küzdelem",
       "description_hu": "Páros küzdőgyakorlat.",
+      "name_translations": {
+        "en": "Fighting",
+        "de": "Kampf"
+      },
+      "description_translations": {
+        "en": "A fighting exercise performed with a partner.",
+        "de": "Eine Kampfübung mit einem Partner."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -604,6 +901,15 @@
       "japanese_script": null,
       "hungarian_name": "Töréstechnika",
       "description_hu": "Tárgyak, például deszkák törése.",
+      "name_translations": {
+        "en": "Breaking technique",
+        "de": "Bruchtechnik"
+      },
+      "description_translations": {
+        "en": "Breaking objects, such as boards.",
+        "de": "Zerbrechen von Gegenständen, beispielsweise Brettern."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -622,6 +928,15 @@
       "japanese_script": null,
       "hungarian_name": "Edzőterem",
       "description_hu": "A harcművészet gyakorlásának helye.",
+      "name_translations": {
+        "en": "Training hall",
+        "de": "Trainingsraum"
+      },
+      "description_translations": {
+        "en": "The place where martial arts are practised.",
+        "de": "Der Ort, an dem Kampfkunst geübt wird."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -640,6 +955,15 @@
       "japanese_script": null,
       "hungarian_name": "Karateruha",
       "description_hu": "Edzéshez viselt hagyományos ruha.",
+      "name_translations": {
+        "en": "Karate uniform",
+        "de": "Karateanzug"
+      },
+      "description_translations": {
+        "en": "Traditional clothing worn for training.",
+        "de": "Traditionelle Kleidung für das Training."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -658,6 +982,15 @@
       "japanese_script": null,
       "hungarian_name": "Öv",
       "description_hu": "A ruha öve, gyakran fokozatjelző.",
+      "name_translations": {
+        "en": "Belt",
+        "de": "Gürtel"
+      },
+      "description_translations": {
+        "en": "The uniform belt, often indicating rank.",
+        "de": "Der Gürtel des Anzugs, der häufig den Grad anzeigt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -676,6 +1009,15 @@
       "japanese_script": null,
       "hungarian_name": "Tanulófokozat",
       "description_hu": "Dan előtti fokozat.",
+      "name_translations": {
+        "en": "Student grade",
+        "de": "Schülergrad"
+      },
+      "description_translations": {
+        "en": "A grade below the dan ranks.",
+        "de": "Ein Grad vor den Dan-Graden."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -694,6 +1036,15 @@
       "japanese_script": null,
       "hungarian_name": "Mesterfokozat",
       "description_hu": "Fekete öves fokozatok rendszere.",
+      "name_translations": {
+        "en": "Dan grade",
+        "de": "Dan-Grad"
+      },
+      "description_translations": {
+        "en": "The system of black-belt grades.",
+        "de": "Das System der Schwarzgurtgrade."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -712,6 +1063,15 @@
       "japanese_script": null,
       "hungarian_name": "Mester, tanár",
       "description_hu": "Oktató megszólítása.",
+      "name_translations": {
+        "en": "Teacher, instructor",
+        "de": "Lehrer, Ausbilder"
+      },
+      "description_translations": {
+        "en": "A form of address for an instructor.",
+        "de": "Anrede für einen Lehrer."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -730,6 +1090,15 @@
       "japanese_script": null,
       "hungarian_name": "Rangidős tanítvány",
       "description_hu": "Tapasztaltabb vagy magasabb rangú gyakorló.",
+      "name_translations": {
+        "en": "Senior student",
+        "de": "Rangälterer Schüler"
+      },
+      "description_translations": {
+        "en": "A more experienced or higher-ranking practitioner.",
+        "de": "Ein erfahrenerer oder höherrangiger Übender."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -748,6 +1117,15 @@
       "japanese_script": null,
       "hungarian_name": "Fiatalabb tanítvány",
       "description_hu": "Alacsonyabb rangú vagy később csatlakozott gyakorló.",
+      "name_translations": {
+        "en": "Junior student",
+        "de": "Rangjüngerer Schüler"
+      },
+      "description_translations": {
+        "en": "A lower-ranking practitioner or one who joined later.",
+        "de": "Ein Übender mit niedrigerem Rang oder späterem Eintritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -766,6 +1144,15 @@
       "japanese_script": null,
       "hungarian_name": "Alapító vezető címe",
       "description_hu": "A Kyokushin alapítójára is használt cím.",
+      "name_translations": {
+        "en": "Title of the founding leader",
+        "de": "Titel des Gründers und Leiters"
+      },
+      "description_translations": {
+        "en": "A title also used for the founder of Kyokushin.",
+        "de": "Ein Titel, der auch für den Gründer des Kyokushin verwendet wird."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -784,6 +1171,15 @@
       "japanese_script": null,
       "hungarian_name": "Természetes, stabil állás",
       "description_hu": "Laza, de készültséget biztosító alapállás.",
+      "name_translations": {
+        "en": "Natural, stable stance",
+        "de": "Natürliche, stabile Stellung"
+      },
+      "description_translations": {
+        "en": "A relaxed basic stance that maintains readiness.",
+        "de": "Eine entspannte Grundstellung, die Bereitschaft gewährleistet."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0044",
@@ -802,6 +1198,15 @@
       "japanese_script": null,
       "hungarian_name": "Zárt lábú állás",
       "description_hu": "Lábfejek és sarkak egymás mellett.",
+      "name_translations": {
+        "en": "Closed-foot stance",
+        "de": "Geschlossene Fußstellung"
+      },
+      "description_translations": {
+        "en": "The feet and heels are together.",
+        "de": "Füße und Fersen stehen nebeneinander."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0045",
@@ -820,6 +1225,15 @@
       "japanese_script": null,
       "hungarian_name": "V alakú zárt állás",
       "description_hu": "Sarkak közel, lábfejek kifelé fordulnak.",
+      "name_translations": {
+        "en": "Closed V-shaped stance",
+        "de": "Geschlossene V-Stellung"
+      },
+      "description_translations": {
+        "en": "The heels are close together and the feet turn outward.",
+        "de": "Die Fersen stehen nahe beieinander, die Füße zeigen nach außen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0046",
@@ -838,6 +1252,15 @@
       "japanese_script": null,
       "hungarian_name": "Párhuzamos állás",
       "description_hu": "Párhuzamos lábfejek, kis terpesz.",
+      "name_translations": {
+        "en": "Parallel stance",
+        "de": "Parallelstellung"
+      },
+      "description_translations": {
+        "en": "The feet are parallel with a small gap between them.",
+        "de": "Die Füße stehen parallel und leicht auseinander."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0047",
@@ -856,6 +1279,15 @@
       "japanese_script": null,
       "hungarian_name": "Nyitott lábfejű természetes állás",
       "description_hu": "Lábfejek kifelé mutatnak.",
+      "name_translations": {
+        "en": "Natural stance with outward-pointing feet",
+        "de": "Natürliche Stellung mit auswärts gerichteten Füßen"
+      },
+      "description_translations": {
+        "en": "The feet point outward.",
+        "de": "Die Füße zeigen nach außen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0048",
@@ -874,6 +1306,15 @@
       "japanese_script": null,
       "hungarian_name": "Befelé fordított lábfejű állás",
       "description_hu": "A lábfejek enyhén befelé fordulnak.",
+      "name_translations": {
+        "en": "Inward-pointing foot stance",
+        "de": "Stellung mit einwärts gerichteten Füßen"
+      },
+      "description_translations": {
+        "en": "The feet turn slightly inward.",
+        "de": "Die Füße sind leicht nach innen gedreht."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0049",
@@ -892,6 +1333,15 @@
       "japanese_script": null,
       "hungarian_name": "Elülső súlypontú hosszú állás",
       "description_hu": "A testsúly nagyobb része az elülső lábon.",
+      "name_translations": {
+        "en": "Long front-weighted stance",
+        "de": "Lange vorwärts belastete Stellung"
+      },
+      "description_translations": {
+        "en": "Most of the weight rests on the front leg.",
+        "de": "Der größere Teil des Körpergewichts ruht auf dem vorderen Bein."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0050",
@@ -910,6 +1360,15 @@
       "japanese_script": null,
       "hungarian_name": "Hátsó súlypontú állás",
       "description_hu": "A testsúly nagyobb része a hátsó lábon.",
+      "name_translations": {
+        "en": "Back-weighted stance",
+        "de": "Rückwärts belastete Stellung"
+      },
+      "description_translations": {
+        "en": "Most of the weight rests on the rear leg.",
+        "de": "Der größere Teil des Körpergewichts ruht auf dem hinteren Bein."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0051",
@@ -928,6 +1387,15 @@
       "japanese_script": null,
       "hungarian_name": "Lovaglóállás",
       "description_hu": "Széles, alacsony állás, jellemzően párhuzamos lábfejekkel.",
+      "name_translations": {
+        "en": "Horse-riding stance",
+        "de": "Reiterstellung"
+      },
+      "description_translations": {
+        "en": "A wide, low stance, usually with parallel feet.",
+        "de": "Eine breite, tiefe Stellung, meist mit parallelen Füßen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0052",
@@ -946,6 +1414,15 @@
       "japanese_script": null,
       "hungarian_name": "Szumóállás",
       "description_hu": "Széles állás kifelé fordított lábfejekkel.",
+      "name_translations": {
+        "en": "Sumo stance",
+        "de": "Sumostellung"
+      },
+      "description_translations": {
+        "en": "A wide stance with the feet turned outward.",
+        "de": "Eine breite Stellung mit nach außen gedrehten Füßen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": "KY-0053",
@@ -964,9 +1441,18 @@
       "japanese_script": null,
       "hungarian_name": "Sanchin állás",
       "description_hu": "Rövid, feszes, befelé irányított lábfejű állás.",
+      "name_translations": {
+        "en": "Sanchin stance",
+        "de": "Sanchin-Stellung"
+      },
+      "description_translations": {
+        "en": "A short, tense stance with the feet directed inward.",
+        "de": "Eine kurze, gespannte Stellung mit einwärts gerichteten Füßen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0054",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -982,9 +1468,18 @@
       "japanese_script": null,
       "hungarian_name": "Macskaállás",
       "description_hu": "A testsúly döntően a hátsó lábon, az első láb könnyű.",
+      "name_translations": {
+        "en": "Cat stance",
+        "de": "Katzenstellung"
+      },
+      "description_translations": {
+        "en": "Most of the weight is on the rear leg, leaving the front leg lightly loaded.",
+        "de": "Das Gewicht liegt überwiegend auf dem hinteren Bein, das vordere ist kaum belastet."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0055",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1000,9 +1495,18 @@
       "japanese_script": null,
       "hungarian_name": "Darulábállás",
       "description_hu": "Egy lábon egyensúlyozó állás.",
+      "name_translations": {
+        "en": "Crane stance",
+        "de": "Kranichstellung"
+      },
+      "description_translations": {
+        "en": "A stance balanced on one leg.",
+        "de": "Eine Gleichgewichtsstellung auf einem Bein."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0056",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1018,9 +1522,18 @@
       "japanese_script": null,
       "hungarian_name": "Keresztezett lábú állás",
       "description_hu": "A lábak keresztezésével kialakított állás.",
+      "name_translations": {
+        "en": "Cross-legged stance",
+        "de": "Überkreuzstellung"
+      },
+      "description_translations": {
+        "en": "A stance formed by crossing the legs.",
+        "de": "Eine Stellung mit gekreuzten Beinen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0057",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1036,9 +1549,18 @@
       "japanese_script": null,
       "hungarian_name": "Küzdőállás",
       "description_hu": "Küzdelemhez igazított mozgékony testtartás.",
+      "name_translations": {
+        "en": "Fighting stance",
+        "de": "Kampfstellung"
+      },
+      "description_translations": {
+        "en": "A mobile posture adapted for fighting.",
+        "de": "Eine bewegliche, an den Kampf angepasste Körperhaltung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0058",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1054,9 +1576,18 @@
       "japanese_script": null,
       "hungarian_name": "Felső emelkedő védés",
       "description_hu": "Alulról felfelé végzett védekező karmozdulat a felső szintre.",
+      "name_translations": {
+        "en": "Upper rising block",
+        "de": "Aufwärtsblock zur oberen Stufe"
+      },
+      "description_translations": {
+        "en": "A defensive arm movement rising from below towards the upper level.",
+        "de": "Eine von unten nach oben geführte Abwehrbewegung des Arms zur oberen Stufe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0059",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1072,9 +1603,18 @@
       "japanese_script": null,
       "hungarian_name": "Középső külső védés",
       "description_hu": "Kívülről befelé vagy kifelé értelmezése iskolánként eltérhet; a helyi oktató mozgásirányát kövesd.",
+      "name_translations": {
+        "en": "Middle outside block",
+        "de": "Mittlerer Außenblock"
+      },
+      "description_translations": {
+        "en": "Whether the movement is interpreted as outside-to-inside or outward may vary between schools; follow your local instructor's movement direction.",
+        "de": "Die Deutung als Bewegung von außen nach innen oder nach außen kann je nach Schule abweichen; folge der Bewegungsrichtung deines Lehrers."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0060",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1090,9 +1630,18 @@
       "japanese_script": null,
       "hungarian_name": "Középső belső védés",
       "description_hu": "A soto/uchi elnevezés irányértelmezése stílusonként eltérhet.",
+      "name_translations": {
+        "en": "Middle inside block",
+        "de": "Mittlerer Innenblock"
+      },
+      "description_translations": {
+        "en": "The directional interpretation of the terms soto and uchi may differ between styles.",
+        "de": "Die Richtungsdeutung der Bezeichnungen soto und uchi kann je nach Stil abweichen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0061",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1108,9 +1657,18 @@
       "japanese_script": null,
       "hungarian_name": "Alsó söprő védés",
       "description_hu": "Lefelé irányuló, söprő alkarvédekezés.",
+      "name_translations": {
+        "en": "Lower sweeping block",
+        "de": "Unterer Fegeblock"
+      },
+      "description_translations": {
+        "en": "A downward sweeping defensive movement of the forearm.",
+        "de": "Eine nach unten gerichtete, fegende Unterarmabwehr."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0062",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1126,9 +1684,18 @@
       "japanese_script": null,
       "hungarian_name": "Köríves kézélvédés",
       "description_hu": "Kétkezes, köríves védekező mozdulat.",
+      "name_translations": {
+        "en": "Circular knife-hand block",
+        "de": "Kreisförmige Handkantenabwehr"
+      },
+      "description_translations": {
+        "en": "A circular defensive movement performed with both hands.",
+        "de": "Eine kreisförmige Abwehrbewegung mit beiden Händen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
-      "illustration_ref": null,
+      "illustration_ref": "KY-0063",
       "review_status": "editorial_review_required",
       "quiz_excluded": false,
       "retired": false,
@@ -1144,6 +1711,15 @@
       "japanese_script": null,
       "hungarian_name": "Felső kézélvédés",
       "description_hu": "Nyitott kézzel, kézéllel végzett felső védekezés.",
+      "name_translations": {
+        "en": "Upper knife-hand block",
+        "de": "Obere Handkantenabwehr"
+      },
+      "description_translations": {
+        "en": "An upper-level defence using the open hand and its edge.",
+        "de": "Eine Abwehr zur oberen Stufe mit offener Hand und Handkante."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1162,6 +1738,15 @@
       "japanese_script": null,
       "hungarian_name": "Középső kézélvédés",
       "description_hu": "Nyitott kézzel, kézéllel végzett középső védekezés.",
+      "name_translations": {
+        "en": "Middle knife-hand block",
+        "de": "Mittlere Handkantenabwehr"
+      },
+      "description_translations": {
+        "en": "A middle-level defence using the open hand and its edge.",
+        "de": "Eine Abwehr zur mittleren Stufe mit offener Hand und Handkante."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1180,6 +1765,15 @@
       "japanese_script": null,
       "hungarian_name": "Alsó kézél-söprés",
       "description_hu": "Nyitott kézzel végzett alsó söprő védés.",
+      "name_translations": {
+        "en": "Lower knife-hand sweep",
+        "de": "Unterer Handkanten-Fegeblock"
+      },
+      "description_translations": {
+        "en": "A lower sweeping block performed with an open hand.",
+        "de": "Ein unterer Fegeblock mit offener Hand."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1198,6 +1792,15 @@
       "japanese_script": null,
       "hungarian_name": "Kétkezes, megtámasztott védés",
       "description_hu": "Az egyik kar védekezését a másik kéz segíti.",
+      "name_translations": {
+        "en": "Two-handed supported block",
+        "de": "Beidhändige unterstützte Abwehr"
+      },
+      "description_translations": {
+        "en": "One hand supports the defensive action of the other arm.",
+        "de": "Eine Hand unterstützt die Abwehr des anderen Arms."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1216,6 +1819,15 @@
       "japanese_script": null,
       "hungarian_name": "Keresztvédés",
       "description_hu": "Keresztezett karokkal végzett védés.",
+      "name_translations": {
+        "en": "Cross block",
+        "de": "Kreuzblock"
+      },
+      "description_translations": {
+        "en": "A block performed with crossed arms.",
+        "de": "Eine Abwehr mit gekreuzten Armen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1234,6 +1846,15 @@
       "japanese_script": null,
       "hungarian_name": "Kampózó védés",
       "description_hu": "A támadó végtag megakasztására vagy elvezetésére szolgál.",
+      "name_translations": {
+        "en": "Hooking block",
+        "de": "Hakenabwehr"
+      },
+      "description_translations": {
+        "en": "Used to catch or redirect the attacking limb.",
+        "de": "Dient dazu, die angreifende Gliedmaße abzufangen oder umzuleiten."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1252,6 +1873,15 @@
       "japanese_script": null,
       "hungarian_name": "Lenyomó védés",
       "description_hu": "Lefelé nyomó, kontrolláló védekezés.",
+      "name_translations": {
+        "en": "Pressing-down block",
+        "de": "Abwärts drückende Abwehr"
+      },
+      "description_translations": {
+        "en": "A controlling defensive action that presses downward.",
+        "de": "Eine kontrollierende, nach unten drückende Abwehr."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1270,6 +1900,15 @@
       "japanese_script": null,
       "hungarian_name": "Merítő védés",
       "description_hu": "Alulról felfelé terelő, merítő jellegű védés.",
+      "name_translations": {
+        "en": "Scooping block",
+        "de": "Schöpfende Abwehr"
+      },
+      "description_translations": {
+        "en": "A scooping defensive movement that redirects upward from below.",
+        "de": "Eine schöpfende Abwehrbewegung, die von unten nach oben umleitet."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1288,6 +1927,15 @@
       "japanese_script": null,
       "hungarian_name": "Könyökvédés",
       "description_hu": "Könyökkel vagy alkarral történő közeli védekezés.",
+      "name_translations": {
+        "en": "Elbow block",
+        "de": "Ellenbogenabwehr"
+      },
+      "description_translations": {
+        "en": "A close-range defence using the elbow or forearm.",
+        "de": "Eine Abwehr im Nahbereich mit Ellenbogen oder Unterarm."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1306,6 +1954,15 @@
       "japanese_script": null,
       "hungarian_name": "Egyenes ökölütés középre",
       "description_hu": "A mutató- és középső ujj bütykeivel célzott egyenes ütés.",
+      "name_translations": {
+        "en": "Straight punch to the middle level",
+        "de": "Gerader Fauststoß zur mittleren Stufe"
+      },
+      "description_translations": {
+        "en": "A straight punch delivered with the knuckles of the index and middle fingers.",
+        "de": "Ein gerader Fauststoß mit den Knöcheln von Zeige- und Mittelfinger."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1324,6 +1981,15 @@
       "japanese_script": null,
       "hungarian_name": "Egyenes ökölütés felső szintre",
       "description_hu": "Egyenes ütés a felső célterület irányába.",
+      "name_translations": {
+        "en": "Straight punch to the upper level",
+        "de": "Gerader Fauststoß zur oberen Stufe"
+      },
+      "description_translations": {
+        "en": "A straight punch towards the upper target area.",
+        "de": "Ein gerader Fauststoß zum oberen Zielbereich."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1342,6 +2008,15 @@
       "japanese_script": null,
       "hungarian_name": "Egyenes ökölütés alsó szintre",
       "description_hu": "Egyenes ütés az alsó célterület irányába.",
+      "name_translations": {
+        "en": "Straight punch to the lower level",
+        "de": "Gerader Fauststoß zur unteren Stufe"
+      },
+      "description_translations": {
+        "en": "A straight punch towards the lower target area.",
+        "de": "Ein gerader Fauststoß zum unteren Zielbereich."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1360,6 +2035,15 @@
       "japanese_script": null,
       "hungarian_name": "Előrelépő, azonos oldali ütés",
       "description_hu": "Az előrelépő lábbal azonos oldali kéz üt.",
+      "name_translations": {
+        "en": "Stepping same-side punch",
+        "de": "Gleichseitiger Fauststoß mit Vorwärtsschritt"
+      },
+      "description_translations": {
+        "en": "The punching hand is on the same side as the leg stepping forward.",
+        "de": "Die stoßende Hand befindet sich auf derselben Seite wie das vorwärts schreitende Bein."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1378,6 +2062,15 @@
       "japanese_script": null,
       "hungarian_name": "Ellentétes oldali egyenes ütés",
       "description_hu": "Az elöl lévő lábbal ellentétes kéz üt.",
+      "name_translations": {
+        "en": "Reverse straight punch",
+        "de": "Gegenseitiger gerader Fauststoß"
+      },
+      "description_translations": {
+        "en": "The punching hand is opposite the leading leg.",
+        "de": "Die stoßende Hand liegt dem vorderen Bein gegenüber."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1396,6 +2089,15 @@
       "japanese_script": null,
       "hungarian_name": "Állra irányuló ökölütés",
       "description_hu": "Rövid, felfelé vagy előre vezetett ütés az áll irányába.",
+      "name_translations": {
+        "en": "Punch to the chin",
+        "de": "Faustschlag zum Kinn"
+      },
+      "description_translations": {
+        "en": "A short punch directed upward or forward towards the chin.",
+        "de": "Ein kurzer, aufwärts oder vorwärts zum Kinn geführter Faustschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1414,6 +2116,15 @@
       "japanese_script": null,
       "hungarian_name": "Köríves ökölütés",
       "description_hu": "Oldalról köríven vezetett ökölütés.",
+      "name_translations": {
+        "en": "Circular fist strike",
+        "de": "Kreisförmiger Faustschlag"
+      },
+      "description_translations": {
+        "en": "A fist strike following a circular path from the side.",
+        "de": "Ein von der Seite auf einer Kreisbahn geführter Faustschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1432,6 +2143,15 @@
       "japanese_script": null,
       "hungarian_name": "Alulról felfelé vezetett ökölütés",
       "description_hu": "Rövid, emelkedő pályájú ütés a törzs irányába.",
+      "name_translations": {
+        "en": "Upward punch from below",
+        "de": "Von unten aufwärts geführter Fauststoß"
+      },
+      "description_translations": {
+        "en": "A short punch rising towards the torso.",
+        "de": "Ein kurzer, aufwärts zum Rumpf geführter Fauststoß."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1450,6 +2170,15 @@
       "japanese_script": null,
       "hungarian_name": "Elülső kézhátütés",
       "description_hu": "A kézhát bütykös részével előre végzett ütés.",
+      "name_translations": {
+        "en": "Front backfist strike",
+        "de": "Faustrückenschlag nach vorn"
+      },
+      "description_translations": {
+        "en": "A forward strike using the knuckle area on the back of the fist.",
+        "de": "Ein nach vorn gerichteter Schlag mit dem Knöchelbereich des Faustrückens."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1468,6 +2197,15 @@
       "japanese_script": null,
       "hungarian_name": "Oldalirányú kézhátütés",
       "description_hu": "Kézhátütés oldalirányba.",
+      "name_translations": {
+        "en": "Sideways backfist strike",
+        "de": "Seitlicher Faustrückenschlag"
+      },
+      "description_translations": {
+        "en": "A backfist strike directed sideways.",
+        "de": "Ein seitwärts gerichteter Faustrückenschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1486,6 +2224,15 @@
       "japanese_script": null,
       "hungarian_name": "Kézhátütés borda/törzs irányába",
       "description_hu": "Oldalsó, testre irányuló kézhátütés.",
+      "name_translations": {
+        "en": "Backfist strike to the ribs or torso",
+        "de": "Faustrückenschlag zu Rippen oder Rumpf"
+      },
+      "description_translations": {
+        "en": "A sideways backfist strike directed at the body.",
+        "de": "Ein seitlicher Faustrückenschlag zum Körper."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1504,6 +2251,15 @@
       "japanese_script": null,
       "hungarian_name": "Köríves kézhátütés",
       "description_hu": "Köríves pályán végrehajtott kézhátütés.",
+      "name_translations": {
+        "en": "Circular backfist strike",
+        "de": "Kreisförmiger Faustrückenschlag"
+      },
+      "description_translations": {
+        "en": "A backfist strike following a circular path.",
+        "de": "Ein Faustrückenschlag auf einer Kreisbahn."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1522,6 +2278,15 @@
       "japanese_script": null,
       "hungarian_name": "Lefelé csapó kalapácsököl",
       "description_hu": "Az ököl kisujj felőli részével lefelé csapó ütés.",
+      "name_translations": {
+        "en": "Downward hammerfist strike",
+        "de": "Abwärts gerichteter Hammerfaustschlag"
+      },
+      "description_translations": {
+        "en": "A downward strike using the little-finger side of the fist.",
+        "de": "Ein abwärts gerichteter Schlag mit der Kleinfingerseite der Faust."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1540,6 +2305,15 @@
       "japanese_script": null,
       "hungarian_name": "Oldalsó kalapácsököl",
       "description_hu": "Az ököl kisujj felőli részével oldalra végzett ütés.",
+      "name_translations": {
+        "en": "Sideways hammerfist strike",
+        "de": "Seitlicher Hammerfaustschlag"
+      },
+      "description_translations": {
+        "en": "A sideways strike using the little-finger side of the fist.",
+        "de": "Ein seitlicher Schlag mit der Kleinfingerseite der Faust."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1558,6 +2332,15 @@
       "japanese_script": null,
       "hungarian_name": "Kézélütés kulcscsontra",
       "description_hu": "A kéz kisujj felőli élével végzett csapás.",
+      "name_translations": {
+        "en": "Knife-hand strike to the collarbone",
+        "de": "Handkantenschlag zum Schlüsselbein"
+      },
+      "description_translations": {
+        "en": "A strike using the little-finger edge of the hand.",
+        "de": "Ein Schlag mit der kleinfingerseitigen Handkante."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1576,6 +2359,15 @@
       "japanese_script": null,
       "hungarian_name": "Behatoló kézélütés kulcscsontra",
       "description_hu": "Előre vezetett kézéltechnika.",
+      "name_translations": {
+        "en": "Driving knife-hand strike to the collarbone",
+        "de": "Durchstoßender Handkantenschlag zum Schlüsselbein"
+      },
+      "description_translations": {
+        "en": "A knife-hand technique directed forward.",
+        "de": "Eine nach vorn geführte Handkantentechnik."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1594,6 +2386,15 @@
       "japanese_script": null,
       "hungarian_name": "Belső irányú kézélütés",
       "description_hu": "A kézéllel végrehajtott belső irányú csapás.",
+      "name_translations": {
+        "en": "Inward knife-hand strike",
+        "de": "Nach innen gerichteter Handkantenschlag"
+      },
+      "description_translations": {
+        "en": "An inward strike performed with the edge of the hand.",
+        "de": "Ein nach innen geführter Schlag mit der Handkante."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1612,6 +2413,15 @@
       "japanese_script": null,
       "hungarian_name": "Kézélütés arcra",
       "description_hu": "Kézéllel az arc irányába vezetett ütés.",
+      "name_translations": {
+        "en": "Knife-hand strike to the face",
+        "de": "Handkantenschlag zum Gesicht"
+      },
+      "description_translations": {
+        "en": "A knife-hand strike directed towards the face.",
+        "de": "Ein zum Gesicht geführter Handkantenschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1630,6 +2440,15 @@
       "japanese_script": null,
       "hungarian_name": "Ujjhegyes szúrás",
       "description_hu": "Nyitott kéz összezárt ujjaival végzett szúró technika.",
+      "name_translations": {
+        "en": "Fingertip thrust",
+        "de": "Fingerspitzenstoß"
+      },
+      "description_translations": {
+        "en": "A thrusting technique performed with the fingers held together on an open hand.",
+        "de": "Eine Stoßtechnik mit zusammengehaltenen Fingern der offenen Hand."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1648,6 +2467,15 @@
       "japanese_script": null,
       "hungarian_name": "Könyökütés",
       "description_hu": "Könyökkel végzett közeli támadás.",
+      "name_translations": {
+        "en": "Elbow strike",
+        "de": "Ellenbogenschlag"
+      },
+      "description_translations": {
+        "en": "A close-range attack using the elbow.",
+        "de": "Ein Angriff im Nahbereich mit dem Ellenbogen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1666,6 +2494,15 @@
       "japanese_script": null,
       "hungarian_name": "Emelkedő könyökütés",
       "description_hu": "Alulról felfelé vezetett könyökütés.",
+      "name_translations": {
+        "en": "Rising elbow strike",
+        "de": "Aufwärts gerichteter Ellenbogenschlag"
+      },
+      "description_translations": {
+        "en": "An elbow strike directed upward from below.",
+        "de": "Ein von unten nach oben geführter Ellenbogenschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1684,6 +2521,15 @@
       "japanese_script": null,
       "hungarian_name": "Lefelé csapó könyökütés",
       "description_hu": "Felülről lefelé vezetett könyökütés.",
+      "name_translations": {
+        "en": "Descending elbow strike",
+        "de": "Abwärts gerichteter Ellenbogenschlag"
+      },
+      "description_translations": {
+        "en": "An elbow strike directed downward from above.",
+        "de": "Ein von oben nach unten geführter Ellenbogenschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1702,6 +2548,15 @@
       "japanese_script": null,
       "hungarian_name": "Köríves könyökütés",
       "description_hu": "Oldalról köríven végzett könyökütés.",
+      "name_translations": {
+        "en": "Circular elbow strike",
+        "de": "Kreisförmiger Ellenbogenschlag"
+      },
+      "description_translations": {
+        "en": "An elbow strike following a circular path from the side.",
+        "de": "Ein von der Seite kreisförmig geführter Ellenbogenschlag."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1720,6 +2575,15 @@
       "japanese_script": null,
       "hungarian_name": "Elülső rúgás",
       "description_hu": "Előre irányuló rúgás, jellemzően a talppárnával.",
+      "name_translations": {
+        "en": "Front kick",
+        "de": "Vorwärtstritt"
+      },
+      "description_translations": {
+        "en": "A forward kick, usually using the ball of the foot.",
+        "de": "Ein nach vorn gerichteter Tritt, meist mit dem Fußballen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1738,6 +2602,15 @@
       "japanese_script": null,
       "hungarian_name": "Elülső lendítő rúgás",
       "description_hu": "Nyújtottabb lábbal, lendítő jelleggel végzett rúgás.",
+      "name_translations": {
+        "en": "Front rising swing kick",
+        "de": "Vorwärts gerichteter Beinschwungtritt"
+      },
+      "description_translations": {
+        "en": "A swinging kick performed with a relatively straight leg.",
+        "de": "Ein schwungvoller Tritt mit weitgehend gestrecktem Bein."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1756,6 +2629,15 @@
       "japanese_script": null,
       "hungarian_name": "Oldalrúgás",
       "description_hu": "Oldalirányú rúgás, gyakran sarokkal vagy talpéllel.",
+      "name_translations": {
+        "en": "Side kick",
+        "de": "Seitwärtstritt"
+      },
+      "description_translations": {
+        "en": "A sideways kick, often using the heel or the outer edge of the foot.",
+        "de": "Ein seitlicher Tritt, häufig mit der Ferse oder Fußaußenkante."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1774,6 +2656,15 @@
       "japanese_script": null,
       "hungarian_name": "Oldalsó lendítő rúgás",
       "description_hu": "Oldalirányú, emelkedő lendítő lábtechnika.",
+      "name_translations": {
+        "en": "Side rising swing kick",
+        "de": "Seitlicher aufwärts gerichteter Beinschwungtritt"
+      },
+      "description_translations": {
+        "en": "A sideways leg technique with a rising swing.",
+        "de": "Eine seitliche Beintechnik mit aufwärts gerichteter Schwungbewegung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1792,6 +2683,15 @@
       "japanese_script": null,
       "hungarian_name": "Oldalsó tolórúgás",
       "description_hu": "Oldalirányú, erőteljesen kitolt rúgás.",
+      "name_translations": {
+        "en": "Side thrust kick",
+        "de": "Seitlicher Stoßtritt"
+      },
+      "description_translations": {
+        "en": "A sideways kick delivered with a powerful thrust.",
+        "de": "Ein seitlicher, kraftvoll ausgestoßener Tritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1810,6 +2710,15 @@
       "japanese_script": null,
       "hungarian_name": "Köríves rúgás",
       "description_hu": "Köríves pályán vezetett lábtechnika.",
+      "name_translations": {
+        "en": "Roundhouse kick",
+        "de": "Kreisförmiger Tritt"
+      },
+      "description_translations": {
+        "en": "A leg technique following a circular path.",
+        "de": "Eine Beintechnik auf einer Kreisbahn."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1828,6 +2737,15 @@
       "japanese_script": null,
       "hungarian_name": "Hátrarúgás",
       "description_hu": "Hátrafelé, általában sarokkal végzett rúgás.",
+      "name_translations": {
+        "en": "Back kick",
+        "de": "Rückwärtstritt"
+      },
+      "description_translations": {
+        "en": "A backward kick, usually using the heel.",
+        "de": "Ein nach hinten gerichteter Tritt, meist mit der Ferse."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1846,6 +2764,15 @@
       "japanese_script": null,
       "hungarian_name": "Hátsó köríves rúgás",
       "description_hu": "Fordulásból, hátrafelé ívelő rúgás.",
+      "name_translations": {
+        "en": "Spinning back roundhouse kick",
+        "de": "Gedrehter rückwärtiger Kreistritt"
+      },
+      "description_translations": {
+        "en": "A kick that curves backward after a turn.",
+        "de": "Ein nach einer Drehung rückwärts auf einer Kreisbahn geführter Tritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1864,6 +2791,15 @@
       "japanese_script": null,
       "hungarian_name": "Fordított köríves rúgás",
       "description_hu": "A köríves rúgással ellentétes íven visszahúzó rúgás.",
+      "name_translations": {
+        "en": "Reverse roundhouse kick",
+        "de": "Umgekehrter Kreistritt"
+      },
+      "description_translations": {
+        "en": "A retracting kick following the opposite arc to a roundhouse kick.",
+        "de": "Ein zurückziehender Tritt auf der dem Kreistritt entgegengesetzten Bahn."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1882,6 +2818,15 @@
       "japanese_script": null,
       "hungarian_name": "Térdrúgás",
       "description_hu": "Térddel végrehajtott közeli támadás.",
+      "name_translations": {
+        "en": "Knee strike",
+        "de": "Kniestoß"
+      },
+      "description_translations": {
+        "en": "A close-range attack performed with the knee.",
+        "de": "Ein Angriff im Nahbereich mit dem Knie."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1900,6 +2845,15 @@
       "japanese_script": null,
       "hungarian_name": "Ágyékrúgás",
       "description_hu": "Alulról felfelé, az ágyék felé irányuló rúgás.",
+      "name_translations": {
+        "en": "Groin kick",
+        "de": "Tritt zur Leiste"
+      },
+      "description_translations": {
+        "en": "An upward kick directed at the groin.",
+        "de": "Ein von unten nach oben zur Leiste gerichteter Tritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1918,6 +2872,15 @@
       "japanese_script": null,
       "hungarian_name": "Ízületre irányuló rúgás",
       "description_hu": "Elsősorban lábízület irányába vezetett technika; kontrolláltan gyakorolandó.",
+      "name_translations": {
+        "en": "Joint kick",
+        "de": "Tritt zum Gelenk"
+      },
+      "description_translations": {
+        "en": "A technique directed primarily at a leg joint; it should be practised with control.",
+        "de": "Eine vorwiegend gegen ein Beingelenk gerichtete Technik; sie soll kontrolliert geübt werden."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1936,6 +2899,15 @@
       "japanese_script": null,
       "hungarian_name": "Befelé ívelő köríves rúgás",
       "description_hu": "Befelé vezetett köríves lábmozdulat.",
+      "name_translations": {
+        "en": "Inward crescent kick",
+        "de": "Nach innen geführter Halbkreistritt"
+      },
+      "description_translations": {
+        "en": "An inward circular movement of the leg.",
+        "de": "Eine nach innen geführte kreisförmige Beinbewegung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1954,6 +2926,15 @@
       "japanese_script": null,
       "hungarian_name": "Kifelé ívelő köríves rúgás",
       "description_hu": "Kifelé vezetett köríves lábmozdulat.",
+      "name_translations": {
+        "en": "Outward crescent kick",
+        "de": "Nach außen geführter Halbkreistritt"
+      },
+      "description_translations": {
+        "en": "An outward circular movement of the leg.",
+        "de": "Eine nach außen geführte kreisförmige Beinbewegung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1972,6 +2953,15 @@
       "japanese_script": null,
       "hungarian_name": "Lefelé csapó sarokrúgás",
       "description_hu": "Felemelt lábbal, sarokkal lefelé végrehajtott rúgás.",
+      "name_translations": {
+        "en": "Descending heel kick",
+        "de": "Abwärts gerichteter Fersentritt"
+      },
+      "description_translations": {
+        "en": "A downward heel kick performed after raising the leg.",
+        "de": "Ein nach Anheben des Beins abwärts ausgeführter Tritt mit der Ferse."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -1990,6 +2980,15 @@
       "japanese_script": null,
       "hungarian_name": "Ugró elülső rúgás",
       "description_hu": "Ugrás közben végrehajtott előrerúgás.",
+      "name_translations": {
+        "en": "Jumping front kick",
+        "de": "Gesprungener Vorwärtstritt"
+      },
+      "description_translations": {
+        "en": "A front kick performed while jumping.",
+        "de": "Ein im Sprung ausgeführter Vorwärtstritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2008,6 +3007,15 @@
       "japanese_script": null,
       "hungarian_name": "Ugró oldalrúgás",
       "description_hu": "Ugrás közben végrehajtott oldalrúgás.",
+      "name_translations": {
+        "en": "Jumping side kick",
+        "de": "Gesprungener Seitwärtstritt"
+      },
+      "description_translations": {
+        "en": "A side kick performed while jumping.",
+        "de": "Ein im Sprung ausgeführter Seitwärtstritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2026,6 +3034,15 @@
       "japanese_script": null,
       "hungarian_name": "Ugró köríves rúgás",
       "description_hu": "Ugrás közben végrehajtott köríves rúgás.",
+      "name_translations": {
+        "en": "Jumping roundhouse kick",
+        "de": "Gesprungener Kreistritt"
+      },
+      "description_translations": {
+        "en": "A roundhouse kick performed while jumping.",
+        "de": "Ein im Sprung ausgeführter Kreistritt."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2044,6 +3061,15 @@
       "japanese_script": null,
       "hungarian_name": "Elülső térdrúgás",
       "description_hu": "Előrefelé vezetett térdtámadás.",
+      "name_translations": {
+        "en": "Forward knee strike",
+        "de": "Vorwärts gerichteter Kniestoß"
+      },
+      "description_translations": {
+        "en": "A knee attack directed forward.",
+        "de": "Ein nach vorn gerichteter Angriff mit dem Knie."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2062,6 +3088,15 @@
       "japanese_script": null,
       "hungarian_name": "Alsó köríves rúgás",
       "description_hu": "Köríves rúgás alsó célterületre, gyakran combra.",
+      "name_translations": {
+        "en": "Low roundhouse kick",
+        "de": "Tiefer Kreistritt"
+      },
+      "description_translations": {
+        "en": "A roundhouse kick to a lower target, often the thigh.",
+        "de": "Ein Kreistritt zu einem unteren Zielbereich, häufig zum Oberschenkel."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2080,6 +3115,15 @@
       "japanese_script": null,
       "hungarian_name": "Középső köríves rúgás",
       "description_hu": "Köríves rúgás a törzs magasságába.",
+      "name_translations": {
+        "en": "Middle-level roundhouse kick",
+        "de": "Kreistritt zur mittleren Stufe"
+      },
+      "description_translations": {
+        "en": "A roundhouse kick at torso height.",
+        "de": "Ein Kreistritt auf Rumpfhöhe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2098,6 +3142,15 @@
       "japanese_script": null,
       "hungarian_name": "Felső köríves rúgás",
       "description_hu": "Köríves rúgás a fej magasságába.",
+      "name_translations": {
+        "en": "High roundhouse kick",
+        "de": "Hoher Kreistritt"
+      },
+      "description_translations": {
+        "en": "A roundhouse kick at head height.",
+        "de": "Ein Kreistritt auf Kopfhöhe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2116,6 +3169,15 @@
       "japanese_script": null,
       "hungarian_name": "Első két ökölbütyök",
       "description_hu": "A zárt ököl mutató- és középső ujj felőli ütőfelülete.",
+      "name_translations": {
+        "en": "First two knuckles of the fist",
+        "de": "Die ersten beiden Faustknöchel"
+      },
+      "description_translations": {
+        "en": "The striking surface formed by the index- and middle-finger knuckles of the closed fist.",
+        "de": "Die Trefferfläche an den Knöcheln von Zeige- und Mittelfinger der geschlossenen Faust."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2134,6 +3196,15 @@
       "japanese_script": null,
       "hungarian_name": "Kézhát / kézhátbütykök",
       "description_hu": "A kéz hátsó ütőfelülete.",
+      "name_translations": {
+        "en": "Back of the fist / rear knuckles",
+        "de": "Faustrücken / rückseitige Knöchel"
+      },
+      "description_translations": {
+        "en": "The striking surface on the back of the hand, here referring to the closed fist.",
+        "de": "Die rückseitige Trefferfläche der Hand, hier auf die geschlossene Faust bezogen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2152,6 +3223,15 @@
       "japanese_script": null,
       "hungarian_name": "Kalapácsököl",
       "description_hu": "Az ököl kisujj felőli oldala.",
+      "name_translations": {
+        "en": "Hammerfist",
+        "de": "Hammerfaust"
+      },
+      "description_translations": {
+        "en": "The little-finger side of the fist.",
+        "de": "Die Kleinfingerseite der Faust."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2170,6 +3250,15 @@
       "japanese_script": null,
       "hungarian_name": "Kézél",
       "description_hu": "A tenyér kisujj felőli éle.",
+      "name_translations": {
+        "en": "Knife-hand edge",
+        "de": "Handkante"
+      },
+      "description_translations": {
+        "en": "The little-finger edge of the palm.",
+        "de": "Die kleinfingerseitige Kante der Handfläche."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2188,6 +3277,15 @@
       "japanese_script": null,
       "hungarian_name": "Belső kézél",
       "description_hu": "A tenyér hüvelykujj felőli éle.",
+      "name_translations": {
+        "en": "Inner knife-hand edge",
+        "de": "Innere Handkante"
+      },
+      "description_translations": {
+        "en": "The thumb-side edge of the palm.",
+        "de": "Die daumenseitige Kante der Handfläche."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2206,6 +3304,15 @@
       "japanese_script": null,
       "hungarian_name": "Tenyértő",
       "description_hu": "A tenyér alsó, húsos része.",
+      "name_translations": {
+        "en": "Palm heel",
+        "de": "Handballen"
+      },
+      "description_translations": {
+        "en": "The lower, fleshy part of the palm.",
+        "de": "Der untere, fleischige Teil der Handfläche."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2224,6 +3331,15 @@
       "japanese_script": null,
       "hungarian_name": "Könyök",
       "description_hu": "Könyök mint technikai ütőfelület.",
+      "name_translations": {
+        "en": "Elbow",
+        "de": "Ellenbogen"
+      },
+      "description_translations": {
+        "en": "The elbow used as a striking surface.",
+        "de": "Der Ellenbogen als Trefferfläche einer Technik."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2242,6 +3358,15 @@
       "japanese_script": null,
       "hungarian_name": "Térd",
       "description_hu": "Térd mint technikai ütőfelület.",
+      "name_translations": {
+        "en": "Knee",
+        "de": "Knie"
+      },
+      "description_translations": {
+        "en": "The knee used as a striking surface.",
+        "de": "Das Knie als Trefferfläche einer Technik."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2260,6 +3385,15 @@
       "japanese_script": null,
       "hungarian_name": "Talppárna",
       "description_hu": "A lábujjak alatti talpi rész.",
+      "name_translations": {
+        "en": "Ball of the foot",
+        "de": "Fußballen"
+      },
+      "description_translations": {
+        "en": "The part of the sole beneath the toes.",
+        "de": "Der Bereich der Fußsohle unter den Zehen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2278,6 +3412,15 @@
       "japanese_script": null,
       "hungarian_name": "Talp külső éle",
       "description_hu": "A láb kisujj felőli külső éle.",
+      "name_translations": {
+        "en": "Outer edge of the foot",
+        "de": "Fußaußenkante"
+      },
+      "description_translations": {
+        "en": "The outer edge of the foot on the little-toe side.",
+        "de": "Die äußere Kante des Fußes an der Kleinzehenseite."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2296,6 +3439,15 @@
       "japanese_script": null,
       "hungarian_name": "Sarok",
       "description_hu": "A láb sarokrésze.",
+      "name_translations": {
+        "en": "Heel",
+        "de": "Ferse"
+      },
+      "description_translations": {
+        "en": "The heel of the foot.",
+        "de": "Der Fersenbereich des Fußes."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2314,6 +3466,15 @@
       "japanese_script": null,
       "hungarian_name": "Lábfej felső része",
       "description_hu": "A lábfej felső ütőfelülete.",
+      "name_translations": {
+        "en": "Instep",
+        "de": "Spann"
+      },
+      "description_translations": {
+        "en": "The upper striking surface of the foot.",
+        "de": "Die obere Trefferfläche des Fußes."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2332,6 +3493,15 @@
       "japanese_script": null,
       "hungarian_name": "Talp belső/alsó felülete",
       "description_hu": "A talp ütőfelületként használt része.",
+      "name_translations": {
+        "en": "Inner or lower surface of the sole",
+        "de": "Innere oder untere Fußsohlenfläche"
+      },
+      "description_translations": {
+        "en": "The part of the sole used as a striking surface.",
+        "de": "Der als Trefferfläche verwendete Teil der Fußsohle."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2350,6 +3520,15 @@
       "japanese_script": null,
       "hungarian_name": "Sípcsont",
       "description_hu": "A lábszár elülső csontos része.",
+      "name_translations": {
+        "en": "Shin",
+        "de": "Schienbein"
+      },
+      "description_translations": {
+        "en": "The bony front of the lower leg.",
+        "de": "Der knöcherne vordere Bereich des Unterschenkels."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2368,6 +3547,15 @@
       "japanese_script": null,
       "hungarian_name": "Egy",
       "description_hu": "Japán számnév: 1.",
+      "name_translations": {
+        "en": "One",
+        "de": "Eins"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 1.",
+        "de": "Japanisches Zahlwort: 1."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2386,6 +3574,15 @@
       "japanese_script": null,
       "hungarian_name": "Kettő",
       "description_hu": "Japán számnév: 2.",
+      "name_translations": {
+        "en": "Two",
+        "de": "Zwei"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 2.",
+        "de": "Japanisches Zahlwort: 2."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2404,6 +3601,15 @@
       "japanese_script": null,
       "hungarian_name": "Három",
       "description_hu": "Japán számnév: 3.",
+      "name_translations": {
+        "en": "Three",
+        "de": "Drei"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 3.",
+        "de": "Japanisches Zahlwort: 3."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2422,6 +3628,15 @@
       "japanese_script": null,
       "hungarian_name": "Négy",
       "description_hu": "Japán számnév: 4; yon változat is létezik.",
+      "name_translations": {
+        "en": "Four",
+        "de": "Vier"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 4; the variant yon also exists.",
+        "de": "Japanisches Zahlwort: 4; die Variante yon ist ebenfalls gebräuchlich."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2440,6 +3655,15 @@
       "japanese_script": null,
       "hungarian_name": "Öt",
       "description_hu": "Japán számnév: 5.",
+      "name_translations": {
+        "en": "Five",
+        "de": "Fünf"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 5.",
+        "de": "Japanisches Zahlwort: 5."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2458,6 +3682,15 @@
       "japanese_script": null,
       "hungarian_name": "Hat",
       "description_hu": "Japán számnév: 6.",
+      "name_translations": {
+        "en": "Six",
+        "de": "Sechs"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 6.",
+        "de": "Japanisches Zahlwort: 6."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2476,6 +3709,15 @@
       "japanese_script": null,
       "hungarian_name": "Hét",
       "description_hu": "Japán számnév: 7; nana változat is létezik.",
+      "name_translations": {
+        "en": "Seven",
+        "de": "Sieben"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 7; the variant nana also exists.",
+        "de": "Japanisches Zahlwort: 7; die Variante nana ist ebenfalls gebräuchlich."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2494,6 +3736,15 @@
       "japanese_script": null,
       "hungarian_name": "Nyolc",
       "description_hu": "Japán számnév: 8.",
+      "name_translations": {
+        "en": "Eight",
+        "de": "Acht"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 8.",
+        "de": "Japanisches Zahlwort: 8."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2512,6 +3763,15 @@
       "japanese_script": null,
       "hungarian_name": "Kilenc",
       "description_hu": "Japán számnév: 9; kyū változat is létezik.",
+      "name_translations": {
+        "en": "Nine",
+        "de": "Neun"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 9; the variant kyū also exists.",
+        "de": "Japanisches Zahlwort: 9; die Variante kyū ist ebenfalls gebräuchlich."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2530,6 +3790,15 @@
       "japanese_script": null,
       "hungarian_name": "Tíz",
       "description_hu": "Japán számnév: 10.",
+      "name_translations": {
+        "en": "Ten",
+        "de": "Zehn"
+      },
+      "description_translations": {
+        "en": "Japanese numeral: 10.",
+        "de": "Japanisches Zahlwort: 10."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2548,6 +3817,15 @@
       "japanese_script": null,
       "hungarian_name": "Taikyoku első forma",
       "description_hu": "Alapvető mozgásokat és irányváltásokat tanító kata.",
+      "name_translations": {
+        "en": "Taikyoku first form",
+        "de": "Erste Taikyoku-Form"
+      },
+      "description_translations": {
+        "en": "A kata teaching fundamental movements and changes of direction.",
+        "de": "Eine Kata zum Erlernen grundlegender Bewegungen und Richtungswechsel."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2566,6 +3844,15 @@
       "japanese_script": null,
       "hungarian_name": "Taikyoku második forma",
       "description_hu": "A Taikyoku sorozat második gyakorlata.",
+      "name_translations": {
+        "en": "Taikyoku second form",
+        "de": "Zweite Taikyoku-Form"
+      },
+      "description_translations": {
+        "en": "The second exercise in the Taikyoku series.",
+        "de": "Die zweite Übung der Taikyoku-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2584,6 +3871,15 @@
       "japanese_script": null,
       "hungarian_name": "Taikyoku harmadik forma",
       "description_hu": "A Taikyoku sorozat harmadik gyakorlata.",
+      "name_translations": {
+        "en": "Taikyoku third form",
+        "de": "Dritte Taikyoku-Form"
+      },
+      "description_translations": {
+        "en": "The third exercise in the Taikyoku series.",
+        "de": "Die dritte Übung der Taikyoku-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2602,6 +3898,15 @@
       "japanese_script": null,
       "hungarian_name": "Pinan első forma",
       "description_hu": "A Pinan formagyakorlatok első tagja.",
+      "name_translations": {
+        "en": "Pinan first form",
+        "de": "Erste Pinan-Form"
+      },
+      "description_translations": {
+        "en": "The first form in the Pinan series.",
+        "de": "Die erste Form der Pinan-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2620,6 +3925,15 @@
       "japanese_script": null,
       "hungarian_name": "Pinan második forma",
       "description_hu": "A Pinan formagyakorlatok második tagja.",
+      "name_translations": {
+        "en": "Pinan second form",
+        "de": "Zweite Pinan-Form"
+      },
+      "description_translations": {
+        "en": "The second form in the Pinan series.",
+        "de": "Die zweite Form der Pinan-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2638,6 +3952,15 @@
       "japanese_script": null,
       "hungarian_name": "Pinan harmadik forma",
       "description_hu": "A Pinan formagyakorlatok harmadik tagja.",
+      "name_translations": {
+        "en": "Pinan third form",
+        "de": "Dritte Pinan-Form"
+      },
+      "description_translations": {
+        "en": "The third form in the Pinan series.",
+        "de": "Die dritte Form der Pinan-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2656,6 +3979,15 @@
       "japanese_script": null,
       "hungarian_name": "Pinan negyedik forma",
       "description_hu": "A Pinan formagyakorlatok negyedik tagja.",
+      "name_translations": {
+        "en": "Pinan fourth form",
+        "de": "Vierte Pinan-Form"
+      },
+      "description_translations": {
+        "en": "The fourth form in the Pinan series.",
+        "de": "Die vierte Form der Pinan-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2674,6 +4006,15 @@
       "japanese_script": null,
       "hungarian_name": "Pinan ötödik forma",
       "description_hu": "A Pinan formagyakorlatok ötödik tagja.",
+      "name_translations": {
+        "en": "Pinan fifth form",
+        "de": "Fünfte Pinan-Form"
+      },
+      "description_translations": {
+        "en": "The fifth form in the Pinan series.",
+        "de": "Die fünfte Form der Pinan-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2692,6 +4033,15 @@
       "japanese_script": null,
       "hungarian_name": "Három csata",
       "description_hu": "Légzésre, testfeszítésre és stabilitásra összpontosító kata.",
+      "name_translations": {
+        "en": "Three battles",
+        "de": "Drei Kämpfe"
+      },
+      "description_translations": {
+        "en": "A kata focusing on breathing, body tension and stability.",
+        "de": "Eine Kata mit Schwerpunkt auf Atmung, Körperspannung und Stabilität."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2710,6 +4060,15 @@
       "japanese_script": null,
       "hungarian_name": "Yantsu kata",
       "description_hu": "Rövidebb, hagyományos Kyokushin formagyakorlat; a név fordítása vitatott.",
+      "name_translations": {
+        "en": "Yantsu kata",
+        "de": "Yantsu-Kata"
+      },
+      "description_translations": {
+        "en": "A shorter traditional Kyokushin form; the translation of its name is disputed.",
+        "de": "Eine kürzere traditionelle Kyokushin-Form; die Übersetzung ihres Namens ist umstritten."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2728,6 +4087,15 @@
       "japanese_script": null,
       "hungarian_name": "Ütések formagyakorlata",
       "description_hu": "Ütéskombinációkra épülő kata.",
+      "name_translations": {
+        "en": "Punching form",
+        "de": "Fauststoß-Kata"
+      },
+      "description_translations": {
+        "en": "A kata based on punching combinations.",
+        "de": "Eine Kata, die auf Fauststoßkombinationen aufbaut."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2746,6 +4114,15 @@
       "japanese_script": null,
       "hungarian_name": "Gekisai nagy forma",
       "description_hu": "Erőteljes technikákat tartalmazó kata.",
+      "name_translations": {
+        "en": "Gekisai major form",
+        "de": "Große Gekisai-Form"
+      },
+      "description_translations": {
+        "en": "A kata containing powerful techniques.",
+        "de": "Eine Kata mit kraftvollen Techniken."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2764,6 +4141,15 @@
       "japanese_script": null,
       "hungarian_name": "Gekisai kis forma",
       "description_hu": "A Gekisai sorozat másik formagyakorlata.",
+      "name_translations": {
+        "en": "Gekisai minor form",
+        "de": "Kleine Gekisai-Form"
+      },
+      "description_translations": {
+        "en": "Another form in the Gekisai series.",
+        "de": "Eine weitere Form der Gekisai-Reihe."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2782,6 +4168,15 @@
       "japanese_script": null,
       "hungarian_name": "Forgó tenyerek",
       "description_hu": "Nyitott kezes, légzéssel összehangolt kata.",
+      "name_translations": {
+        "en": "Rotating palms",
+        "de": "Drehende Handflächen"
+      },
+      "description_translations": {
+        "en": "An open-hand kata coordinated with breathing.",
+        "de": "Eine Kata mit offenen Händen, deren Bewegungen auf die Atmung abgestimmt sind."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2800,6 +4195,15 @@
       "japanese_script": null,
       "hungarian_name": "Saiha kata",
       "description_hu": "Haladó kata; a név fordítása szervezetenként eltérhet.",
+      "name_translations": {
+        "en": "Saiha kata",
+        "de": "Saiha-Kata"
+      },
+      "description_translations": {
+        "en": "An advanced kata; the translation of its name may vary between organisations.",
+        "de": "Eine fortgeschrittene Kata; die Übersetzung ihres Namens kann je nach Organisation abweichen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2818,6 +4222,15 @@
       "japanese_script": null,
       "hungarian_name": "Seienchin kata",
       "description_hu": "Haladó formagyakorlat, erős és lassú elemekkel.",
+      "name_translations": {
+        "en": "Seienchin kata",
+        "de": "Seienchin-Kata"
+      },
+      "description_translations": {
+        "en": "An advanced form containing strong and slow elements.",
+        "de": "Eine fortgeschrittene Form mit kraftvollen und langsamen Elementen."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2836,6 +4249,15 @@
       "japanese_script": null,
       "hungarian_name": "Fekvő sárkány",
       "description_hu": "Masutatsu Oyama nevéhez kapcsolódó kata.",
+      "name_translations": {
+        "en": "Reclining dragon",
+        "de": "Liegender Drache"
+      },
+      "description_translations": {
+        "en": "A kata associated with Masutatsu Oyama.",
+        "de": "Eine mit Masutatsu Oyama verbundene Kata."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2854,6 +4276,15 @@
       "japanese_script": null,
       "hungarian_name": "Tizennyolc",
       "description_hu": "Haladó kata, a név hagyományosan a 18-as számhoz kapcsolódik.",
+      "name_translations": {
+        "en": "Eighteen",
+        "de": "Achtzehn"
+      },
+      "description_translations": {
+        "en": "An advanced kata whose name is traditionally associated with the number 18.",
+        "de": "Eine fortgeschrittene Kata, deren Name traditionell mit der Zahl 18 verbunden wird."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2872,6 +4303,15 @@
       "japanese_script": null,
       "hungarian_name": "Égre tekintés (nagy forma)",
       "description_hu": "Hosszabb, haladó formagyakorlat.",
+      "name_translations": {
+        "en": "Gazing at the sky (major form)",
+        "de": "Blick zum Himmel (große Form)"
+      },
+      "description_translations": {
+        "en": "A longer advanced form.",
+        "de": "Eine längere, fortgeschrittene Formübung."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,
@@ -2890,6 +4330,15 @@
       "japanese_script": null,
       "hungarian_name": "Ötvennégy lépés",
       "description_hu": "Haladó kata, a név az 54-es számhoz kapcsolódik.",
+      "name_translations": {
+        "en": "Fifty-four steps",
+        "de": "Vierundfünfzig Schritte"
+      },
+      "description_translations": {
+        "en": "An advanced kata whose name is associated with the number 54.",
+        "de": "Eine fortgeschrittene Kata, deren Name mit der Zahl 54 verbunden wird."
+      },
+      "translation_review_status": "draft_review_required",
       "aliases": [],
       "tags": [],
       "illustration_ref": null,

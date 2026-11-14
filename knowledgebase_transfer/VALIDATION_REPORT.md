@@ -1,6 +1,6 @@
 # Konverziós és validációs jelentés
 
-**Generálva:** 2026-11-11 · `python knowledgebase_transfer/tools/convert.py`
+**Generálva:** 2026-11-14 · `python knowledgebase_transfer/tools/convert.py`
 
 Ez a fájl **generált** – ne szerkeszd kézzel. A tartalom forrása a `knowledgebase/` mappa.
 
@@ -13,12 +13,12 @@ Ez a fájl **generált** – ne szerkeszd kézzel. A tartalom forrása a `knowle
 | Kiírt rekord | 161 |
 | Ebből hiányos (INCOMPLETE) | 0 |
 | Kategória | 9 |
-| Illusztráció összesen | 10 |
-| Ebből kvízben használható | 7 |
+| Illusztráció összesen | 20 |
+| Ebből kvízben használható | 17 |
 | Ebből névfelirattal (kvízből kizárva) | 3 |
 | Szinonima-/ütközéscsoport | 0 |
 | BLOKKOLÓ megállapítás | 0 |
-| FIGYELMEZTETÉS | 3 |
+| FIGYELMEZTETÉS | 13 |
 
 ## Kategóriánkénti kvízkészenlét
 
@@ -28,8 +28,8 @@ Egy kérdéstípus akkor indítható egy kategóriában, ha legalább **4** alka
 |---|---|---|---|---|---|---|
 | Etikett és köszönések (`etiquette`) | 9 | 9 | igen | 0 | 0 | **nem** |
 | Vezényszavak és alapfogalmak (`commands`) | 34 | 34 | igen | 0 | 0 | **nem** |
-| Állások (`stances`) | 15 | 15 | igen | 10 | 7 | igen |
-| Védések (`blocks`) | 14 | 14 | igen | 0 | 0 | **nem** |
+| Állások (`stances`) | 15 | 15 | igen | 15 | 12 | igen |
+| Védések (`blocks`) | 14 | 14 | igen | 5 | 5 | igen |
 | Kéz- és könyöktechnikák (`punches`) | 23 | 23 | igen | 0 | 0 | **nem** |
 | Rúgások és térdtechnikák (`kicks`) | 22 | 22 | igen | 0 | 0 | **nem** |
 | Ütőfelületek és testrészek (`body_parts`) | 14 | 14 | igen | 0 | 0 | **nem** |
@@ -43,6 +43,16 @@ Egy kérdéstípus akkor indítható egy kategóriában, ha legalább **4** alka
 | `I004` | FIGYELM. | KY-0045 | illustration | A képbe bele van égetve a technika neve: kvízben nem használható, és tanulókártyán felfedés előtt nem mutatható. |
 | `I004` | FIGYELM. | KY-0050 | illustration | A képbe bele van égetve a technika neve: kvízben nem használható, és tanulókártyán felfedés előtt nem mutatható. |
 | `I004` | FIGYELM. | KY-0052 | illustration | A képbe bele van égetve a technika neve: kvízben nem használható, és tanulókártyán felfedés előtt nem mutatható. |
+| `I002` | FIGYELM. | KY-0054 | illustration | A 'KY-0054.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0055 | illustration | A 'KY-0055.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0056 | illustration | A 'KY-0056.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0057 | illustration | A 'KY-0057.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0058 | illustration | A 'KY-0058.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0059 | illustration | A 'KY-0059.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0060 | illustration | A 'KY-0060.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0061 | illustration | A 'KY-0061.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0062 | illustration | A 'KY-0062.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
+| `I002` | FIGYELM. | KY-0063 | illustration | A 'KY-0063.jpg' fájl nincs benne a pics/manifest.json-ban; licenc- és review-adat nélkül került át. |
 
 ## Kódjegyzék
 
