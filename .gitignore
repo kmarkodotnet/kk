@@ -77,3 +77,5 @@ $RECYCLE.BIN/
 
 # A Gradle wrapper, a forraskod, az assets, az images es a tudasbazis
 # szandekosan verziozva maradnak; nincs altalanos *.jar vagy kepkizaras.
+
+/images/book/*.[jJ][pP][gG]
