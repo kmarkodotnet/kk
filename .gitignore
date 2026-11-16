@@ -1,28 +1,79 @@
-# Gradle / build
+# Gradle / Kotlin build es gyorsitotarak
 .gradle/
+.kotlin/
 build/
-*/build/
+.java-build/
+
+# Android SDK es gepfuggo beallitasok
 local.properties
 captures/
 .cxx/
+.externalNativeBuild/
 
-# IDE
+# Android Studio / IntelliJ helyi fajlok
 .idea/
 *.iml
 *.ipr
 *.iws
-.kotlin/
+.fleet/
 
-# Android
+# Android buildtermekek es profilozas
 *.apk
 *.aab
 *.ap_
 *.dex
 output.json
+*.hprof
+*.heapdump
 
-# OS
+# Alairasi kulcsok es helyi titkok
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.template
+!.env.*.template
+
+# Python segedeszkozok
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# JavaScript / Node segedeszkozok
+node_modules/
+.npm/
+
+# Helyi munkafajlok es generalt exportok
+/tmp/
+/output/
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Operacios rendszer
 Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
 .DS_Store
+._*
 
 # Claude helyi beállítás (gépspecifikus)
 .claude/settings.local.json
+
+# A Gradle wrapper, a forraskod, az assets, az images es a tudasbazis
+# szandekosan verziozva maradnak; nincs altalanos *.jar vagy kepkizaras.

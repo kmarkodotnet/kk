@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kyokushin · A fa emlékezete</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff;color:#17317a;font:14px system-ui,sans-serif}canvas{display:block}
+#controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:min(85%,560px);padding:12px 16px;background:#fffffff2;border:1px solid #b8c5dc;border-radius:16px}
+button{color:#17317a;background:#edf3ff;border:1px solid #a9b9d0;border-radius:8px;padding:10px 14px;cursor:pointer;font:inherit}input{flex:1;min-width:60px;accent-color:#2377df}#time{white-space:nowrap;font-size:12px}
+</style></head><body>
+<canvas id="scene" aria-label="Fehér háttéren kék ököl egy álló deszka széles lapjába üt. Balra terjedő hasadásból kék tűz szélesedik kanjivá, majd függőlegesbe fordul."></canvas>
+<div id="controls"><button id="play">Újrajátszás</button><input id="seek" aria-label="Animáció időpontja" type="range" min="0" max="14" value="0" step="0.01"><span id="time">0,0 / 14 mp</span></div>
+<script>
+"use strict";
+const art=__KANJI_DATA__, medial=__CENTERLINES__;
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d',{alpha:false});
+const native=!!window.AndroidIntro;
+if(native)document.getElementById('controls').style.display='none';
+const W=900,H=1600,DURATION=14,impact=3.25,hit={x:500,y:760},leftLimit=50;
+const logo=new Path2D(art.path),center=new Path2D();
+for(const chain of medial){chain.forEach(([x,y],i)=>i?center.lineTo(x,y):center.moveTo(x,y))}
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x*x*(3-2*x)};
+const ramp=(t,a,b)=>ease((t-a)/(b-a)),mix=(a,b,t)=>a+(b-a)*t;
+const fistImage=new Image(),woodImage=new Image();
+fistImage.src='__FIST_IMAGE__';woodImage.src='__WOOD_IMAGE__';
+let seed=1327;const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+const splinters=Array.from({length:30},()=>({vx:-40-rnd()*200,vy:(rnd()-.5)*210,size:2+rnd()*7,spin:rnd()*12}));
+const embers=Array.from({length:44},()=>({x:rnd(),y:rnd(),phase:rnd()*6.28,r:1+rnd()*2}));
+function stroke(points,color,width){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.lineWidth=width;ctx.strokeStyle=color;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke()}
+function ellipse(x,y,rx,ry,color){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
+// A korábbi vízszintes állás 180°-os fordítottja; a felállás ellenkező irányú.
+function logoTransform(t){const turn=ramp(t,9.4,12.2);return{scale:mix(.24,.63,turn),cx:mix(280,450,turn),cy:mix(760,774,turn),angle:mix(Math.PI/2,0,turn)}}
+function applyLogoTransform(tr){ctx.translate(tr.cx,tr.cy);ctx.rotate(tr.angle);ctx.scale(tr.scale,tr.scale);ctx.translate(-art.width/2,-art.height/2)}
+// A hasadás minden pontja a becsapódástól BALRA van. Nincs sugaras terjedés.
+function leftwardClip(front){ctx.beginPath();ctx.rect(front,470,Math.max(0,hit.x+2-front),590);ctx.clip()}
+const vein=[[500,760],[488,755],[480,765],[469,750],[458,744],[446,753],[432,747]];
+// Változó vastagságú szalagok a középvonal mentén, sohasem a betű körvonala.
+const growthCache=new Map();
+function growthShape(amount){
+ const step=Math.round(clamp(amount)*48);
+ if(growthCache.has(step))return growthCache.get(step);
+ const p=new Path2D(),f=step/48;
+ for(const chain of medial){
+  const sides=[[],[]];
+  chain.forEach(([x,y,r],i)=>{const a=chain[Math.max(0,i-1)],b=chain[Math.min(chain.length-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy)||1,width=Math.max(.8,r*f);sides[0].push([x-dy/length*width,y+dx/length*width]);sides[1].push([x+dy/length*width,y-dx/length*width])});
+  const polygon=sides[0].concat(sides[1].reverse());polygon.forEach(([x,y],i)=>i?p.lineTo(x,y):p.moveTo(x,y));p.closePath();
+ }
+ if(growthCache.size>8)growthCache.delete(growthCache.keys().next().value);
+ growthCache.set(step,p);return p;
+}
+function wood(t){
+ ctx.save();ctx.globalAlpha=ramp(t,0,.6)*(1-ramp(t,8.6,10));
+ // A meglévő deszkarajz álló helyzetben, a széles lapjával a néző felé.
+ // A lap túlér a felső, alsó és bal képszélen; jobb széle kb. x=620.
+ // Az x=500 ütés a széles felületen belül marad.
+ ctx.translate(290,800);ctx.rotate(-Math.PI/2);
+ ctx.drawImage(woodImage,-860,-495,1720,990);
+ ctx.restore();
+}
+function fist(t){
+ // Nincs előzetes beúszás vagy visszahúzás: az ököl az ütésig nem is rajzolódik.
+ if(t<3.01||t>5.35)return;
+ const punch=ramp(t,3.01,impact),retreat=ramp(t,3.55,5.35);
+ const x=mix(940,460,punch)+480*retreat,y=634+18*retreat;
+ ctx.save();ctx.drawImage(fistImage,x,y,520,520*fistImage.height/fistImage.width);ctx.restore();
+ const speed=ramp(t,3.01,3.15)-ramp(t,3.27,3.4);
+ if(speed>0){ctx.save();ctx.globalAlpha=speed*.3;for(let i=0;i<5;i++)stroke([[x+140,660+i*44],[x+320,655+i*44]],'#5780ab',1);ctx.restore()}
+}
+function cracks(t){
+ if(t<impact)return;
+ // Gyors, teljes törésrajz, majd külön tisztán repedt szakasz a tűz előtt.
+ const front=mix(hit.x,leftLimit,ramp(t,impact,3.8));
+ ctx.save();ctx.globalAlpha=1-ramp(t,8.6,10);leftwardClip(front);
+ stroke(vein,'#3c2516',2.3);
+ ctx.save();applyLogoTransform(logoTransform(0));ctx.clip(logo,'evenodd');
+ ctx.fillStyle='#392313';ctx.fill(growthShape(.14+ramp(t,3.3,3.8)*.10));
+ ctx.lineWidth=5.5;ctx.strokeStyle='#251b12';ctx.stroke(center);
+ ctx.translate(1.5,-1);ctx.lineWidth=.9;ctx.strokeStyle='#d8ac72';ctx.stroke(center);
+ ctx.restore();ctx.restore();
+}
+function debris(t){
+ const age=t-impact;if(age<0||age>2.2)return;
+ ctx.save();ctx.globalAlpha=1-age/2.2;
+ for(const p of splinters){const x=hit.x+p.vx*age,y=hit.y+p.vy*age+140*age*age;ctx.save();ctx.translate(x,y);ctx.rotate(age*p.spin);ctx.fillStyle='#a77948';ctx.beginPath();ctx.moveTo(-p.size,0);ctx.lineTo(p.size,-2);ctx.lineTo(0,p.size*1.8);ctx.closePath();ctx.fill();ctx.restore()}
+ ctx.restore();
+}
+function energy(t){
+ const on=ramp(t,5.4,5.95),front=mix(hit.x,leftLimit,ramp(t,5.4,8.8)),spread=ramp(t,5.95,10.7),solid=ramp(t,10.5,12.8);
+ if(on===0)return;
+ ctx.save();
+ if(t<9.4)leftwardClip(front);
+ if(t<9.4){ctx.globalAlpha=on*(1-ramp(t,8.4,9.4));stroke(vein,'#2798ee',5);stroke(vein,'#c4f3ff',1.4)}
+ applyLogoTransform(logoTransform(t));ctx.clip(logo,'evenodd');
+ ctx.globalAlpha=on*(1-solid);
+ // A tűz a mediális tengelyből terjeszkedik ki, változó vonásvastagsággal.
+ ctx.fillStyle='#1269c9';ctx.fill(growthShape(.10+spread*.9));
+ ctx.fillStyle='#269fe9';ctx.fill(growthShape(.045+spread*.62));
+ ctx.lineWidth=2+3*(1-spread);ctx.strokeStyle='#d8f8ff';ctx.stroke(center);
+ ctx.save();ctx.clip(growthShape(.10+spread*.9));
+ for(let i=0;i<14;i++){
+  const y=((i*137+t*210)%1900);ctx.beginPath();ctx.moveTo(-20,y);
+  for(let x=0;x<art.width+20;x+=18)ctx.lineTo(x,y+Math.sin(x*.023-t*7+i)*16+Math.sin(x*.061+t*4)*6);
+  ctx.strokeStyle=i%3?'#55caff':'#e5fbff';ctx.lineWidth=i%3?2:3.5;ctx.stroke();
+ }
+ ctx.restore();
+ ctx.globalAlpha=solid;ctx.fillStyle='#17317a';ctx.fill(logo,'evenodd');ctx.restore();
+ // Parázs kizárólag a már átjárt, balra eső keresztmetszeten.
+ ctx.save();ctx.globalAlpha=on*(1-solid)*.8;
+ for(const p of embers){const x=hit.x-p.x*(hit.x-front),y=742+(p.y-.5)*160-Math.sin(t*2+p.phase)*24;const r=p.r*(.7+.3*Math.sin(t*6+p.phase));ellipse(x,y,r,r*2.4,'#229be7')}
+ ctx.restore();
+}
+function render(t){
+ t=clamp(t,0,DURATION);ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);
+ ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+ if(ready){ctx.save();const shake=clamp(1-(t-impact)/.3)*Number(t>=impact);ctx.translate(Math.sin(t*90)*shake*3,Math.cos(t*80)*shake*2);wood(t);cracks(t);fist(t);debris(t);ctx.restore();energy(t)}
+ if(!native){document.getElementById('seek').value=t;document.getElementById('time').textContent=t.toFixed(1).replace('.',',')+' / 14 mp'}
+}
+let current=0,start=0,playing=false,notified=false,ready=false;
+function resize(){const d=Math.min(devicePixelRatio||1,native?1.25:1.5),s=Math.min(innerWidth/W,innerHeight/H),cw=Math.round(W*s),ch=Math.round(H*s);canvas.width=Math.round(W*s*d);canvas.height=Math.round(H*s*d);canvas.style.width=cw+'px';canvas.style.height=ch+'px';canvas.style.position='absolute';canvas.style.left=Math.round((innerWidth-cw)/2)+'px';canvas.style.top=Math.round((innerHeight-ch)/2)+'px';render(current)}
+function play(){current=0;start=performance.now();playing=true;notified=false}
+function tick(now){if(ready&&playing){current=Math.min((now-start)/1000,DURATION);render(current);if(current>=DURATION){playing=false;if(native&&!notified){notified=true;window.AndroidIntro.finished()}}}requestAnimationFrame(tick)}
+window.intro={renderAt(t){playing=false;current=t;render(t)},play,duration:DURATION,canvas,get ready(){return ready},geometry:logoTransform};
+window.addEventListener('resize',resize);resize();requestAnimationFrame(tick);
+document.getElementById('play').onclick=play;
+document.getElementById('seek').oninput=e=>{playing=false;current=+e.target.value;render(current)};
+Promise.all([fistImage.decode(),woodImage.decode()]).then(()=>{ready=true;const frozen=new URLSearchParams(location.search).get('t');if(frozen!==null)window.intro.renderAt(+frozen);else play()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){playing=false}else if(ready&&current<DURATION){start=performance.now()-current*1000;playing=true}});
+</script></body></html>

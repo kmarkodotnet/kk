@@ -86,6 +86,7 @@ Egy task akkor kész, ha **mind** teljesül:
 | **E8** | Tartalom-munkafolyamat (2026-11-13 bővítés) | US-27…US-28 | T-707…T-708 | — |
 | **E9** | Kiejtés, hangalapú kvíz – **jövőbeli, jelenleg NEM indítható** | — | T-709…T-710 | — |
 | **E10** | Többnyelvű UI és technikatartalom (2026-11-14 bővítés, OQ-07 feloldva) | US-29 | T-711 | — |
+| **E11** | Könyv alapú, általánosított tudástár és vizsgafelkészülés (2026-11-16 bővítés) | US-30…US-35 | T-713…T-730 | tervezett |
 
 > **E7/E8/E9/E10 az eredeti M1…M7 szállítás lezárása (2026-11-13) után felvett igények.**
 > Nem tartoznak egyik eredeti mérföldkőhöz sem; lásd a „Bővítési backlog" szakaszt lent.
@@ -743,3 +744,113 @@ követő feladat). **Követelmények:** FR-43 (új, 2026-11-14), ADR-013.
 | Task | Cím | Modul | Méret | Függ |
 |---|---|---|---|---|
 | **T-711** | Többnyelvűsítés: UI-kezelőszövegek és technikatartalom lokalizálása tetszőleges számú nyelvre, rendszernyelv-követéssel, magyar visszaeséssel | összes feature, core/model, core/data, core/ui | XL | — |
+
+---
+
+<a id="e11--a-konyv-alapu-tudastar-bovitese"></a>
+
+## E11 · A könyv alapú tudástár bővítése
+
+**Felvéve: 2026-11-16, felhasználói kérésre. Állapot: tervezett, nincs implementálva.**
+
+A felhasználó az `images/book/book-repaired.md` tartalmának játékbeli kategorizálása és
+az általánosított adatmodell áttekintése után kérte a megvalósítás backlogba bontását.
+Ez a fejezet a bővítés követelményeit és munkadarabjait rögzíti; a normatív specifikáció
+és az architekturális döntések összehangolása az első jegy, **T-713** része.
+Most kizárólag a jegyek és indexeik készülnek el.
+
+### User story-k
+
+| Story | Igény | Fő feladatok |
+|---|---|---|
+| US-30 | Tartalomfejlesztőként vegyes típusú, verziózott tananyagot szeretnék a jelenlegi fogalompárok mellett, megőrzött régi azonosítókkal és eredményekkel. | T-713…T-717 |
+| US-31 | Tanulóként cikkeket, személyeket és katahátteret is szeretnék olvasni, a forrás és a szakmai állapot feltüntetésével. | T-718 |
+| US-32 | Tanulóként egy megadott tananyagverzió adott övvizsgájára szeretnék készülni, külön elméleti és gyakorlati követelményekkel. | T-719…T-720 |
+| US-33 | Tanulóként tudás- és helyzetkérdésekkel is szeretnék gyakorolni, magyarázattal és a meglévő kvízmódok megtartásával. | T-721…T-723 |
+| US-34 | Tanulóként külön szeretném látni a névfelismerési és elméleti eredményemet, a korábbi haladás elvesztése nélkül. | T-724 |
+| US-35 | Tartalomfejlesztőként a könyv teljes tartalmát követhetően szeretném feldolgozni, ellenőrzési státuszokkal és hiánytalansági jelentéssel. | T-725…T-730 |
+
+### E11 követelmények és elfogadási kritériumok
+
+A **KB-xx** jelölések ennek az új epiknek a követelményei, nem korábban létező
+`FR`/`DR`/`TR` azonosítók. T-713 rendeli hozzájuk a frissített normatív hivatkozásokat.
+T-714…T-730 csak a T-713-ban rögzített szerződéssel indulhatnak el.
+
+| Azonosító | Elvárt eredmény |
+|---|---|
+| KB-01 | Típusos KnowledgeEntry: term, technique, kata, person, article; a japán név csak a megfelelő típusoknál kötelező. |
+| KB-02 | 15 adatvezérelt kategória; a kind, category, tags, szinonima és gyűjtőfogalom–változat kapcsolat külön fogalom. |
+| KB-03 | Állítás-/kérdésszintű forráshelyek, revíziók, elfogadási jogcímek és ellenőrzési állapotok; a könyv–Kyo összevetés a felhasználó 2026-11-16-i döntése szerint történik. |
+| KB-04 | Rövid összefoglaló és hosszú Markdown-tananyag, kereshető és offline olvasható módon. |
+| KB-05 | Szervezethez/forráshoz és tananyagverzióhoz kötött vizsgák és strukturált követelmények; explicit sorrend és öröklés. |
+| KB-06 | Vizsgára készülő csomag és szűrés; az elmélet, gyakorlati bemutatás és erőnlét elkülönül. |
+| KB-07 | Önálló szerkesztett tudás-/helyzetkérdések; stabil opcióazonosító, forrás és magyarázat. Első körben 4 opció, 1 helyes válasz. |
+| KB-08 | Vegyes determinisztikus kvíz, közös jogosultság és dryRun, revízióbiztos aktív menetek, újragyakorlás. |
+| KB-09 | Haladás tanulási célonként; a kvízeredmény nem gyakorlati jártasság vagy teljesített övvizsga. |
+| KB-10 | Meglévő KY-id-k, próbálkozások, önértékelések és történeti kiértékelések veszteségmentes migrációja. |
+| KB-11 | Könyvfeldolgozás forrásleltárral, duplikációkezeléssel és minden fejezetre kiterjedő coverage jelentéssel; nyitott szakmai kérdések explicit jelölése. |
+| KB-12 | Offline működés, magyar alap és hiányzó fordításra visszaesés, akadálymentesség, rétegszabályok és regressziómentes átadás. |
+
+### Feladatok és függőségek
+
+| Task | Cím | Modul | Méret | Függ |
+|---|---|---|---|---|
+| [T-713](backlog/T-713-tudastar-v2-specifikacio-es-migracios-szerzodes.md) | Tudástár v2: specifikáció, példarekordok és migrációs szerződés | docs | M | — |
+| [T-714](backlog/T-714-knowledge-entry-tipusos-domain-es-forrasmodell.md) | KnowledgeEntry: típusos domain, kapcsolatok és forrásmodell | core/model | L | T-713 |
+| [T-715](backlog/T-715-tudastar-v2-konverter-es-importvalidacio.md) | Tudástár v2: szerkesztési formátum, konverter és validáció | knowledgebase_transfer/tools, core/data, core/quiz | L | T-714 |
+| [T-716](backlog/T-716-knowledge-entry-room-migracio-es-repository.md) | KnowledgeEntry: Room-migráció és repositoryk | core/data | L | T-715 |
+| [T-717](backlog/T-717-meglevo-tanulas-es-kviz-kompatibilitas.md) | Meglévő tanulás és név-/képkvízek átvezetése | core/quiz, core/data, feature/learn, feature/library, feature/progress | L | T-716 |
+| [T-718](backlog/T-718-cikkek-szemelyek-es-forrasok-tudastar-ui.md) | Cikkek, személyek és források megjelenítése a Tudástárban és Tanulásban | feature/library, feature/learn, core/ui | L | T-717 |
+| [T-719](backlog/T-719-verziozott-tananyag-es-vizsgakovetelmeny.md) | Verziózott tananyagok és övvizsga-követelmények tárolása | core/model, core/data, knowledgebase_transfer/tools | L | T-716 |
+| [T-720](backlog/T-720-ovvizsga-felkeszules-szures-es-tanulocsomag.md) | Övvizsga-felkészülés: tananyagválasztás és tanulócsomag | feature/learn, feature/quiz, feature/library, navigation | L | T-719, T-718 |
+| [T-721](backlog/T-721-szerkesztett-kerdesek-adatmodell-es-import.md) | Szerkesztett tudás- és helyzetkérdések modellje és importja | core/model, core/data, knowledgebase_transfer/tools | L | T-715, T-716 |
+| [T-722](backlog/T-722-vegyes-kvizmotor-szerkesztett-kerdesekkel.md) | Vegyes kvízmotor: generált és szerkesztett kérdések | core/quiz | L | T-721, T-717 |
+| [T-723](backlog/T-723-tudas-es-helyzetkviz-felulet.md) | Tudás- és helyzetkvízek felülete és újragyakorlása | feature/quiz, core/ui, navigation | L | T-722, T-718, T-724 |
+| [T-724](backlog/T-724-tanulasi-celonkenti-haladas-es-reviziok.md) | Haladás tanulási célonként, kérdésrevízióval | core/model, core/data, feature/progress | L | T-722, T-719, T-717 |
+| [T-725](backlog/T-725-konyv-terminologia-es-15-kategoria.md) | Könyv: terminológia, technikaváltozatok és 15 témakör | knowledgebase, knowledgebase_transfer/tools, docs | L | T-717 |
+| [T-726](backlog/T-726-konyv-magyarazo-cikkek-szemelyek-es-kata-hatter.md) | Könyv: magyarázó cikkek, személyek és kataháttér | knowledgebase, docs | L | T-718, T-725 |
+| [T-727](backlog/T-727-konyv-ovvizsgatananyag-strukturalt-feldolgozasa.md) | Könyv: 10–1. kyu és 1–3. dan tananyag feldolgozása | knowledgebase, docs | L | T-719, T-725 |
+| [T-728](backlog/T-728-konyv-tudas-es-helyzetkerdesek-szerkesztese.md) | Könyv: tudás- és helyzetkérdések szerkesztése | knowledgebase, docs | L | T-721, T-726, T-727 |
+| [T-729](backlog/T-729-forras-es-lektoralasi-munkafolyamat.md) | Forrás-, OCR- és szakmai lektorálási munkafolyamat | docs, knowledgebase_transfer/tools | M | T-725, T-726, T-727, T-728 |
+| [T-730](backlog/T-730-tudastar-v2-integracio-es-atadas.md) | Tudástár v2: integrációs ellenőrzés és átadás | app, docs, összes érintett modul | L | T-720, T-723, T-724, T-729 |
+
+### Közös szabályok
+
+- A jelenlegi 9 kategória azonosítói és a meglévő 161 rekord KY-id-jei megmaradnak.
+  Új kategóriák: `history` (Történelem és mesterek), `philosophy` (Filozófia és szimbólumok),
+  `training` (Edzés és felkészülés), `combat` (Küzdelem és kombinációk),
+  `competition` (Versenyzés és bíráskodás), `exams` (Övfokozatok és vizsgák).
+- Elsődleges kategória + címkék és kapcsolatok; nincs technikaduplikálás egy második
+  vizsga vagy kapcsolódó témakör kedvéért. A Mae geri és konkrét változata nem alias.
+- A forrásregiszterben ismeretlen cím, szerző, kiadás és szervezet null/jelölt marad.
+  A könyvfotó a transzkripció ellenőrzési alapja; a javított Markdown nem szakmai lektorálás.
+- **Könyv–Kyo tartalmi elsőbbség (2026-11-16, felhasználói döntés):** egyezésnél nincs
+  új szakmai lektorálás; kisebb eltérésnél a könyv az irányadó, új lektorálás nélkül;
+  lényegi ellentmondásnál célzott lektorálási ügy keletkezik. A korábbi általános
+  „minden könyvanyag lektorálandó” elvet ez felülírja. Részletes, állításszintű szabály,
+  új tartalom kezelése és példák: [BOOK_CONTENT_POLICY.md](BOOK_CONTENT_POLICY.md).
+- A `quizEligible` továbbra is levezetett; az ADR-010 szerinti lektorálatlan tartalmi
+  gyakorlás szabályait T-713 terjeszti ki az új típusokra. A könyvösszevetési szabály
+  szerinti elfogadás külön jogcím, nem kitalált szakértői lektorálás; nincs feltétel
+  nélküli, egész könyvre vagy rekordra kiterjedő státuszemelés.
+- A jelenlegi négy generált kvíztípus megmarad. A szerkesztett opció nem feltétlenül
+  tananyagelem: a válaszazonosító és a háttér-entry hivatkozása külön kezelendő.
+- Magyar hiteles alap, nyitott nyelvkódú fordítás-mapek és magyar visszaesés marad.
+  A teljes kérdés nyelvi kiválasztása nem teremthet vegyes nyelvű prompt/opció/magyarázatot.
+- Nincs backend-, fiók-, szinkron-, hang-, AI-chat- vagy spaced repetition-bővítés ebben az epikben.
+- A globális DoD az implementációs jegyekre érvényes. A tisztán dokumentációs/tartalmi
+  tasknál célzott hivatkozás-, séma-, tartalom- és konverterellenőrzés szükséges;
+  változatlan alkalmazáskód miatt önmagában nem kell teljes Android-buildet futtatni.
+- A feladatok külön maradnak, mert más rétegeket és ellenőrzési kört érintenek;
+  nincs automatikus csoportosítás vagy párhuzamos végrehajtás előírva.
+
+### Javasolt szállítási sorrend
+
+1. **Alap és kompatibilitás:** T-713…T-717.
+2. **Olvasás és vizsgafelkészülés:** T-718…T-720.
+3. **Kérdések és haladás:** T-721…T-724.
+4. **Könyvtartalom és nyomon követés:** T-725…T-729.
+5. **Integrált átadás:** T-730.
+
+A tényleges indíthatóságot a jegyek függőségei döntik el; egy kész részszállítás nem
+jelenti az egész epik vagy a szakmai lektorálás elkészültét.

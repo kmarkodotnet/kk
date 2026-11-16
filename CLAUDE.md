@@ -45,6 +45,15 @@ Ha bármi ütközik, a mesterprompt győz. A terveket a `docs/` könyvtár tarta
   version catalogban van, és ellenőrzött, egymással kompatibilis stabil kiadás.
 
 ## Munkamód (automatikus fejlesztés)
+
+**Könyvfeldolgozási kiegészítés (2026-11-16, felhasználói döntés, E11):** a könyv és
+a feldolgozás előtti Kyo-adatbázis egyező állításai nem igényelnek új szakmai lektorálást;
+kisebb eltérésnél a könyv az irányadó, szintén új lektorálás nélkül; lényegi
+ellentmondásnál célzott lektorálás szükséges. Ez az E11-ben felülírja a minden
+könyvanyagra kiterjedő lektorálási feltételezést. Az elfogadás nem állítható be
+kitalált szakértői ellenőrzésként. Részletek és az előzmény nélküli új tartalom kezelése:
+[`docs/BOOK_CONTENT_POLICY.md`](docs/BOOK_CONTENT_POLICY.md).
+
 - Kis, tesztelhető lépések. Minden lépés: kód → unit teszt → build (ha a környezet engedi) →
   `docs/IMPLEMENTATION_PLAN.md` állásfrissítés → commit.
 - Blokkoló esetén: pontosan dokumentáld a `docs/ENVIRONMENT.md`-ben, és folytasd azzal, ami

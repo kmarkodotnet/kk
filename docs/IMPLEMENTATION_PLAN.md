@@ -1885,3 +1885,35 @@ minden modul lint-jelentése üres. Eszközös, tényleges nyelvváltásos UI-el
 a `docs/backlog/`-ban nincs több `/dev`-del indítható feladat (T-709/T-710
 szándékosan blokkolt, OQ-05/OQ-06).
 
+
+
+## 2026-11-16 – E11 könyv alapú tudástár: backlog felvéve
+
+A felhasználó kérésére **18 fejlesztési jegy (T-713…T-730)** került a
+`docs/backlog/` mappába. A [BACKLOG.md E11](BACKLOG.md#e11--a-konyv-alapu-tudastar-bovitese)
+rögzíti a 6 user story-t (US-30…US-35), a KB-01…KB-12 követelményeket,
+a közös hatókört és a függőségeket.
+
+**Állapot: mind nyitott, implementáció nem történt.** Következő indítható új jegy:
+T-713 (séma, példarekordok, követelmények és migrációs szerződés).
+A bővítés a KnowledgeEntry/domain/import/migráció alapokra építve vezeti be az
+olvasófelületet, verziózott vizsgakövetelményeket, tudás-/helyzetkvízeket,
+tanulási célonkénti haladást és a könyv nyomon követett feldolgozását.
+A korábbi hangos kiejtéses T-709/T-710 nem került ebbe a szállítási körbe.
+
+A backlogíráskor csak dokumentációs hivatkozás-, azonosító- és függőségi ellenőrzés
+szükséges; alkalmazásbuild és Android-teszt nem futott, mert kód/adatcsomag nem változott.
+
+
+### 2026-11-16 – Könyv–Kyo lektorálási szabály pontosítása
+
+A felhasználó döntése átvezetve az E11 közös szabályaiba és az érintett T-713…T-730
+jegyekbe: egyező információhoz nem kell új lektorálás; kisebb eltérésnél a könyv az
+irányadó; lényegi ellentmondás célzott lektorálást igényel. Részletes döntési mátrix:
+[BOOK_CONTENT_POLICY.md](BOOK_CONTENT_POLICY.md).
+
+Az összevetés a feldolgozás előtti Kyo-verzióhoz kötött és állításszintű; az elfogadás
+jogcíme különül el a szakértői lektorálástól. Az előzmény nélküli új információ
+`new_content` besorolású, nem automatikus egyezés vagy konfliktus. A kérdések szerkesztési
+ellenőrzése megmarad, az elfogadott háttértény újralektorálása nem szükséges.
+Alkalmazáskód, tartalom és státuszok ebben a dokumentációs körben nem változtak.
